@@ -1,38 +1,43 @@
-import 'models/inventory_item.dart';
-import 'features/finance/finance_screen.dart';
-import 'models/transaction.dart';
-import 'features/orders/orders_screen.dart';
-import 'models/order.dart';
-import 'features/crm/crm_screen.dart';
-import 'features/inventory/inventory_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart'; // <-- New import
-import 'package:isar/isar.dart'; // <-- New import
+import 'package:path_provider/path_provider.dart';
+import 'package:isar/isar.dart';
 import 'core/theme/app_theme.dart';
-import 'models/client.dart'; // <-- New import
+import 'features/dashboard/dashboard_screen.dart';
+
+// 1. UPDATED IMPORTS: Pointing to the new Domain Models
+import 'domain/models/client.dart';
+import 'domain/models/order.dart';
+import 'domain/models/order_line_item.dart';
+import 'domain/models/inventory_item.dart';
+import 'domain/models/stock_movement.dart';
+import 'domain/models/transaction.dart';
+
+// 2. FEATURE IMPORTS
+import 'features/crm/crm_screen.dart';
+import 'features/inventory/inventory_screen.dart';
+import 'features/orders/orders_screen.dart';
+import 'features/finance/finance_screen.dart';
 
 late Isar isar;
 
 void main() async {
-  // Ensure Flutter engine is ready
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Find the safe folder on your phone to store the database
   final dir = await getApplicationDocumentsDirectory();
 
-  // Turn on the Isar Database and tell it about our Client blueprint
+  // 3. REGISTER ALL 6 SCHEMAS
   isar = await Isar.open(
     [
       ClientSchema,
-      InventoryItemSchema,
       OrderSchema,
+      OrderLineItemSchema, // NEW
+      InventoryItemSchema,
+      StockMovementSchema, // NEW
       TransactionSchema
-    ], // Add schemas here as we build them (Orders, Inventory, etc.)
+    ],
     directory: dir.path,
   );
 
-  // Run the app
   runApp(const ProviderScope(child: SoloBusinessApp()));
 }
 
@@ -45,7 +50,7 @@ class SoloBusinessApp extends StatelessWidget {
       title: 'Solo CRM & ERP',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const MainNavigationShell(), // Brings back the nav bar!
+      home: const MainNavigationShell(),
     );
   }
 }
@@ -58,16 +63,13 @@ class MainNavigationShell extends StatefulWidget {
 }
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
-  int _currentIndex = 1; // Default to CRM tab for now
+  int _currentIndex = 1;
 
-  // We are slowly replacing these placeholders with our real database screens!
   final List<Widget> _pages = [
-    const Center(
-        child: Text('Dashboard Placeholder',
-            style: TextStyle(color: AppTheme.textPrimary))),
-    const CRMScreen(), // <-- Real CRM Database Screen
+    const DashboardScreen(),
+    const CRMScreen(),
     const OrdersScreen(),
-    const InventoryScreen(), // <-- Real Inventory Database Screen
+    const InventoryScreen(),
     const FinanceScreen(),
   ];
 
@@ -78,6 +80,10 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed, // Keeps icons visible
+        backgroundColor: AppTheme.surfaceDark,
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),
