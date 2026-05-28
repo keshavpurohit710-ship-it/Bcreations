@@ -1,0 +1,42 @@
+name: business_crm
+description: A comprehensive CRM and ERP tool for a solo operator managing wholesale, retail, and production.
+publish_to: 'none' # Prevents accidental publishing to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & Defaults
+  cupertino_icons: ^1.0.6
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+  
+  # Local Offline Database
+  isar: ^3.1.0
+  isar_flutter_libs: ^3.1.0
+  
+  # Utilities
+  path_provider: ^2.1.2     # Required by Isar to find the device's document folder
+  intl: ^0.19.0             # Required for formatting Rupees (₹) and dates
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0     # Standard code linting rules
+
+  # Code Generation Tools (Required for Isar Database)
+  build_runner: ^2.4.9
+  isar_generator: ^3.1.0
+
+flutter:
+  uses-material-design: true
+
+  # If you add custom fonts later or a barcode scanner beep sound, 
+  # you will declare the assets/fonts down here:
+  # assets:
+  #   - assets/images/
