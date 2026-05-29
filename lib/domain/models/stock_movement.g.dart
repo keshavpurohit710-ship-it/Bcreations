@@ -37,9 +37,19 @@ const StockMovementSchema = CollectionSchema(
       name: r'reason',
       type: IsarType.string,
     ),
-    r'relatedOrderId': PropertySchema(
+    r'totalCost': PropertySchema(
       id: 4,
-      name: r'relatedOrderId',
+      name: r'totalCost',
+      type: IsarType.double,
+    ),
+    r'unitCost': PropertySchema(
+      id: 5,
+      name: r'unitCost',
+      type: IsarType.double,
+    ),
+    r'vendorId': PropertySchema(
+      id: 6,
+      name: r'vendorId',
       type: IsarType.long,
     )
   },
@@ -62,14 +72,14 @@ const StockMovementSchema = CollectionSchema(
         )
       ],
     ),
-    r'relatedOrderId': IndexSchema(
-      id: -939060893144861339,
-      name: r'relatedOrderId',
+    r'vendorId': IndexSchema(
+      id: -4437098950868530640,
+      name: r'vendorId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'relatedOrderId',
+          name: r'vendorId',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -109,7 +119,9 @@ void _stockMovementSerialize(
   writer.writeLong(offsets[1], object.inventoryItemId);
   writer.writeLong(offsets[2], object.quantityChange);
   writer.writeString(offsets[3], object.reason);
-  writer.writeLong(offsets[4], object.relatedOrderId);
+  writer.writeDouble(offsets[4], object.totalCost);
+  writer.writeDouble(offsets[5], object.unitCost);
+  writer.writeLong(offsets[6], object.vendorId);
 }
 
 StockMovement _stockMovementDeserialize(
@@ -124,7 +136,9 @@ StockMovement _stockMovementDeserialize(
   object.inventoryItemId = reader.readLongOrNull(offsets[1]);
   object.quantityChange = reader.readLong(offsets[2]);
   object.reason = reader.readStringOrNull(offsets[3]);
-  object.relatedOrderId = reader.readLongOrNull(offsets[4]);
+  object.totalCost = reader.readDoubleOrNull(offsets[4]);
+  object.unitCost = reader.readDoubleOrNull(offsets[5]);
+  object.vendorId = reader.readLongOrNull(offsets[6]);
   return object;
 }
 
@@ -144,6 +158,10 @@ P _stockMovementDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 5:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 6:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -179,10 +197,10 @@ extension StockMovementQueryWhereSort
     });
   }
 
-  QueryBuilder<StockMovement, StockMovement, QAfterWhere> anyRelatedOrderId() {
+  QueryBuilder<StockMovement, StockMovement, QAfterWhere> anyVendorId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'relatedOrderId'),
+        const IndexWhereClause.any(indexName: r'vendorId'),
       );
     });
   }
@@ -375,20 +393,20 @@ extension StockMovementQueryWhere
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdIsNull() {
+      vendorIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'relatedOrderId',
+        indexName: r'vendorId',
         value: [null],
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdIsNotNull() {
+      vendorIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'relatedOrderId',
+        indexName: r'vendorId',
         lower: [null],
         includeLower: false,
         upper: [],
@@ -396,45 +414,45 @@ extension StockMovementQueryWhere
     });
   }
 
-  QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdEqualTo(int? relatedOrderId) {
+  QueryBuilder<StockMovement, StockMovement, QAfterWhereClause> vendorIdEqualTo(
+      int? vendorId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'relatedOrderId',
-        value: [relatedOrderId],
+        indexName: r'vendorId',
+        value: [vendorId],
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdNotEqualTo(int? relatedOrderId) {
+      vendorIdNotEqualTo(int? vendorId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'relatedOrderId',
+              indexName: r'vendorId',
               lower: [],
-              upper: [relatedOrderId],
+              upper: [vendorId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'relatedOrderId',
-              lower: [relatedOrderId],
+              indexName: r'vendorId',
+              lower: [vendorId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'relatedOrderId',
-              lower: [relatedOrderId],
+              indexName: r'vendorId',
+              lower: [vendorId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'relatedOrderId',
+              indexName: r'vendorId',
               lower: [],
-              upper: [relatedOrderId],
+              upper: [vendorId],
               includeUpper: false,
             ));
       }
@@ -442,14 +460,14 @@ extension StockMovementQueryWhere
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdGreaterThan(
-    int? relatedOrderId, {
+      vendorIdGreaterThan(
+    int? vendorId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'relatedOrderId',
-        lower: [relatedOrderId],
+        indexName: r'vendorId',
+        lower: [vendorId],
         includeLower: include,
         upper: [],
       ));
@@ -457,33 +475,32 @@ extension StockMovementQueryWhere
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdLessThan(
-    int? relatedOrderId, {
+      vendorIdLessThan(
+    int? vendorId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'relatedOrderId',
+        indexName: r'vendorId',
         lower: [],
-        upper: [relatedOrderId],
+        upper: [vendorId],
         includeUpper: include,
       ));
     });
   }
 
-  QueryBuilder<StockMovement, StockMovement, QAfterWhereClause>
-      relatedOrderIdBetween(
-    int? lowerRelatedOrderId,
-    int? upperRelatedOrderId, {
+  QueryBuilder<StockMovement, StockMovement, QAfterWhereClause> vendorIdBetween(
+    int? lowerVendorId,
+    int? upperVendorId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'relatedOrderId',
-        lower: [lowerRelatedOrderId],
+        indexName: r'vendorId',
+        lower: [lowerVendorId],
         includeLower: includeLower,
-        upper: [upperRelatedOrderId],
+        upper: [upperVendorId],
         includeUpper: includeUpper,
       ));
     });
@@ -904,63 +921,231 @@ extension StockMovementQueryFilter
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
-      relatedOrderIdIsNull() {
+      totalCostIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'relatedOrderId',
+        property: r'totalCost',
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
-      relatedOrderIdIsNotNull() {
+      totalCostIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'relatedOrderId',
+        property: r'totalCost',
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
-      relatedOrderIdEqualTo(int? value) {
+      totalCostEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'relatedOrderId',
+        property: r'totalCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      totalCostGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      totalCostLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      totalCostBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalCost',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      unitCostIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'unitCost',
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      unitCostIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'unitCost',
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      unitCostEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'unitCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      unitCostGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'unitCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      unitCostLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'unitCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      unitCostBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'unitCost',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      vendorIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'vendorId',
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      vendorIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'vendorId',
+      ));
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
+      vendorIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'vendorId',
         value: value,
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
-      relatedOrderIdGreaterThan(
+      vendorIdGreaterThan(
     int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'relatedOrderId',
+        property: r'vendorId',
         value: value,
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
-      relatedOrderIdLessThan(
+      vendorIdLessThan(
     int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'relatedOrderId',
+        property: r'vendorId',
         value: value,
       ));
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterFilterCondition>
-      relatedOrderIdBetween(
+      vendorIdBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
@@ -968,7 +1153,7 @@ extension StockMovementQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'relatedOrderId',
+        property: r'vendorId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1038,17 +1223,42 @@ extension StockMovementQuerySortBy
     });
   }
 
-  QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
-      sortByRelatedOrderId() {
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy> sortByTotalCost() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'relatedOrderId', Sort.asc);
+      return query.addSortBy(r'totalCost', Sort.asc);
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
-      sortByRelatedOrderIdDesc() {
+      sortByTotalCostDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'relatedOrderId', Sort.desc);
+      return query.addSortBy(r'totalCost', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy> sortByUnitCost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unitCost', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
+      sortByUnitCostDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unitCost', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy> sortByVendorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'vendorId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
+      sortByVendorIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'vendorId', Sort.desc);
     });
   }
 }
@@ -1119,17 +1329,42 @@ extension StockMovementQuerySortThenBy
     });
   }
 
-  QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
-      thenByRelatedOrderId() {
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy> thenByTotalCost() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'relatedOrderId', Sort.asc);
+      return query.addSortBy(r'totalCost', Sort.asc);
     });
   }
 
   QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
-      thenByRelatedOrderIdDesc() {
+      thenByTotalCostDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'relatedOrderId', Sort.desc);
+      return query.addSortBy(r'totalCost', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy> thenByUnitCost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unitCost', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
+      thenByUnitCostDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unitCost', Sort.desc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy> thenByVendorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'vendorId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QAfterSortBy>
+      thenByVendorIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'vendorId', Sort.desc);
     });
   }
 }
@@ -1163,10 +1398,21 @@ extension StockMovementQueryWhereDistinct
     });
   }
 
-  QueryBuilder<StockMovement, StockMovement, QDistinct>
-      distinctByRelatedOrderId() {
+  QueryBuilder<StockMovement, StockMovement, QDistinct> distinctByTotalCost() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'relatedOrderId');
+      return query.addDistinctBy(r'totalCost');
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QDistinct> distinctByUnitCost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'unitCost');
+    });
+  }
+
+  QueryBuilder<StockMovement, StockMovement, QDistinct> distinctByVendorId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'vendorId');
     });
   }
 }
@@ -1204,9 +1450,21 @@ extension StockMovementQueryProperty
     });
   }
 
-  QueryBuilder<StockMovement, int?, QQueryOperations> relatedOrderIdProperty() {
+  QueryBuilder<StockMovement, double?, QQueryOperations> totalCostProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'relatedOrderId');
+      return query.addPropertyName(r'totalCost');
+    });
+  }
+
+  QueryBuilder<StockMovement, double?, QQueryOperations> unitCostProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'unitCost');
+    });
+  }
+
+  QueryBuilder<StockMovement, int?, QQueryOperations> vendorIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'vendorId');
     });
   }
 }

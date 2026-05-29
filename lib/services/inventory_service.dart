@@ -1,12 +1,13 @@
 import 'package:isar/isar.dart';
 import '../domain/models/stock_movement.dart';
-import '../domain/models/inventory_item.dart'; // <-- New import needed for the item model
+import '../domain/models/inventory_item.dart';
+import '../domain/models/transaction.dart';
+import '../domain/models/order_line_item.dart';
 
 class InventoryService {
   final Isar _isar;
   InventoryService(this._isar);
 
-  /// DERIVED DATA: Calculates exactly how much stock we have right now
   Future<int> getCurrentStock(int itemId) async {
     final movements = await _isar.stockMovements
         .filter()
@@ -17,36 +18,52 @@ class InventoryService {
     for (final movement in movements) {
       totalStock += movement.quantityChange;
     }
-
     return totalStock;
   }
 
-  /// ACTION: Safely adds a stock movement record
-  Future<void> adjustStock(
-      int itemId, int quantityChange, String reason) async {
+  Future<void> adjustStock(int itemId, int quantityChange, String reason,
+      {double? totalCost, int? vendorId}) async {
+    double? calculatedUnitCost;
+    if (quantityChange > 0 && totalCost != null && totalCost > 0) {
+      calculatedUnitCost = totalCost / quantityChange;
+    }
+
     final movement = StockMovement()
       ..inventoryItemId = itemId
+      ..vendorId = vendorId
       ..quantityChange = quantityChange
       ..reason = reason
-      ..date = DateTime.now();
+      ..date = DateTime.now()
+      ..totalCost = totalCost
+      ..unitCost = calculatedUnitCost;
 
     await _isar.writeTxn(() async {
       await _isar.stockMovements.put(movement);
+
+      if (quantityChange > 0 && totalCost != null && totalCost > 0) {
+        final tx = Transaction()
+          ..clientId = vendorId
+          ..amount = totalCost
+          ..type = 'Expense'
+          ..paymentMethod = 'Inventory Purchase ($reason)'
+          ..date = DateTime.now();
+        await _isar.transactions.put(tx);
+      }
     });
   }
 
-  /// ACTION: Add a new Master Item (with SKU duplication guard)
   Future<void> addItem({
     required String name,
     required String category,
     required String sku,
     required String unit,
+    required String itemType,
+    required int minStockLevel,
+    required double costPrice,
   }) async {
-    // 1. THE DUPLICATION GUARD: Check if the SKU already exists
     final existingItem = await _isar.inventoryItems
         .filter()
-        .skuEqualTo(sku,
-            caseSensitive: false) // 'stl-001' is the same as 'STL-001'
+        .skuEqualTo(sku, caseSensitive: false)
         .findFirst();
 
     if (existingItem != null) {
@@ -54,16 +71,41 @@ class InventoryService {
           'An item with the SKU "$sku" already exists in the warehouse.');
     }
 
-    // 2. If it is unique, create the record
     final newItem = InventoryItem()
       ..name = name
       ..category = category
-      ..sku = sku.toUpperCase() // Force uppercase for clean, consistent data
-      ..unit = unit;
+      ..sku = sku.toUpperCase()
+      ..unit = unit
+      ..itemType = itemType
+      ..minStockLevel = minStockLevel
+      ..costPrice = costPrice;
 
-    // 3. Save to Database
     await _isar.writeTxn(() async {
       await _isar.inventoryItems.put(newItem);
     });
+  }
+
+  Future<void> updateItem(InventoryItem item) async {
+    await _isar.writeTxn(() async {
+      await _isar.inventoryItems.put(item);
+    });
+  }
+
+  Future<void> deleteItem(int itemId) async {
+    final hasMovements = await _isar.stockMovements
+        .filter()
+        .inventoryItemIdEqualTo(itemId)
+        .isNotEmpty();
+    final hasOrders = await _isar.orderLineItems
+        .filter()
+        .inventoryItemIdEqualTo(itemId)
+        .isNotEmpty();
+
+    if (hasMovements || hasOrders) {
+      throw Exception(
+          'Cannot delete this item. It has historical stock movements or is attached to an order. Please edit the item instead.');
+    }
+
+    await _isar.writeTxn(() async => await _isar.inventoryItems.delete(itemId));
   }
 }

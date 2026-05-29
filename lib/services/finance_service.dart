@@ -7,53 +7,59 @@ class FinanceService {
   final Isar _isar;
   FinanceService(this._isar);
 
-  /// DERIVED DATA: Calculate Outstanding Balance for a Client
+  /// DERIVED DATA: Calculates exactly what a client owes right now
   Future<double> getClientOutstandingBalance(int clientId) async {
-    // 1. Calculate total billed (Completed Orders only)
-    final completedOrders = await _isar.orders
+    final deliveredOrders = await _isar.orders
         .filter()
         .clientIdEqualTo(clientId)
-        .statusEqualTo('Completed')
+        .statusEqualTo('Delivered')
         .findAll();
 
-    double totalBilled = 0;
-    for (final order in completedOrders) {
-      final lineItems = await _isar.orderLineItems
+    double totalBilled = 0.0;
+
+    // THE FIX: Check if they have orders to avoid empty queries
+    if (deliveredOrders.isNotEmpty) {
+      // 1. Extract all order IDs into a simple list
+      final orderIds = deliveredOrders.map((o) => o.id).toList();
+
+      // 2. Perform ONE batch query for all line items matching those IDs
+      final allItems = await _isar.orderLineItems
           .filter()
-          .orderIdEqualTo(order.id)
+          .anyOf(orderIds, (q, id) => q.orderIdEqualTo(id))
           .findAll();
 
-      for (final item in lineItems) {
-        totalBilled += (item.pricePerUnit * item.quantity);
+      // 3. Do the math in RAM
+      for (final item in allItems) {
+        totalBilled += (item.quantity * item.pricePerUnit);
       }
     }
 
-    // 2. Calculate total paid
+    // Sum all payments made by this client
     final payments = await _isar.transactions
         .filter()
         .clientIdEqualTo(clientId)
         .typeEqualTo('Income')
         .findAll();
 
-    double totalPaid = payments.fold(0.0, (sum, tx) => sum + tx.amount);
+    double totalPaid = 0.0;
+    for (final payment in payments) {
+      totalPaid += payment.amount;
+    }
 
-    // 3. Balance = Billed - Paid
     return totalBilled - totalPaid;
   }
 
-  /// ACTION: Record a client payment safely
-  Future<void> recordPayment(int clientId, double amount, String method,
-      {int? orderId}) async {
-    final transaction = Transaction()
+  /// ACTION: Safely record a new payment
+  Future<void> recordPayment(int clientId, double amount, String method) async {
+    final tx = Transaction()
       ..clientId = clientId
       ..amount = amount
       ..type = 'Income'
       ..paymentMethod = method
-      ..date = DateTime.now()
-      ..relatedOrderId = orderId;
+      ..date = DateTime.now();
 
     await _isar.writeTxn(() async {
-      await _isar.transactions.put(transaction);
+      await _isar.transactions.put(tx);
     });
   }
 }

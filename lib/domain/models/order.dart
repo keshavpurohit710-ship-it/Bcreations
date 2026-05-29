@@ -5,15 +5,19 @@ part 'order.g.dart';
 class Order {
   Id id = Isar.autoIncrement;
 
-  // This hard-links the order directly to the CRM
   @Index()
   int? clientId;
 
-  DateTime? date;
-  DateTime? expectedCompletionDate;
-
+  // Pipeline Statuses: 'Draft' -> 'Confirmed' -> 'Dispatched' -> 'Delivered' -> 'Paid' -> 'Cancelled'
   @Index()
-  String status = 'Draft'; // 'Draft', 'Active', 'Completed', 'Cancelled'
+  String? status;
 
+  DateTime? date; // When the order was initially created
   String? notes;
+
+  // --- NEW: Pipeline Timestamps ---
+  DateTime? confirmedAt;
+  DateTime? dispatchedAt;
+  DateTime? deliveredAt;
+  DateTime? paidAt;
 }

@@ -5,12 +5,18 @@ part 'inventory_item.g.dart';
 class InventoryItem {
   Id id = Isar.autoIncrement;
 
-  @Index(caseSensitive: false)
-  String? name;
-
   @Index()
-  String? category;
+  String? sku;
 
-  String? sku; // <-- This is the line your app is looking for!
-  String? unit; // e.g., 'kg', 'pcs', 'm'
+  String? name;
+  String? category; // e.g., "Wood", "Metal", "Packaging" (Flexible sub-group)
+  String? unit;
+
+  // --- NEW FIELDS ---
+  @Index()
+  String? itemType; // Strict Classification: 'RawMaterial' or 'FinishedGood'
+
+  int minStockLevel = 5; // Dynamic threshold for alerts
+
+  double costPrice = 0.0; // Baseline cost for valuation
 }

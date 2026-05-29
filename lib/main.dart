@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:isar/isar.dart';
-import 'core/theme/app_theme.dart';
-import 'features/dashboard/dashboard_screen.dart';
 
-// 1. UPDATED IMPORTS: Pointing to the new Domain Models
+import 'core/theme/app_theme.dart';
+// --- FIX 1: Added the missing provider import ---
+import 'core/providers/core_providers.dart';
+
+import 'features/dashboard/dashboard_screen.dart';
+import 'features/crm/crm_screen.dart';
+import 'features/inventory/inventory_screen.dart';
+import 'features/orders/orders_screen.dart';
+import 'features/finance/finance_screen.dart';
+
 import 'domain/models/client.dart';
 import 'domain/models/order.dart';
 import 'domain/models/order_line_item.dart';
@@ -13,32 +20,33 @@ import 'domain/models/inventory_item.dart';
 import 'domain/models/stock_movement.dart';
 import 'domain/models/transaction.dart';
 
-// 2. FEATURE IMPORTS
-import 'features/crm/crm_screen.dart';
-import 'features/inventory/inventory_screen.dart';
-import 'features/orders/orders_screen.dart';
-import 'features/finance/finance_screen.dart';
-
-late Isar isar;
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final dir = await getApplicationDocumentsDirectory();
 
-  // 3. REGISTER ALL 6 SCHEMAS
-  isar = await Isar.open(
+  // 1. Initialize Isar completely locally inside this function
+  final dir = await getApplicationDocumentsDirectory();
+  final isarInstance = await Isar.open(
     [
       ClientSchema,
-      OrderSchema,
-      OrderLineItemSchema, // NEW
       InventoryItemSchema,
-      StockMovementSchema, // NEW
-      TransactionSchema
+      OrderSchema,
+      OrderLineItemSchema,
+      StockMovementSchema,
+      TransactionSchema,
     ],
     directory: dir.path,
   );
 
-  runApp(const ProviderScope(child: SoloBusinessApp()));
+  // 2. Inject it safely into the Provider tree using 'overrides'
+  runApp(
+    ProviderScope(
+      overrides: [
+        isarProvider.overrideWithValue(isarInstance),
+      ],
+      // --- FIX 2: Changed MyApp() to SoloBusinessApp() ---
+      child: const SoloBusinessApp(),
+    ),
+  );
 }
 
 class SoloBusinessApp extends StatelessWidget {
@@ -63,7 +71,7 @@ class MainNavigationShell extends StatefulWidget {
 }
 
 class _MainNavigationShellState extends State<MainNavigationShell> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
 
   final List<Widget> _pages = [
     const DashboardScreen(),

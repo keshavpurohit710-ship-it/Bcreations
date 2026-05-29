@@ -22,23 +22,38 @@ const OrderSchema = CollectionSchema(
       name: r'clientId',
       type: IsarType.long,
     ),
-    r'date': PropertySchema(
+    r'confirmedAt': PropertySchema(
       id: 1,
+      name: r'confirmedAt',
+      type: IsarType.dateTime,
+    ),
+    r'date': PropertySchema(
+      id: 2,
       name: r'date',
       type: IsarType.dateTime,
     ),
-    r'expectedCompletionDate': PropertySchema(
-      id: 2,
-      name: r'expectedCompletionDate',
+    r'deliveredAt': PropertySchema(
+      id: 3,
+      name: r'deliveredAt',
+      type: IsarType.dateTime,
+    ),
+    r'dispatchedAt': PropertySchema(
+      id: 4,
+      name: r'dispatchedAt',
       type: IsarType.dateTime,
     ),
     r'notes': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'notes',
       type: IsarType.string,
     ),
+    r'paidAt': PropertySchema(
+      id: 6,
+      name: r'paidAt',
+      type: IsarType.dateTime,
+    ),
     r'status': PropertySchema(
-      id: 4,
+      id: 7,
       name: r'status',
       type: IsarType.string,
     )
@@ -96,7 +111,12 @@ int _orderEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.status.length * 3;
+  {
+    final value = object.status;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -107,10 +127,13 @@ void _orderSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.clientId);
-  writer.writeDateTime(offsets[1], object.date);
-  writer.writeDateTime(offsets[2], object.expectedCompletionDate);
-  writer.writeString(offsets[3], object.notes);
-  writer.writeString(offsets[4], object.status);
+  writer.writeDateTime(offsets[1], object.confirmedAt);
+  writer.writeDateTime(offsets[2], object.date);
+  writer.writeDateTime(offsets[3], object.deliveredAt);
+  writer.writeDateTime(offsets[4], object.dispatchedAt);
+  writer.writeString(offsets[5], object.notes);
+  writer.writeDateTime(offsets[6], object.paidAt);
+  writer.writeString(offsets[7], object.status);
 }
 
 Order _orderDeserialize(
@@ -121,11 +144,14 @@ Order _orderDeserialize(
 ) {
   final object = Order();
   object.clientId = reader.readLongOrNull(offsets[0]);
-  object.date = reader.readDateTimeOrNull(offsets[1]);
-  object.expectedCompletionDate = reader.readDateTimeOrNull(offsets[2]);
+  object.confirmedAt = reader.readDateTimeOrNull(offsets[1]);
+  object.date = reader.readDateTimeOrNull(offsets[2]);
+  object.deliveredAt = reader.readDateTimeOrNull(offsets[3]);
+  object.dispatchedAt = reader.readDateTimeOrNull(offsets[4]);
   object.id = id;
-  object.notes = reader.readStringOrNull(offsets[3]);
-  object.status = reader.readString(offsets[4]);
+  object.notes = reader.readStringOrNull(offsets[5]);
+  object.paidAt = reader.readDateTimeOrNull(offsets[6]);
+  object.status = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -143,9 +169,15 @@ P _orderDeserializeProp<P>(
     case 2:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -354,7 +386,27 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> statusEqualTo(String status) {
+  QueryBuilder<Order, Order, QAfterWhereClause> statusIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'status',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'status',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusEqualTo(String? status) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'status',
@@ -364,7 +416,7 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
   }
 
   QueryBuilder<Order, Order, QAfterWhereClause> statusNotEqualTo(
-      String status) {
+      String? status) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -469,6 +521,75 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> confirmedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'confirmedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> confirmedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'confirmedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> confirmedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'confirmedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> confirmedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'confirmedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> confirmedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'confirmedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> confirmedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'confirmedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> dateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -538,64 +659,59 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      expectedCompletionDateIsNull() {
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveredAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'expectedCompletionDate',
+        property: r'deliveredAt',
       ));
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      expectedCompletionDateIsNotNull() {
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveredAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'expectedCompletionDate',
+        property: r'deliveredAt',
       ));
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      expectedCompletionDateEqualTo(DateTime? value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveredAtEqualTo(
+      DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'expectedCompletionDate',
+        property: r'deliveredAt',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      expectedCompletionDateGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveredAtGreaterThan(
     DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'expectedCompletionDate',
+        property: r'deliveredAt',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      expectedCompletionDateLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveredAtLessThan(
     DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'expectedCompletionDate',
+        property: r'deliveredAt',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      expectedCompletionDateBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveredAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -603,7 +719,76 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'expectedCompletionDate',
+        property: r'deliveredAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'dispatchedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'dispatchedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dispatchedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dispatchedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dispatchedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dispatchedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -808,8 +993,93 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> paidAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'paidAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> paidAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'paidAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> paidAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'paidAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> paidAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'paidAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> paidAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'paidAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> paidAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'paidAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'status',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'status',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> statusEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -822,7 +1092,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> statusGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -837,7 +1107,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> statusLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -852,8 +1122,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> statusBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -955,6 +1225,18 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> sortByConfirmedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'confirmedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByConfirmedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'confirmedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> sortByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -967,15 +1249,27 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterSortBy> sortByExpectedCompletionDate() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDeliveredAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'expectedCompletionDate', Sort.asc);
+      return query.addSortBy(r'deliveredAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Order, Order, QAfterSortBy> sortByExpectedCompletionDateDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDeliveredAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'expectedCompletionDate', Sort.desc);
+      return query.addSortBy(r'deliveredAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDispatchedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dispatchedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDispatchedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dispatchedAt', Sort.desc);
     });
   }
 
@@ -988,6 +1282,18 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
   QueryBuilder<Order, Order, QAfterSortBy> sortByNotesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByPaidAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paidAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByPaidAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paidAt', Sort.desc);
     });
   }
 
@@ -1017,6 +1323,18 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> thenByConfirmedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'confirmedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByConfirmedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'confirmedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
@@ -1029,15 +1347,27 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterSortBy> thenByExpectedCompletionDate() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDeliveredAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'expectedCompletionDate', Sort.asc);
+      return query.addSortBy(r'deliveredAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Order, Order, QAfterSortBy> thenByExpectedCompletionDateDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDeliveredAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'expectedCompletionDate', Sort.desc);
+      return query.addSortBy(r'deliveredAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDispatchedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dispatchedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDispatchedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dispatchedAt', Sort.desc);
     });
   }
 
@@ -1065,6 +1395,18 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> thenByPaidAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paidAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByPaidAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'paidAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -1085,15 +1427,27 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
     });
   }
 
+  QueryBuilder<Order, Order, QDistinct> distinctByConfirmedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'confirmedAt');
+    });
+  }
+
   QueryBuilder<Order, Order, QDistinct> distinctByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'date');
     });
   }
 
-  QueryBuilder<Order, Order, QDistinct> distinctByExpectedCompletionDate() {
+  QueryBuilder<Order, Order, QDistinct> distinctByDeliveredAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'expectedCompletionDate');
+      return query.addDistinctBy(r'deliveredAt');
+    });
+  }
+
+  QueryBuilder<Order, Order, QDistinct> distinctByDispatchedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dispatchedAt');
     });
   }
 
@@ -1101,6 +1455,12 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'notes', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Order, Order, QDistinct> distinctByPaidAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'paidAt');
     });
   }
 
@@ -1125,16 +1485,27 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Order, DateTime?, QQueryOperations> confirmedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'confirmedAt');
+    });
+  }
+
   QueryBuilder<Order, DateTime?, QQueryOperations> dateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'date');
     });
   }
 
-  QueryBuilder<Order, DateTime?, QQueryOperations>
-      expectedCompletionDateProperty() {
+  QueryBuilder<Order, DateTime?, QQueryOperations> deliveredAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'expectedCompletionDate');
+      return query.addPropertyName(r'deliveredAt');
+    });
+  }
+
+  QueryBuilder<Order, DateTime?, QQueryOperations> dispatchedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dispatchedAt');
     });
   }
 
@@ -1144,7 +1515,13 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Order, String, QQueryOperations> statusProperty() {
+  QueryBuilder<Order, DateTime?, QQueryOperations> paidAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'paidAt');
+    });
+  }
+
+  QueryBuilder<Order, String?, QQueryOperations> statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'status');
     });

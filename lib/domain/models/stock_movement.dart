@@ -8,12 +8,14 @@ class StockMovement {
   @Index()
   int? inventoryItemId;
 
+  // --- NEW: Link to the Supplier (Client where type = 'Vendor') ---
   @Index()
-  int? relatedOrderId; // If this stock moved because of a specific order
+  int? vendorId;
 
-  int quantityChange =
-      0; // Positive (+) for restock/purchase, Negative (-) for sale/use
-
-  String? reason; // e.g., 'Restock', 'Order Fulfillment', 'Damage'
+  int quantityChange = 0;
+  String? reason;
   DateTime? date;
+
+  double? totalCost;
+  double? unitCost;
 }

@@ -13,6 +13,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // THE FIX: Kotlin requires 'is' in front of the flag
+        isCoreLibraryDesugaringEnabled = true 
     }
 
     kotlinOptions {
@@ -41,4 +43,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // THE FIX: Kotlin requires double quotes and parentheses
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
