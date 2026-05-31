@@ -37,23 +37,28 @@ const OrderSchema = CollectionSchema(
       name: r'deliveredAt',
       type: IsarType.dateTime,
     ),
-    r'dispatchedAt': PropertySchema(
+    r'deliveryCost': PropertySchema(
       id: 4,
+      name: r'deliveryCost',
+      type: IsarType.double,
+    ),
+    r'dispatchedAt': PropertySchema(
+      id: 5,
       name: r'dispatchedAt',
       type: IsarType.dateTime,
     ),
     r'notes': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'notes',
       type: IsarType.string,
     ),
     r'paidAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'paidAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'status',
       type: IsarType.string,
     )
@@ -130,10 +135,11 @@ void _orderSerialize(
   writer.writeDateTime(offsets[1], object.confirmedAt);
   writer.writeDateTime(offsets[2], object.date);
   writer.writeDateTime(offsets[3], object.deliveredAt);
-  writer.writeDateTime(offsets[4], object.dispatchedAt);
-  writer.writeString(offsets[5], object.notes);
-  writer.writeDateTime(offsets[6], object.paidAt);
-  writer.writeString(offsets[7], object.status);
+  writer.writeDouble(offsets[4], object.deliveryCost);
+  writer.writeDateTime(offsets[5], object.dispatchedAt);
+  writer.writeString(offsets[6], object.notes);
+  writer.writeDateTime(offsets[7], object.paidAt);
+  writer.writeString(offsets[8], object.status);
 }
 
 Order _orderDeserialize(
@@ -147,11 +153,12 @@ Order _orderDeserialize(
   object.confirmedAt = reader.readDateTimeOrNull(offsets[1]);
   object.date = reader.readDateTimeOrNull(offsets[2]);
   object.deliveredAt = reader.readDateTimeOrNull(offsets[3]);
-  object.dispatchedAt = reader.readDateTimeOrNull(offsets[4]);
+  object.deliveryCost = reader.readDouble(offsets[4]);
+  object.dispatchedAt = reader.readDateTimeOrNull(offsets[5]);
   object.id = id;
-  object.notes = reader.readStringOrNull(offsets[5]);
-  object.paidAt = reader.readDateTimeOrNull(offsets[6]);
-  object.status = reader.readStringOrNull(offsets[7]);
+  object.notes = reader.readStringOrNull(offsets[6]);
+  object.paidAt = reader.readDateTimeOrNull(offsets[7]);
+  object.status = reader.readStringOrNull(offsets[8]);
   return object;
 }
 
@@ -171,12 +178,14 @@ P _orderDeserializeProp<P>(
     case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
-    case 6:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 8:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -728,6 +737,68 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveryCostEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deliveryCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveryCostGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deliveryCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveryCostLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deliveryCost',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> deliveryCostBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deliveryCost',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> dispatchedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1261,6 +1332,18 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDeliveryCost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deliveryCost', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDeliveryCostDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deliveryCost', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> sortByDispatchedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dispatchedAt', Sort.asc);
@@ -1359,6 +1442,18 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDeliveryCost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deliveryCost', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDeliveryCostDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deliveryCost', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByDispatchedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dispatchedAt', Sort.asc);
@@ -1445,6 +1540,12 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
     });
   }
 
+  QueryBuilder<Order, Order, QDistinct> distinctByDeliveryCost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deliveryCost');
+    });
+  }
+
   QueryBuilder<Order, Order, QDistinct> distinctByDispatchedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'dispatchedAt');
@@ -1500,6 +1601,12 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
   QueryBuilder<Order, DateTime?, QQueryOperations> deliveredAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deliveredAt');
+    });
+  }
+
+  QueryBuilder<Order, double, QQueryOperations> deliveryCostProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deliveryCost');
     });
   }
 

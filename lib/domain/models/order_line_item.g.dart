@@ -36,6 +36,11 @@ const OrderLineItemSchema = CollectionSchema(
       id: 3,
       name: r'quantity',
       type: IsarType.long,
+    ),
+    r'unit': PropertySchema(
+      id: 4,
+      name: r'unit',
+      type: IsarType.string,
     )
   },
   estimateSize: _orderLineItemEstimateSize,
@@ -43,34 +48,7 @@ const OrderLineItemSchema = CollectionSchema(
   deserialize: _orderLineItemDeserialize,
   deserializeProp: _orderLineItemDeserializeProp,
   idName: r'id',
-  indexes: {
-    r'orderId': IndexSchema(
-      id: -6176610178429382285,
-      name: r'orderId',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'orderId',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    ),
-    r'inventoryItemId': IndexSchema(
-      id: -8922134744435378615,
-      name: r'inventoryItemId',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'inventoryItemId',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    )
-  },
+  indexes: {},
   links: {},
   embeddedSchemas: {},
   getId: _orderLineItemGetId,
@@ -85,6 +63,12 @@ int _orderLineItemEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.unit;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -98,6 +82,7 @@ void _orderLineItemSerialize(
   writer.writeLong(offsets[1], object.orderId);
   writer.writeDouble(offsets[2], object.pricePerUnit);
   writer.writeLong(offsets[3], object.quantity);
+  writer.writeString(offsets[4], object.unit);
 }
 
 OrderLineItem _orderLineItemDeserialize(
@@ -108,10 +93,11 @@ OrderLineItem _orderLineItemDeserialize(
 ) {
   final object = OrderLineItem();
   object.id = id;
-  object.inventoryItemId = reader.readLongOrNull(offsets[0]);
-  object.orderId = reader.readLongOrNull(offsets[1]);
+  object.inventoryItemId = reader.readLong(offsets[0]);
+  object.orderId = reader.readLong(offsets[1]);
   object.pricePerUnit = reader.readDouble(offsets[2]);
   object.quantity = reader.readLong(offsets[3]);
+  object.unit = reader.readStringOrNull(offsets[4]);
   return object;
 }
 
@@ -123,13 +109,15 @@ P _orderLineItemDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
       return (reader.readDouble(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -153,22 +141,6 @@ extension OrderLineItemQueryWhereSort
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhere> anyOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'orderId'),
-      );
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhere> anyInventoryItemId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'inventoryItemId'),
-      );
     });
   }
 }
@@ -243,234 +215,6 @@ extension OrderLineItemQueryWhere
       ));
     });
   }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      orderIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'orderId',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      orderIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause> orderIdEqualTo(
-      int? orderId) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'orderId',
-        value: [orderId],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      orderIdNotEqualTo(int? orderId) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
-              lower: [],
-              upper: [orderId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
-              lower: [orderId],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
-              lower: [orderId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
-              lower: [],
-              upper: [orderId],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      orderIdGreaterThan(
-    int? orderId, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
-        lower: [orderId],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause> orderIdLessThan(
-    int? orderId, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
-        lower: [],
-        upper: [orderId],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause> orderIdBetween(
-    int? lowerOrderId,
-    int? upperOrderId, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
-        lower: [lowerOrderId],
-        includeLower: includeLower,
-        upper: [upperOrderId],
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'inventoryItemId',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inventoryItemId',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdEqualTo(int? inventoryItemId) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'inventoryItemId',
-        value: [inventoryItemId],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdNotEqualTo(int? inventoryItemId) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inventoryItemId',
-              lower: [],
-              upper: [inventoryItemId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inventoryItemId',
-              lower: [inventoryItemId],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inventoryItemId',
-              lower: [inventoryItemId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'inventoryItemId',
-              lower: [],
-              upper: [inventoryItemId],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdGreaterThan(
-    int? inventoryItemId, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inventoryItemId',
-        lower: [inventoryItemId],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdLessThan(
-    int? inventoryItemId, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inventoryItemId',
-        lower: [],
-        upper: [inventoryItemId],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterWhereClause>
-      inventoryItemIdBetween(
-    int? lowerInventoryItemId,
-    int? upperInventoryItemId, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'inventoryItemId',
-        lower: [lowerInventoryItemId],
-        includeLower: includeLower,
-        upper: [upperInventoryItemId],
-        includeUpper: includeUpper,
-      ));
-    });
-  }
 }
 
 extension OrderLineItemQueryFilter
@@ -530,25 +274,7 @@ extension OrderLineItemQueryFilter
   }
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
-      inventoryItemIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'inventoryItemId',
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
-      inventoryItemIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'inventoryItemId',
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
-      inventoryItemIdEqualTo(int? value) {
+      inventoryItemIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'inventoryItemId',
@@ -559,7 +285,7 @@ extension OrderLineItemQueryFilter
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
       inventoryItemIdGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -573,7 +299,7 @@ extension OrderLineItemQueryFilter
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
       inventoryItemIdLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -587,8 +313,8 @@ extension OrderLineItemQueryFilter
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
       inventoryItemIdBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -604,25 +330,7 @@ extension OrderLineItemQueryFilter
   }
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
-      orderIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'orderId',
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
-      orderIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'orderId',
-      ));
-    });
-  }
-
-  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
-      orderIdEqualTo(int? value) {
+      orderIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'orderId',
@@ -633,7 +341,7 @@ extension OrderLineItemQueryFilter
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
       orderIdGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -647,7 +355,7 @@ extension OrderLineItemQueryFilter
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
       orderIdLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -661,8 +369,8 @@ extension OrderLineItemQueryFilter
 
   QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
       orderIdBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -798,6 +506,159 @@ extension OrderLineItemQueryFilter
       ));
     });
   }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'unit',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'unit',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition> unitEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'unit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'unit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'unit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition> unitBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'unit',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'unit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'unit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'unit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition> unitMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'unit',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'unit',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterFilterCondition>
+      unitIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'unit',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension OrderLineItemQueryObject
@@ -858,6 +719,18 @@ extension OrderLineItemQuerySortBy
       sortByQuantityDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'quantity', Sort.desc);
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterSortBy> sortByUnit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterSortBy> sortByUnitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unit', Sort.desc);
     });
   }
 }
@@ -928,6 +801,18 @@ extension OrderLineItemQuerySortThenBy
       return query.addSortBy(r'quantity', Sort.desc);
     });
   }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterSortBy> thenByUnit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QAfterSortBy> thenByUnitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unit', Sort.desc);
+    });
+  }
 }
 
 extension OrderLineItemQueryWhereDistinct
@@ -957,6 +842,13 @@ extension OrderLineItemQueryWhereDistinct
       return query.addDistinctBy(r'quantity');
     });
   }
+
+  QueryBuilder<OrderLineItem, OrderLineItem, QDistinct> distinctByUnit(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'unit', caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension OrderLineItemQueryProperty
@@ -967,14 +859,13 @@ extension OrderLineItemQueryProperty
     });
   }
 
-  QueryBuilder<OrderLineItem, int?, QQueryOperations>
-      inventoryItemIdProperty() {
+  QueryBuilder<OrderLineItem, int, QQueryOperations> inventoryItemIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'inventoryItemId');
     });
   }
 
-  QueryBuilder<OrderLineItem, int?, QQueryOperations> orderIdProperty() {
+  QueryBuilder<OrderLineItem, int, QQueryOperations> orderIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'orderId');
     });
@@ -989,6 +880,12 @@ extension OrderLineItemQueryProperty
   QueryBuilder<OrderLineItem, int, QQueryOperations> quantityProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'quantity');
+    });
+  }
+
+  QueryBuilder<OrderLineItem, String?, QQueryOperations> unitProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'unit');
     });
   }
 }

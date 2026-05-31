@@ -52,6 +52,7 @@ class InventoryService {
     });
   }
 
+  // --- THE FIX: Double Guard (Name + SKU) for Adding Items ---
   Future<void> addItem({
     required String name,
     required String category,
@@ -61,12 +62,23 @@ class InventoryService {
     required int minStockLevel,
     required double costPrice,
   }) async {
-    final existingItem = await _isar.inventoryItems
+    // 1. Guard against duplicate Names (Case-insensitive)
+    final existingName = await _isar.inventoryItems
+        .filter()
+        .nameEqualTo(name, caseSensitive: false)
+        .findFirst();
+
+    if (existingName != null) {
+      throw Exception('An item with the name "$name" already exists.');
+    }
+
+    // 2. Guard against duplicate SKUs
+    final existingSku = await _isar.inventoryItems
         .filter()
         .skuEqualTo(sku, caseSensitive: false)
         .findFirst();
 
-    if (existingItem != null) {
+    if (existingSku != null) {
       throw Exception(
           'An item with the SKU "$sku" already exists in the warehouse.');
     }
@@ -85,7 +97,30 @@ class InventoryService {
     });
   }
 
+  // --- THE FIX: Double Guard (Name + SKU) for Updating Items ---
   Future<void> updateItem(InventoryItem item) async {
+    // 1. Check for Name conflicts (ignoring the item's own ID)
+    final existingName = await _isar.inventoryItems
+        .filter()
+        .nameEqualTo(item.name, caseSensitive: false)
+        .findFirst();
+
+    if (existingName != null && existingName.id != item.id) {
+      throw Exception(
+          'Another item with the name "${item.name}" already exists.');
+    }
+
+    // 2. Check for SKU conflicts (ignoring the item's own ID)
+    final existingSku = await _isar.inventoryItems
+        .filter()
+        .skuEqualTo(item.sku, caseSensitive: false)
+        .findFirst();
+
+    if (existingSku != null && existingSku.id != item.id) {
+      throw Exception(
+          'Another item with the SKU "${item.sku}" already exists.');
+    }
+
     await _isar.writeTxn(() async {
       await _isar.inventoryItems.put(item);
     });

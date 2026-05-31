@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/core_providers.dart';
 import '../../domain/models/inventory_item.dart';
+import 'inventory_provider.dart'; // <-- Needed to fetch the cached item list
 
 class AddInventoryItemScreen extends ConsumerStatefulWidget {
   final InventoryItem? existingItem;
@@ -43,6 +44,33 @@ class _AddInventoryItemScreenState
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // ==========================================
+    // THE FIX: Universal SKU Uniqueness Check
+    // ==========================================
+    final allItems = ref.read(inventoryItemsProvider).value ?? [];
+    final enteredSku = _skuController.text.trim();
+
+    final isDuplicate = allItems.any((item) {
+      // 1. Check if the SKUs match (case-insensitive)
+      final matchesSku = item.sku?.toLowerCase() == enteredSku.toLowerCase();
+
+      // 2. Ignore the item we are currently editing
+      final isDifferentItem = item.id != widget.existingItem?.id;
+
+      return matchesSku && isDifferentItem;
+    });
+
+    if (isDuplicate) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content:
+            Text('Duplicate SKU Detected! This SKU belongs to another item.'),
+        backgroundColor: Colors.redAccent,
+      ));
+      return; // 🛑 HALT THE SAVE PROCESS
+    }
+    // ==========================================
+
     setState(() => _isLoading = true);
 
     try {
@@ -80,10 +108,11 @@ class _AddInventoryItemScreenState
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(e.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.red));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

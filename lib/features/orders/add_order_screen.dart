@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/core_providers.dart';
-import '../../domain/models/order_line_item.dart';
 import '../crm/crm_provider.dart';
 import '../inventory/inventory_provider.dart';
 
-// A simple temporary class to hold user input before we save it to Isar
+// --- THE FIX 1: Track 'unit' natively in the draft state ---
 class _DraftLineItem {
   int? inventoryItemId;
-  int quantity = 1;
-  double pricePerUnit = 0.0;
+  int quantity;
+  double pricePerUnit;
+  String? unit;
+
+  _DraftLineItem(
+      {this.inventoryItemId,
+      this.quantity = 1,
+      this.pricePerUnit = 0.0,
+      this.unit});
 }
 
 class AddOrderScreen extends ConsumerStatefulWidget {
@@ -21,201 +27,118 @@ class AddOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _notesController = TextEditingController();
-
   int? _selectedClientId;
-  final List<_DraftLineItem> _lineItems = [];
+  final List<_DraftLineItem> _lineItems = [_DraftLineItem()];
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _lineItems.add(_DraftLineItem()); // Start with one empty item row
-  }
+  void _addLineItem() => setState(() => _lineItems.add(_DraftLineItem()));
+  void _removeLineItem(int index) => setState(() => _lineItems.removeAt(index));
 
-  Future<void> _submitOrder() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedClientId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please select a client.'),
-          backgroundColor: Colors.red));
-      return;
-    }
-
-    // Ensure all line items have an inventory item selected
-    if (_lineItems.any((item) => item.inventoryItemId == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please select an item for all rows.'),
-          backgroundColor: Colors.red));
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      // 1. Convert our UI draft items into real Database objects
-      final dbLineItems = _lineItems.map((draft) {
-        return OrderLineItem()
-          ..inventoryItemId = draft.inventoryItemId
-          ..quantity = draft.quantity
-          ..pricePerUnit = draft.pricePerUnit;
-      }).toList();
-
-      // 2. Hand it to the Service Layer (Built in Phase 4)
-      final orderService = ref.read(orderServiceProvider);
-      await orderService.createOrder(
-          _selectedClientId!, _notesController.text.trim(), dbLineItems);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Order Created Successfully!'),
-            backgroundColor: Colors.green));
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _notesController.dispose();
-    super.dispose();
+  double _calculateTotal() {
+    return _lineItems.fold(
+        0.0, (total, item) => total + (item.quantity * item.pricePerUnit));
   }
 
   @override
   Widget build(BuildContext context) {
-    // Watch our live database streams to populate the dropdowns
     final clientsAsync = ref.watch(activeClientsProvider);
     final inventoryAsync = ref.watch(inventoryItemsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create New Order')),
+      appBar: AppBar(
+          title: const Text('Create New Order'),
+          backgroundColor: AppTheme.surfaceDark),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // --- CLIENT SELECTION ---
-              clientsAsync.when(
-                loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('Error loading clients: $e'),
-                data: (clients) {
-                  return DropdownButtonFormField<int>(
-                    value: _selectedClientId,
-                    dropdownColor: AppTheme.surfaceDark,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+        child: ListView(
+          children: [
+            clientsAsync.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (e, _) => Text('Error: $e'),
+              data: (clients) {
+                if (clients.isEmpty)
+                  return const Text('No clients found. Add one in CRM.',
+                      style: TextStyle(color: Colors.orangeAccent));
+                return DropdownButtonFormField<int>(
+                  value: _selectedClientId,
+                  dropdownColor: AppTheme.surfaceDark,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
                       labelText: 'Select Client',
                       labelStyle: TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blueAccent)),
-                    ),
-                    items: clients
-                        .map((c) => DropdownMenuItem(
-                            value: c.id,
-                            child: Text(c.businessName ?? c.name ?? 'Unknown')))
-                        .toList(),
-                    onChanged: (val) => setState(() => _selectedClientId = val),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // --- ORDER NOTES ---
-              TextFormField(
-                controller: _notesController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Order Notes (Optional)',
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blueAccent)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Line Items',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold))),
-              const Divider(color: Colors.grey),
-
-              // --- DYNAMIC LINE ITEMS LIST ---
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _lineItems.length,
-                  itemBuilder: (context, index) {
-                    final itemDraft = _lineItems[index];
+                          borderSide: BorderSide(color: Colors.grey))),
+                  items: clients
+                      .map((c) => DropdownMenuItem(
+                          value: c.id,
+                          child: Text(c.businessName ?? c.name ?? 'Unknown')))
+                      .toList(),
+                  onChanged: (val) => setState(() => _selectedClientId = val),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            const Text('Order Items',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+            const Divider(color: Colors.grey),
+            inventoryAsync.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (e, _) => Text('Error: $e'),
+              data: (inventory) {
+                return Column(
+                  children: _lineItems.asMap().entries.map((entry) {
+                    int idx = entry.key;
+                    _DraftLineItem itemDraft = entry.value;
 
                     return Card(
-                      color: AppTheme.backgroundDark,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8)),
+                      color: AppTheme.surfaceDark,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Column(
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Item #${index + 1}',
-                                    style: const TextStyle(
-                                        color: Colors.blueAccent,
-                                        fontWeight: FontWeight.bold)),
-                                if (_lineItems.length >
-                                    1) // Only show delete if there's more than 1 item
+                                Expanded(
+                                  child: DropdownButtonFormField<int>(
+                                    value: itemDraft.inventoryItemId,
+                                    dropdownColor: AppTheme.backgroundDark,
+                                    style: const TextStyle(color: Colors.white),
+                                    decoration: const InputDecoration(
+                                        labelText: 'Select Product',
+                                        labelStyle:
+                                            TextStyle(color: Colors.grey)),
+                                    items: inventory
+                                        .map((i) => DropdownMenuItem(
+                                            value: i.id,
+                                            child:
+                                                Text('${i.name} (${i.sku})')))
+                                        .toList(),
+                                    onChanged: (val) {
+                                      setState(() {
+                                        // --- THE FIX 2: Fetch the unit from the database and store it ---
+                                        final matchedItem = inventory
+                                            .where((i) => i.id == val)
+                                            .first;
+                                        itemDraft.inventoryItemId = val;
+                                        itemDraft.unit = matchedItem.unit;
+                                        itemDraft.pricePerUnit =
+                                            matchedItem.costPrice;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                if (_lineItems.length > 1)
                                   IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.redAccent),
-                                    onPressed: () => setState(
-                                        () => _lineItems.removeAt(index)),
-                                  )
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.redAccent),
+                                      onPressed: () => _removeLineItem(idx)),
                               ],
                             ),
-
-                            // INVENTORY DROPDOWN
-                            inventoryAsync.when(
-                              loading: () => const SizedBox(),
-                              error: (e, _) => const SizedBox(),
-                              data: (items) {
-                                return DropdownButtonFormField<int>(
-                                  value: itemDraft.inventoryItemId,
-                                  dropdownColor: AppTheme.surfaceDark,
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: const InputDecoration(
-                                      labelText: 'Select Product/Material',
-                                      labelStyle:
-                                          TextStyle(color: Colors.grey)),
-                                  items: items
-                                      .map((i) => DropdownMenuItem(
-                                          value: i.id,
-                                          child: Text('${i.name} (${i.sku})')))
-                                      .toList(),
-                                  onChanged: (val) => setState(
-                                      () => itemDraft.inventoryItemId = val),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 8),
-
-                            // QUANTITY & PRICE ROW
+                            const SizedBox(height: 12),
                             Row(
                               children: [
                                 Expanded(
@@ -223,71 +146,119 @@ class _AddOrderScreenState extends ConsumerState<AddOrderScreen> {
                                     initialValue: itemDraft.quantity.toString(),
                                     keyboardType: TextInputType.number,
                                     style: const TextStyle(color: Colors.white),
-                                    decoration: const InputDecoration(
-                                        labelText: 'Qty',
-                                        labelStyle:
-                                            TextStyle(color: Colors.grey)),
-                                    onChanged: (val) => itemDraft.quantity =
-                                        int.tryParse(val) ?? 1,
+                                    // --- THE FIX 3: Dynamic Quantity Label ---
+                                    decoration: InputDecoration(
+                                        labelText:
+                                            'Qty (${itemDraft.unit ?? "pcs"})',
+                                        labelStyle: const TextStyle(
+                                            color: Colors.grey)),
+                                    onChanged: (val) => setState(() => itemDraft
+                                        .quantity = int.tryParse(val) ?? 1),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: TextFormField(
+                                    key: ValueKey(
+                                        '${idx}_${itemDraft.inventoryItemId}'),
                                     initialValue:
                                         itemDraft.pricePerUnit.toString(),
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
                                             decimal: true),
                                     style: const TextStyle(color: Colors.white),
-                                    decoration: const InputDecoration(
-                                        labelText: 'Price per Unit (₹)',
-                                        labelStyle:
-                                            TextStyle(color: Colors.grey)),
-                                    onChanged: (val) => itemDraft.pricePerUnit =
-                                        double.tryParse(val) ?? 0.0,
+                                    // --- THE FIX 4: Dynamic Price Label ---
+                                    decoration: InputDecoration(
+                                        labelText:
+                                            'Price per ${itemDraft.unit ?? "unit"} (₹)',
+                                        labelStyle: const TextStyle(
+                                            color: Colors.grey)),
+                                    onChanged: (val) => setState(() =>
+                                        itemDraft.pricePerUnit =
+                                            double.tryParse(val) ?? 0.0),
                                   ),
                                 ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),
                     );
-                  },
-                ),
-              ),
+                  }).toList(),
+                );
+              },
+            ),
+            TextButton.icon(
+                onPressed: _addLineItem,
+                icon: const Icon(Icons.add, color: Colors.blueAccent),
+                label: const Text('Add Another Item',
+                    style: TextStyle(color: Colors.blueAccent))),
+            const SizedBox(height: 24),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('Estimated Total:',
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+              Text('₹${_calculateTotal().toStringAsFixed(2)}',
+                  style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold))
+            ]),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 16)),
+              onPressed: _isLoading || _selectedClientId == null
+                  ? null
+                  : () async {
+                      bool isValid = _lineItems.every((item) =>
+                          item.inventoryItemId != null &&
+                          item.quantity > 0 &&
+                          item.pricePerUnit >= 0);
+                      if (!isValid) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text(
+                                'Please select valid products and quantities.'),
+                            backgroundColor: Colors.red));
+                        return;
+                      }
 
-              // --- ADD ITEM & SUBMIT BUTTONS ---
-              Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: () =>
-                        setState(() => _lineItems.add(_DraftLineItem())),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Another Item'),
-                  ),
-                  const Spacer(),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12)),
-                    onPressed: _isLoading ? null : _submitOrder,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child:
-                                CircularProgressIndicator(color: Colors.white))
-                        : const Text('Save Order',
-                            style: TextStyle(fontSize: 16)),
-                  ),
-                ],
-              )
-            ],
-          ),
+                      setState(() => _isLoading = true);
+                      try {
+                        // --- THE FIX: Explicitly map as <String, dynamic> ---
+                        final mappedItems = _lineItems
+                            .map((d) => <String, dynamic>{
+                                  'inventoryItemId': d.inventoryItemId!,
+                                  'quantity': d.quantity,
+                                  'pricePerUnit': d.pricePerUnit
+                                })
+                            .toList();
+
+                        await ref
+                            .read(orderServiceProvider)
+                            .createOrder(_selectedClientId!, mappedItems);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Order created successfully!'),
+                                  backgroundColor: Colors.green));
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        if (context.mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(e.toString()),
+                              backgroundColor: Colors.red));
+                      } finally {
+                        if (context.mounted) setState(() => _isLoading = false);
+                      }
+                    },
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Confirm & Save Order',
+                      style: TextStyle(color: Colors.white, fontSize: 18)),
+            ),
+          ],
         ),
       ),
     );

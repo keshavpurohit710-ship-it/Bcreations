@@ -45,18 +45,22 @@ final totalExpensesProvider = FutureProvider<double>((ref) async {
   return total;
 });
 
-// 3. NEW: Calculate Consolidated Net Profit (P&L Balance)
+// 3. Calculate Consolidated Net Profit (P&L Balance)
 final netProfitProvider = FutureProvider<double>((ref) async {
-  final revenue = ref.watch(totalRevenueProvider).value ?? 0.0;
-  final expenses = ref.watch(totalExpensesProvider).value ?? 0.0;
+  // --- THE FIX: Await the futures so the loading state correctly cascades to the UI ---
+  final revenue = await ref.watch(totalRevenueProvider.future);
+  final expenses = await ref.watch(totalExpensesProvider.future);
+
   return revenue - expenses;
 });
 
-// 4. NEW: Analytical Monthly Aggregations
+// 4. Analytical Monthly Aggregations
 final monthlyAnalyticsProvider =
     FutureProvider<List<MonthlyPerformance>>((ref) async {
   ref.watch(txWatcher);
   final isar = ref.read(isarProvider);
+
+  // Transactions are fetched newest first
   final txs = await isar.transactions.where().sortByDateDesc().findAll();
 
   final Map<String, List<Transaction>> grouped = {};
@@ -75,6 +79,7 @@ final monthlyAnalyticsProvider =
     'Dec'
   ];
 
+  // Group by "Month Year" (e.g., "May 2025")
   for (final tx in txs) {
     if (tx.date == null) continue;
     final date = tx.date!;
@@ -87,6 +92,7 @@ final monthlyAnalyticsProvider =
     grouped[key]!.add(tx);
   }
 
+  // Calculate totals
   final List<MonthlyPerformance> performances = [];
   grouped.forEach((monthYear, list) {
     double rev = 0.0;
@@ -102,41 +108,35 @@ final monthlyAnalyticsProvider =
         netProfit: rev - exp));
   });
 
+  // --- THE FIX: Explicitly Sort Chronologically (Oldest to Newest) ---
+  performances.sort((a, b) {
+    final partsA = a.monthYear.split(' ');
+    final partsB = b.monthYear.split(' ');
+
+    final yearA = int.parse(partsA[1]);
+    final yearB = int.parse(partsB[1]);
+
+    // 1. Sort by Year first
+    if (yearA != yearB) {
+      return yearA.compareTo(yearB);
+    }
+
+    // 2. If same year, sort by Month Index (Jan = 0, Dec = 11)
+    final monthA = monthsList.indexOf(partsA[0]);
+    final monthB = monthsList.indexOf(partsB[0]);
+
+    return monthA.compareTo(monthB);
+  });
+
   return performances;
 });
-
 // 5. Calculate Total Outstanding Market Dues (Optimized Batch Query)
 final totalOutstandingProvider = FutureProvider<double>((ref) async {
   ref.watch(orderWatcher);
   ref.watch(txWatcher);
-  final isar = ref.read(isarProvider);
 
-  final deliveredOrders =
-      await isar.orders.filter().statusEqualTo('Delivered').findAll();
-  double totalBilled = 0.0;
-
-  // THE FIX: The N+1 Query Fix applied globally
-  if (deliveredOrders.isNotEmpty) {
-    final orderIds = deliveredOrders.map((o) => o.id).toList();
-
-    // Fetch every single line item across the entire app in ONE read
-    final allItems = await isar.orderLineItems
-        .filter()
-        .anyOf(orderIds, (q, id) => q.orderIdEqualTo(id))
-        .findAll();
-
-    for (final item in allItems) {
-      totalBilled += (item.pricePerUnit * item.quantity);
-    }
-  }
-
-  final txs = await isar.transactions.filter().typeEqualTo('Income').findAll();
-  double totalPaid = 0.0;
-  for (final tx in txs) {
-    totalPaid += tx.amount;
-  }
-
-  return totalBilled - totalPaid;
+  // Use the new, centralized math engine
+  return await ref.read(financeServiceProvider).getGlobalOutstandingBalance();
 });
 
 class LowStockAlert {
@@ -165,4 +165,13 @@ final lowStockProvider = FutureProvider<List<LowStockAlert>>((ref) async {
   }
 
   return alerts;
+});
+// --- NEW: Badge Notification Provider ---
+// Counts how many orders are delivered but unpaid
+final pendingActionCountProvider = FutureProvider<int>((ref) async {
+  ref.watch(orderWatcher); // Instantly updates when an order status changes
+  final isar = ref.read(isarProvider);
+
+  final count = await isar.orders.filter().statusEqualTo('Delivered').count();
+  return count;
 });

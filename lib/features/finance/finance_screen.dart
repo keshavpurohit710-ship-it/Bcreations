@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../dashboard/dashboard_provider.dart';
+import '../crm/crm_provider.dart'; // <--- THE FIX: Required to look up client names
 import 'finance_provider.dart';
 import 'add_payment_screen.dart';
+import 'add_expense_screen.dart';
 
 class FinanceScreen extends ConsumerWidget {
   const FinanceScreen({super.key});
@@ -70,14 +72,64 @@ class FinanceScreen extends ConsumerWidget {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.blueAccent,
-          onPressed: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const AddPaymentScreen())),
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Record Payment',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: const Icon(Icons.add, color: Colors.white),
+          onPressed: () {
+            // --- THE FIX: Ask the user which type of transaction they are making ---
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: AppTheme.surfaceDark,
+              shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(16))),
+              builder: (context) => SafeArea(
+                child: Wrap(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text('Record Transaction',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.arrow_downward,
+                          color: Colors.greenAccent),
+                      title: const Text('Record Income',
+                          style: TextStyle(color: Colors.white)),
+                      subtitle: const Text('Client payments & invoice clearing',
+                          style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      onTap: () {
+                        Navigator.pop(context); // Close the bottom sheet
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddPaymentScreen()));
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.arrow_upward,
+                          color: Colors.redAccent),
+                      title: const Text('Record Expense',
+                          style: TextStyle(color: Colors.white)),
+                      subtitle: const Text('Rent, salaries, software, etc.',
+                          style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      onTap: () {
+                        Navigator.pop(context); // Close the bottom sheet
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddExpenseScreen()));
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -116,21 +168,48 @@ class _TransactionTableList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final txAsync = ref.watch(recentTransactionsProvider);
+    final clientsAsync =
+        ref.watch(activeClientsProvider); // <-- Added clients provider
 
     return txAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (transactions) {
-        if (transactions.isEmpty)
+        if (transactions.isEmpty) {
           return const Center(
               child: Text('No entries found.',
                   style: TextStyle(color: Colors.grey)));
+        }
+
+        final clients = clientsAsync.value ?? [];
 
         return ListView.builder(
           itemCount: transactions.length,
           itemBuilder: (context, index) {
             final tx = transactions[index];
             final isIncome = tx.type == 'Income';
+
+            // --- THE FIX: SMART TITLES ---
+            String titleText = 'Unknown';
+            if (!isIncome) {
+              titleText = tx.paymentMethod ?? 'Expense';
+            } else {
+              final client =
+                  clients.where((c) => c.id == tx.clientId).firstOrNull;
+              titleText =
+                  client?.businessName ?? client?.name ?? 'Unknown Client';
+            }
+
+            // --- THE FIX: SMART SUBTITLES ---
+            String subtitleText = tx.date?.toString().split(' ')[0] ?? '';
+            if (isIncome &&
+                tx.paymentMethod != null &&
+                tx.paymentMethod!.isNotEmpty) {
+              subtitleText += ' • ${tx.paymentMethod}';
+            }
+            if (tx.description != null && tx.description!.isNotEmpty) {
+              subtitleText += ' • ${tx.description}';
+            }
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -146,12 +225,12 @@ class _TransactionTableList extends ConsumerWidget {
                           isIncome ? Colors.greenAccent : Colors.orangeAccent,
                       size: 18),
                 ),
-                title: Text(tx.paymentMethod ?? 'Transaction Record',
+                title: Text(titleText,
                     style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 14)),
-                subtitle: Text(tx.date?.toString().split(' ')[0] ?? '',
+                subtitle: Text(subtitleText,
                     style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 trailing: Text(
                   '${isIncome ? '+' : '-'} ₹${tx.amount.toStringAsFixed(0)}',
@@ -184,10 +263,11 @@ class _MonthlyAnalyticsDashboard extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (metricsList) {
-        if (metricsList.isEmpty)
+        if (metricsList.isEmpty) {
           return const Center(
               child: Text('Insufficient historical trends.',
                   style: TextStyle(color: Colors.grey)));
+        }
 
         return ListView.builder(
           itemCount: metricsList.length,

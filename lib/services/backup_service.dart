@@ -34,7 +34,10 @@ class BackupService {
                 'name': c.name,
                 'businessName': c.businessName,
                 'type': c.type,
-                'location': c.location
+                'location': c.location,
+                'phone': c.phone,
+                'email': c.email,
+                'isArchived': c.isArchived
               })
           .toList(),
       'inventory': inventory
@@ -54,7 +57,13 @@ class BackupService {
                 'id': o.id,
                 'clientId': o.clientId,
                 'status': o.status,
-                'date': o.date?.toIso8601String()
+                'date': o.date?.toIso8601String(),
+                // --- THE FIX: Added full pipeline timeline export ---
+                'confirmedAt': o.confirmedAt?.toIso8601String(),
+                'dispatchedAt': o.dispatchedAt?.toIso8601String(),
+                'deliveredAt': o.deliveredAt?.toIso8601String(),
+                'paidAt': o.paidAt?.toIso8601String(),
+                'deliveryCost': o.deliveryCost
               })
           .toList(),
       'order_items': orderItems
@@ -63,7 +72,8 @@ class BackupService {
                 'orderId': oi.orderId,
                 'inventoryItemId': oi.inventoryItemId,
                 'quantity': oi.quantity,
-                'pricePerUnit': oi.pricePerUnit
+                'pricePerUnit': oi.pricePerUnit,
+                'unit': oi.unit
               })
           .toList(),
       'stock_movements': stock
@@ -85,6 +95,8 @@ class BackupService {
                 'amount': t.amount,
                 'type': t.type,
                 'paymentMethod': t.paymentMethod,
+                'description': t.description,
+                'relatedOrderId': t.relatedOrderId,
                 'date': t.date?.toIso8601String()
               })
           .toList(),
@@ -102,7 +114,7 @@ class BackupService {
   }
 
   // ==========================================
-  // IMPORT / RESTORE (NEW)
+  // IMPORT / RESTORE
   // ==========================================
   Future<void> importDatabaseFromJson(String filePath) async {
     final file = File(filePath);
@@ -121,7 +133,10 @@ class BackupService {
               ..name = c['name']
               ..businessName = c['businessName']
               ..type = c['type']
-              ..location = c['location'])
+              ..location = c['location']
+              ..phone = c['phone']
+              ..email = c['email']
+              ..isArchived = c['isArchived'] ?? false)
             .toList();
         await _isar.clients.putAll(clients);
       }
@@ -149,7 +164,22 @@ class BackupService {
               ..id = o['id']
               ..clientId = o['clientId']
               ..status = o['status']
-              ..date = o['date'] != null ? DateTime.parse(o['date']) : null)
+              ..deliveryCost = (o['deliveryCost'] ?? 0.0).toDouble()
+              // --- THE FIX: Added full pipeline timeline import ---
+              ..confirmedAt = o['confirmedAt'] != null
+                  ? DateTime.parse(o['confirmedAt'])
+                  : null
+              ..dispatchedAt = o['dispatchedAt'] != null
+                  ? DateTime.parse(o['dispatchedAt'])
+                  : null
+              ..deliveredAt = o['deliveredAt'] != null
+                  ? DateTime.parse(o['deliveredAt'])
+                  : null
+              ..paidAt =
+                  o['paidAt'] != null ? DateTime.parse(o['paidAt']) : null
+              ..date = o['date'] != null
+                  ? DateTime.parse(o['date'])
+                  : DateTime.now())
             .toList();
         await _isar.orders.putAll(orders);
       }
@@ -162,6 +192,7 @@ class BackupService {
               ..orderId = oi['orderId']
               ..inventoryItemId = oi['inventoryItemId']
               ..quantity = oi['quantity']
+              ..unit = oi['unit']
               ..pricePerUnit = (oi['pricePerUnit'] ?? 0.0).toDouble())
             .toList();
         await _isar.orderLineItems.putAll(orderItems);
@@ -176,7 +207,8 @@ class BackupService {
               ..vendorId = s['vendorId']
               ..quantityChange = s['quantityChange']
               ..reason = s['reason']
-              ..date = s['date'] != null ? DateTime.parse(s['date']) : null
+              ..date =
+                  s['date'] != null ? DateTime.parse(s['date']) : DateTime.now()
               ..totalCost =
                   s['totalCost'] != null ? (s['totalCost']).toDouble() : null
               ..unitCost =
@@ -194,7 +226,11 @@ class BackupService {
               ..amount = (t['amount'] ?? 0.0).toDouble()
               ..type = t['type']
               ..paymentMethod = t['paymentMethod']
-              ..date = t['date'] != null ? DateTime.parse(t['date']) : null)
+              ..description = t['description']
+              ..relatedOrderId = t['relatedOrderId']
+              ..date = t['date'] != null
+                  ? DateTime.parse(t['date'])
+                  : DateTime.now())
             .toList();
         await _isar.transactions.putAll(txs);
       }

@@ -20,4 +20,6 @@ class Order {
   DateTime? dispatchedAt;
   DateTime? deliveredAt;
   DateTime? paidAt;
+  // --- THE NEW FIELD ---
+  double deliveryCost = 0.0;
 }
