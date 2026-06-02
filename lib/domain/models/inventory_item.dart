@@ -1,6 +1,13 @@
 import 'package:isar/isar.dart';
 part 'inventory_item.g.dart';
 
+// --- THE FIX: Embedded Sub-Collection for Bill of Materials ---
+@embedded
+class RecipeComponent {
+  int? rawMaterialId;
+  double? quantity;
+}
+
 @collection
 class InventoryItem {
   Id id = Isar.autoIncrement;
@@ -9,14 +16,18 @@ class InventoryItem {
   String? sku;
 
   String? name;
-  String? category; // e.g., "Wood", "Metal", "Packaging" (Flexible sub-group)
+  String? category;
   String? unit;
 
-  // --- NEW FIELDS ---
   @Index()
-  String? itemType; // Strict Classification: 'RawMaterial' or 'FinishedGood'
+  String? itemType;
 
-  int minStockLevel = 5; // Dynamic threshold for alerts
+  int minStockLevel = 5;
 
-  double costPrice = 0.0; // Baseline cost for valuation
+  double costPrice = 0.0;
+
+  String? imagePath;
+
+  // --- THE FIX: Store the manufacturing formula ---
+  List<RecipeComponent>? recipe;
 }

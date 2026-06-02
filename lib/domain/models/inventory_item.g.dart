@@ -27,28 +27,39 @@ const InventoryItemSchema = CollectionSchema(
       name: r'costPrice',
       type: IsarType.double,
     ),
-    r'itemType': PropertySchema(
+    r'imagePath': PropertySchema(
       id: 2,
+      name: r'imagePath',
+      type: IsarType.string,
+    ),
+    r'itemType': PropertySchema(
+      id: 3,
       name: r'itemType',
       type: IsarType.string,
     ),
     r'minStockLevel': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'minStockLevel',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'name',
       type: IsarType.string,
     ),
+    r'recipe': PropertySchema(
+      id: 6,
+      name: r'recipe',
+      type: IsarType.objectList,
+      target: r'RecipeComponent',
+    ),
     r'sku': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'sku',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'unit',
       type: IsarType.string,
     )
@@ -87,7 +98,7 @@ const InventoryItemSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'RecipeComponent': RecipeComponentSchema},
   getId: _inventoryItemGetId,
   getLinks: _inventoryItemGetLinks,
   attach: _inventoryItemAttach,
@@ -107,6 +118,12 @@ int _inventoryItemEstimateSize(
     }
   }
   {
+    final value = object.imagePath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.itemType;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -116,6 +133,20 @@ int _inventoryItemEstimateSize(
     final value = object.name;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final list = object.recipe;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[RecipeComponent]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount +=
+              RecipeComponentSchema.estimateSize(value, offsets, allOffsets);
+        }
+      }
     }
   }
   {
@@ -141,11 +172,18 @@ void _inventoryItemSerialize(
 ) {
   writer.writeString(offsets[0], object.category);
   writer.writeDouble(offsets[1], object.costPrice);
-  writer.writeString(offsets[2], object.itemType);
-  writer.writeLong(offsets[3], object.minStockLevel);
-  writer.writeString(offsets[4], object.name);
-  writer.writeString(offsets[5], object.sku);
-  writer.writeString(offsets[6], object.unit);
+  writer.writeString(offsets[2], object.imagePath);
+  writer.writeString(offsets[3], object.itemType);
+  writer.writeLong(offsets[4], object.minStockLevel);
+  writer.writeString(offsets[5], object.name);
+  writer.writeObjectList<RecipeComponent>(
+    offsets[6],
+    allOffsets,
+    RecipeComponentSchema.serialize,
+    object.recipe,
+  );
+  writer.writeString(offsets[7], object.sku);
+  writer.writeString(offsets[8], object.unit);
 }
 
 InventoryItem _inventoryItemDeserialize(
@@ -158,11 +196,18 @@ InventoryItem _inventoryItemDeserialize(
   object.category = reader.readStringOrNull(offsets[0]);
   object.costPrice = reader.readDouble(offsets[1]);
   object.id = id;
-  object.itemType = reader.readStringOrNull(offsets[2]);
-  object.minStockLevel = reader.readLong(offsets[3]);
-  object.name = reader.readStringOrNull(offsets[4]);
-  object.sku = reader.readStringOrNull(offsets[5]);
-  object.unit = reader.readStringOrNull(offsets[6]);
+  object.imagePath = reader.readStringOrNull(offsets[2]);
+  object.itemType = reader.readStringOrNull(offsets[3]);
+  object.minStockLevel = reader.readLong(offsets[4]);
+  object.name = reader.readStringOrNull(offsets[5]);
+  object.recipe = reader.readObjectList<RecipeComponent>(
+    offsets[6],
+    RecipeComponentSchema.deserialize,
+    allOffsets,
+    RecipeComponent(),
+  );
+  object.sku = reader.readStringOrNull(offsets[7]);
+  object.unit = reader.readStringOrNull(offsets[8]);
   return object;
 }
 
@@ -180,12 +225,21 @@ P _inventoryItemDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
+      return (reader.readObjectList<RecipeComponent>(
+        offset,
+        RecipeComponentSchema.deserialize,
+        allOffsets,
+        RecipeComponent(),
+      )) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -695,6 +749,160 @@ extension InventoryItemQueryFilter
   }
 
   QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'imagePath',
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'imagePath',
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'imagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'imagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'imagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'imagePath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'imagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'imagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'imagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'imagePath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'imagePath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      imagePathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'imagePath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
       itemTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1058,6 +1266,113 @@ extension InventoryItemQueryFilter
   }
 
   QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'recipe',
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'recipe',
+      ));
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'recipe',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'recipe',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'recipe',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'recipe',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'recipe',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'recipe',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
       skuIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1364,7 +1679,14 @@ extension InventoryItemQueryFilter
 }
 
 extension InventoryItemQueryObject
-    on QueryBuilder<InventoryItem, InventoryItem, QFilterCondition> {}
+    on QueryBuilder<InventoryItem, InventoryItem, QFilterCondition> {
+  QueryBuilder<InventoryItem, InventoryItem, QAfterFilterCondition>
+      recipeElement(FilterQuery<RecipeComponent> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'recipe');
+    });
+  }
+}
 
 extension InventoryItemQueryLinks
     on QueryBuilder<InventoryItem, InventoryItem, QFilterCondition> {}
@@ -1394,6 +1716,19 @@ extension InventoryItemQuerySortBy
       sortByCostPriceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'costPrice', Sort.desc);
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterSortBy> sortByImagePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'imagePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterSortBy>
+      sortByImagePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'imagePath', Sort.desc);
     });
   }
 
@@ -1501,6 +1836,19 @@ extension InventoryItemQuerySortThenBy
     });
   }
 
+  QueryBuilder<InventoryItem, InventoryItem, QAfterSortBy> thenByImagePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'imagePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<InventoryItem, InventoryItem, QAfterSortBy>
+      thenByImagePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'imagePath', Sort.desc);
+    });
+  }
+
   QueryBuilder<InventoryItem, InventoryItem, QAfterSortBy> thenByItemType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'itemType', Sort.asc);
@@ -1580,6 +1928,13 @@ extension InventoryItemQueryWhereDistinct
     });
   }
 
+  QueryBuilder<InventoryItem, InventoryItem, QDistinct> distinctByImagePath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'imagePath', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<InventoryItem, InventoryItem, QDistinct> distinctByItemType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1636,6 +1991,12 @@ extension InventoryItemQueryProperty
     });
   }
 
+  QueryBuilder<InventoryItem, String?, QQueryOperations> imagePathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'imagePath');
+    });
+  }
+
   QueryBuilder<InventoryItem, String?, QQueryOperations> itemTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'itemType');
@@ -1654,6 +2015,13 @@ extension InventoryItemQueryProperty
     });
   }
 
+  QueryBuilder<InventoryItem, List<RecipeComponent>?, QQueryOperations>
+      recipeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'recipe');
+    });
+  }
+
   QueryBuilder<InventoryItem, String?, QQueryOperations> skuProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'sku');
@@ -1666,3 +2034,242 @@ extension InventoryItemQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const RecipeComponentSchema = Schema(
+  name: r'RecipeComponent',
+  id: 2718916113684985499,
+  properties: {
+    r'quantity': PropertySchema(
+      id: 0,
+      name: r'quantity',
+      type: IsarType.double,
+    ),
+    r'rawMaterialId': PropertySchema(
+      id: 1,
+      name: r'rawMaterialId',
+      type: IsarType.long,
+    )
+  },
+  estimateSize: _recipeComponentEstimateSize,
+  serialize: _recipeComponentSerialize,
+  deserialize: _recipeComponentDeserialize,
+  deserializeProp: _recipeComponentDeserializeProp,
+);
+
+int _recipeComponentEstimateSize(
+  RecipeComponent object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _recipeComponentSerialize(
+  RecipeComponent object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDouble(offsets[0], object.quantity);
+  writer.writeLong(offsets[1], object.rawMaterialId);
+}
+
+RecipeComponent _recipeComponentDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = RecipeComponent();
+  object.quantity = reader.readDoubleOrNull(offsets[0]);
+  object.rawMaterialId = reader.readLongOrNull(offsets[1]);
+  return object;
+}
+
+P _recipeComponentDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 1:
+      return (reader.readLongOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension RecipeComponentQueryFilter
+    on QueryBuilder<RecipeComponent, RecipeComponent, QFilterCondition> {
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      quantityIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'quantity',
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      quantityIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'quantity',
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      quantityEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'quantity',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      quantityGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'quantity',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      quantityLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'quantity',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      quantityBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'quantity',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      rawMaterialIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'rawMaterialId',
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      rawMaterialIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'rawMaterialId',
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      rawMaterialIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'rawMaterialId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      rawMaterialIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'rawMaterialId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      rawMaterialIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'rawMaterialId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RecipeComponent, RecipeComponent, QAfterFilterCondition>
+      rawMaterialIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'rawMaterialId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension RecipeComponentQueryObject
+    on QueryBuilder<RecipeComponent, RecipeComponent, QFilterCondition> {}

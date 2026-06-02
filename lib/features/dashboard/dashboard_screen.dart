@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/core_providers.dart';
 import 'dashboard_provider.dart';
-
-// --- THE MISSING LINK: This tells the file what FilePicker is! ---
 import 'package:file_picker/file_picker.dart';
+
+// --- THE FIX: Add these two imports ---
+import '../orders/orders_screen.dart';
+import '../inventory/inventory_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -99,14 +101,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Expanded(child: _OutstandingCard()),
               ],
             ),
-            SizedBox(height: 32),
-            Text('Action Items & Alerts',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-            SizedBox(height: 12),
-            _LowStockList(),
+            SizedBox(height: 24),
+
+            // --- THE FIX: Insert the new Pending Actions Section here ---
+            _PendingActionsSection(),
           ],
         ),
       ),
@@ -274,84 +272,167 @@ class _OutstandingCard extends ConsumerWidget {
 // ==========================================
 // WIDGET: LOW STOCK ALERTS
 // ==========================================
-class _LowStockList extends ConsumerWidget {
-  const _LowStockList();
+// ==========================================
+// WIDGET: PENDING ACTIONS SECTION
+// ==========================================
+class _PendingActionsSection extends ConsumerWidget {
+  const _PendingActionsSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lowStockAsync = ref.watch(lowStockProvider);
+    final dispatchAsync = ref.watch(awaitingDispatchCountProvider);
+    final unpaidAsync = ref.watch(deliveredUnpaidProvider);
+    final stockAsync = ref.watch(lowStockProvider);
 
-    return lowStockAsync.when(
-      loading: () => const Center(
-          child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: CircularProgressIndicator())),
-      error: (e, _) => Center(
-          child: Text('Error loading alerts: $e',
-              style: const TextStyle(color: Colors.red))),
-      data: (alerts) {
-        if (alerts.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.green.withOpacity(0.3)),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.check_circle, color: Colors.greenAccent),
-                SizedBox(width: 12),
-                Text('All inventory levels are healthy.',
-                    style: TextStyle(
-                        color: Colors.greenAccent,
-                        fontWeight: FontWeight.bold)),
-              ],
-            ),
-          );
-        }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Action Required',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
 
-        return Column(
-          children: alerts.map((alert) {
-            return Card(
-              color: AppTheme.surfaceDark,
-              margin: const EdgeInsets.only(bottom: 8),
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                    color: Colors.orangeAccent.withOpacity(0.5), width: 1),
-                borderRadius: BorderRadius.circular(12),
+        // --- TILE 1: Awaiting Dispatch ---
+        dispatchAsync.when(
+          data: (count) => _ActionTile(
+            title: '$count Orders Awaiting Dispatch',
+            subtitle: 'Ready to be shipped',
+            icon: Icons.local_shipping,
+            iconColor: Colors.blueAccent,
+            onTap: () => _navigateTo(context, const OrdersScreen()),
+          ),
+          loading: () => const _LoadingTile(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 10),
+
+        // --- TILE 2: Delivered & Unpaid ---
+        unpaidAsync.when(
+          data: (metrics) => _ActionTile(
+            title: '${metrics.count} Delivered (Unpaid)',
+            subtitle:
+                '₹${metrics.totalValue.toStringAsFixed(0)} pending collection',
+            icon: Icons.account_balance_wallet,
+            iconColor: Colors.orangeAccent,
+            isCritical: metrics.count > 0,
+            onTap: () => _navigateTo(context, const OrdersScreen()),
+          ),
+          loading: () => const _LoadingTile(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 10),
+
+        // --- TILE 3: Low Stock ---
+        stockAsync.when(
+          data: (alerts) => _ActionTile(
+            title: '${alerts.length} Items Below Min Stock',
+            subtitle: 'Requires immediate restock',
+            icon: Icons.inventory_2,
+            iconColor: Colors.redAccent,
+            isCritical: alerts.isNotEmpty,
+            onTap: () => _navigateTo(context, const InventoryScreen()),
+          ),
+          loading: () => const _LoadingTile(),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  void _navigateTo(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+}
+
+// ==========================================
+// REUSABLE TILE WIDGET
+// ==========================================
+class _ActionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onTap;
+  final bool isCritical;
+
+  const _ActionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.onTap,
+    this.isCritical = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceDark,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isCritical
+                ? iconColor.withOpacity(0.4)
+                : Colors.grey.withOpacity(0.1),
+            width: isCritical ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.15),
+                shape: BoxShape.circle,
               ),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Colors.orange,
-                  child: Icon(Icons.inventory_2, color: Colors.white, size: 20),
-                ),
-                title: Text(alert.item.name ?? 'Unknown',
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text('SKU: ${alert.item.sku}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text('Current Stock',
-                        style: TextStyle(color: Colors.grey, fontSize: 10)),
-                    Text(
-                      '${alert.currentStock} ${alert.item.unit}',
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
                       style: const TextStyle(
-                          color: Colors.orangeAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-                  ],
-                ),
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(subtitle,
+                      style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                ],
               ),
-            );
-          }).toList(),
-        );
-      },
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingTile extends StatelessWidget {
+  const _LoadingTile();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 72,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceDark,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
     );
   }
 }

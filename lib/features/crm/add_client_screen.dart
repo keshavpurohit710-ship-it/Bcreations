@@ -5,7 +5,8 @@ import '../../core/providers/core_providers.dart';
 import '../../domain/models/client.dart';
 
 class AddClientScreen extends ConsumerStatefulWidget {
-  const AddClientScreen({super.key});
+  final String initialType;
+  const AddClientScreen({super.key, this.initialType = 'Client'});
 
   @override
   ConsumerState<AddClientScreen> createState() => _AddClientScreenState();
@@ -16,13 +17,27 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
   final _nameCtrl = TextEditingController();
   final _bizCtrl = TextEditingController();
   final _locCtrl = TextEditingController();
-
-  // --- THE FIX: Added Phone and Email Controllers ---
-  final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
 
-  String _type = 'Client';
+  // --- THE FIX: Changed to late initialization for cursor manipulation ---
+  late final TextEditingController _phoneCtrl;
+
+  late String _type;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _type = widget.initialType;
+
+    // --- THE FIX: Auto-fill +91 and move cursor to the end ---
+    _phoneCtrl = TextEditingController(text: '+91 ');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _phoneCtrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: _phoneCtrl.text.length),
+      );
+    });
+  }
 
   @override
   void dispose() {
@@ -39,12 +54,16 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // --- THE FIX: Prevent saving just "+91 " if the user left it blank ---
+      String finalPhone = _phoneCtrl.text.trim();
+      if (finalPhone == '+91') finalPhone = '';
+
       final client = Client()
         ..name = _nameCtrl.text.trim()
         ..businessName = _bizCtrl.text.trim()
         ..location = _locCtrl.text.trim()
-        ..phone = _phoneCtrl.text.trim() // Save Phone
-        ..email = _emailCtrl.text.trim() // Save Email
+        ..phone = finalPhone
+        ..email = _emailCtrl.text.trim()
         ..type = _type
         ..isArchived = false;
 
@@ -57,9 +76,10 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
             backgroundColor: Colors.green));
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -119,7 +139,6 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
                         borderSide: BorderSide(color: Colors.blueAccent))),
               ),
               const SizedBox(height: 16),
-              // --- THE FIX: Phone Input ---
               TextFormField(
                 controller: _phoneCtrl,
                 keyboardType: TextInputType.phone,
@@ -133,7 +152,6 @@ class _AddClientScreenState extends ConsumerState<AddClientScreen> {
                         borderSide: BorderSide(color: Colors.blueAccent))),
               ),
               const SizedBox(height: 16),
-              // --- THE FIX: Email Input ---
               TextFormField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,

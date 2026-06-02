@@ -28,12 +28,13 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   String _paymentMethod = 'Bank Transfer';
   bool _isLoading = false;
 
+  // --- THE FIX: State variable for the selected date ---
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
     _selectedClientId = widget.prefilledClientId;
-
-    // Auto-select the "Bulk Mode" flag (-1) if requested
     if (widget.prefillPayAll) {
       _selectedOrderId = -1;
     } else {
@@ -45,6 +46,36 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   void dispose() {
     _amountController.dispose();
     super.dispose();
+  }
+
+  // --- THE FIX: Date Picker Method ---
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Colors.blueAccent,
+              onPrimary: Colors.white,
+              surface: AppTheme.surfaceDark,
+              onSurface: Colors.white,
+            ),
+            dialogBackgroundColor: AppTheme.backgroundDark,
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   @override
@@ -122,9 +153,8 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                       ? _selectedOrderId
                       : null;
 
-                  // --- THE FIX 1: Add "Pay All" to the Dropdown Options ---
                   final List<DropdownMenuItem<int>> dropdownItems = [];
-                  if (unpaidOrders.length > 1) {
+                  if (unpaidOrders.length > 1 || safeOrderId == -1) {
                     dropdownItems.add(const DropdownMenuItem<int>(
                         value: -1,
                         child: Text('Pay All Unpaid Orders (Bulk)',
@@ -132,6 +162,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                                 color: Colors.greenAccent,
                                 fontWeight: FontWeight.bold))));
                   }
+
                   dropdownItems.addAll(unpaidOrders.map((o) =>
                       DropdownMenuItem<int>(
                           value: o.id,
@@ -148,7 +179,7 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                             borderSide: BorderSide(color: Colors.grey)),
                         focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.blueAccent))),
-                    items: dropdownItems,
+                    items: dropdownItems.isEmpty ? null : dropdownItems,
                     onChanged: (widget.prefilledOrderId != null ||
                             widget.prefillPayAll)
                         ? null
@@ -157,7 +188,6 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                 },
               ),
 
-            // --- THE FIX 2: Render specific summary card based on selection ---
             if (_selectedOrderId == -1 && _selectedClientId != null) ...[
               const SizedBox(height: 16),
               _BulkOrderSummaryCard(clientId: _selectedClientId!),
@@ -172,6 +202,34 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+
+            // --- THE FIX: Display Date Picker Row ---
+            InkWell(
+              onTap: _pickDate,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today,
+                        color: Colors.grey, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Date Received: ${_selectedDate.toString().split(' ')[0]}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.edit, color: Colors.blueAccent, size: 16),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
 
             TextFormField(
@@ -229,16 +287,18 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
 
                       setState(() => _isLoading = true);
                       try {
-                        // --- THE FIX 3: Route to Bulk Engine or Single Engine ---
+                        // --- THE FIX: Pass _selectedDate to the service ---
                         if (_selectedOrderId == -1) {
                           await ref
                               .read(financeServiceProvider)
                               .recordBulkPayment(
-                                  _selectedClientId!, amount, _paymentMethod);
+                                  _selectedClientId!, amount, _paymentMethod,
+                                  customDate: _selectedDate); // <-- Passed Here
                         } else {
                           await ref.read(financeServiceProvider).recordPayment(
                               _selectedClientId!, amount, _paymentMethod,
-                              orderId: _selectedOrderId);
+                              orderId: _selectedOrderId,
+                              customDate: _selectedDate); // <-- Passed Here
                         }
 
                         ref.invalidate(
@@ -253,7 +313,6 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
                           Navigator.pop(context);
                         }
                       } catch (e) {
-                        // This catches the overpayment exception and shows it beautifully to the user
                         if (context.mounted) {
                           showDialog(
                               context: context,
@@ -293,9 +352,6 @@ class _AddPaymentScreenState extends ConsumerState<AddPaymentScreen> {
   }
 }
 
-// ---------------------------------------------------------
-// WIDGETS: SUMMARY CARDS
-// ---------------------------------------------------------
 class _OrderSummaryCard extends ConsumerWidget {
   final int orderId;
   const _OrderSummaryCard({required this.orderId});
@@ -306,7 +362,6 @@ class _OrderSummaryCard extends ConsumerWidget {
     final itemsAsync = ref.watch(orderLineItemsProvider(orderId));
     final invAsync = ref.watch(inventoryItemsProvider);
 
-    // --- THE FIX: Fetch the actual order to get the delivery cost ---
     final orderAsync = ref.watch(singleOrderProvider(orderId));
 
     return Container(
@@ -335,7 +390,6 @@ class _OrderSummaryCard extends ConsumerWidget {
             data: (items) {
               final inventory = invAsync.value ?? [];
 
-              // Extract and sanitize the delivery cost
               final order = orderAsync.value;
               final rawDeliveryCost = order?.deliveryCost ?? 0.0;
               final safeDeliveryCost =
@@ -364,8 +418,6 @@ class _OrderSummaryCard extends ConsumerWidget {
                       ),
                     );
                   }).toList(),
-
-                  // --- THE FIX: Display Logistics row if there is a cost ---
                   if (safeDeliveryCost > 0) ...[
                     const SizedBox(height: 6),
                     Row(
@@ -410,7 +462,6 @@ class _OrderSummaryCard extends ConsumerWidget {
   }
 }
 
-// --- NEW WIDGET: Displays the total client balance across ALL unpaid orders ---
 class _BulkOrderSummaryCard extends ConsumerWidget {
   final int clientId;
   const _BulkOrderSummaryCard({required this.clientId});

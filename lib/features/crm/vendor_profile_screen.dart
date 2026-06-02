@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar/isar.dart'; // Needed for queries
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/core_providers.dart';
 import '../../domain/models/client.dart';
+import '../../domain/models/stock_movement.dart'; // Needed for unassigned movements
 import '../inventory/inventory_provider.dart';
 import 'crm_provider.dart';
+
+// --- THE FIX: Query for orphaned, positive stock restocks ---
+final unassignedPurchasesProvider =
+    FutureProvider.autoDispose<List<StockMovement>>((ref) async {
+  ref.watch(stockWatcher); // Keep UI synced
+  final isar = ref.read(isarProvider);
+  return await isar.stockMovements
+      .filter()
+      .vendorIdIsNull()
+      .and()
+      .quantityChangeGreaterThan(0) // Only look at additions/purchases
+      .sortByDateDesc()
+      .findAll();
+});
 
 class VendorProfileScreen extends ConsumerWidget {
   final Client vendor;
@@ -200,9 +216,7 @@ class VendorProfileScreen extends ConsumerWidget {
 
                         const SizedBox(height: 24),
 
-                        // ==========================================
-                        // THE FIX: QUICK ACTIONS ROW (VENDORS)
-                        // ==========================================
+                        // QUICK ACTIONS ROW
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -229,11 +243,9 @@ class VendorProfileScreen extends ConsumerWidget {
                                   }),
                               _buildActionIcon(
                                   icon: Icons.chat, // Represents WhatsApp
-                                  color: const Color(
-                                      0xFF25D366), // Official WhatsApp Teal
+                                  color: const Color(0xFF25D366),
                                   label: 'WhatsApp',
                                   onTap: () async {
-                                    // Strip out spaces, dashes, brackets to create a clean number
                                     final cleanPhone = liveVendor.phone!
                                         .replaceAll(RegExp(r'[^0-9+]'), '');
                                     final uri =
@@ -275,56 +287,155 @@ class VendorProfileScreen extends ConsumerWidget {
                                   }),
                           ],
                         ),
-                        // ==========================================
                       ],
                     ),
                   ),
                   Expanded(
                     child: TabBarView(
                       children: [
+                        // --- THE FIX: Embedded Unassigned Orders View ---
                         movementsAsync.when(
                           loading: () =>
                               const Center(child: CircularProgressIndicator()),
                           error: (e, _) =>
                               Center(child: Text('Error loading history: $e')),
                           data: (movements) {
-                            if (movements.isEmpty)
-                              return const Center(
-                                  child: Text('No supplies logged yet.',
-                                      style: TextStyle(color: Colors.grey)));
                             final inventory = inventoryAsync.value ?? [];
-                            return ListView.builder(
-                              itemCount: movements.length,
-                              itemBuilder: (context, index) {
-                                final movement = movements[index];
-                                final item = inventory
-                                    .where(
-                                        (i) => i.id == movement.inventoryItemId)
-                                    .firstOrNull;
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 4),
-                                  color: AppTheme.backgroundDark,
-                                  child: ListTile(
-                                    leading: const Icon(Icons.add_shopping_cart,
-                                        color: Colors.blueAccent),
-                                    title: Text(item?.name ?? 'Deleted Item',
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold)),
-                                    subtitle: Text(
-                                        '${movement.date?.toString().split(' ')[0]} • ${movement.reason}',
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                    trailing: Text(
-                                        '+${movement.quantityChange} ${item?.unit ?? "pcs"}',
-                                        style: const TextStyle(
-                                            color: Colors.greenAccent,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16)),
+                            final unassignedAsync =
+                                ref.watch(unassignedPurchasesProvider);
+
+                            return Column(
+                              children: [
+                                // Unassigned Section
+                                unassignedAsync.when(
+                                  data: (unassigned) {
+                                    if (unassigned.isEmpty)
+                                      return const SizedBox.shrink();
+                                    return Theme(
+                                      data: Theme.of(context).copyWith(
+                                          dividerColor: Colors.transparent),
+                                      child: ExpansionTile(
+                                        collapsedIconColor: Colors.orangeAccent,
+                                        iconColor: Colors.orangeAccent,
+                                        title: Text(
+                                          '${unassigned.length} Unassigned Purchases Available',
+                                          style: const TextStyle(
+                                              color: Colors.orangeAccent,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        children: unassigned.map((m) {
+                                          final item = inventory
+                                              .where((i) =>
+                                                  i.id == m.inventoryItemId)
+                                              .firstOrNull;
+                                          return Container(
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 4),
+                                            decoration: BoxDecoration(
+                                                color: AppTheme.surfaceDark
+                                                    .withOpacity(0.5),
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                            child: ListTile(
+                                              leading: const Icon(
+                                                  Icons.help_outline,
+                                                  color: Colors.orangeAccent),
+                                              title: Text(
+                                                  item?.name ?? 'Unknown Item',
+                                                  style: const TextStyle(
+                                                      color: Colors.white)),
+                                              subtitle: Text(
+                                                '+${m.quantityChange} ${item?.unit ?? "pcs"} • ${m.date?.toString().split(' ')[0]}',
+                                                style: const TextStyle(
+                                                    color: Colors.grey),
+                                              ),
+                                              trailing: TextButton(
+                                                style: TextButton.styleFrom(
+                                                  backgroundColor: Colors
+                                                      .orangeAccent
+                                                      .withOpacity(0.15),
+                                                  foregroundColor:
+                                                      Colors.orangeAccent,
+                                                ),
+                                                onPressed: () async {
+                                                  await ref
+                                                      .read(
+                                                          inventoryServiceProvider)
+                                                      .assignVendorToMovement(
+                                                          m.id, liveVendor.id);
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              'Supply claimed successfully.'),
+                                                          backgroundColor:
+                                                              Colors.green),
+                                                    );
+                                                  }
+                                                },
+                                                child: const Text('Claim'),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    );
+                                  },
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (_, __) => const SizedBox.shrink(),
+                                ),
+
+                                // Vendor's Actual History
+                                if (movements.isEmpty)
+                                  const Expanded(
+                                      child: Center(
+                                    child: Text('No supplies logged yet.',
+                                        style: TextStyle(color: Colors.grey)),
+                                  ))
+                                else
+                                  Expanded(
+                                    child: ListView.builder(
+                                      itemCount: movements.length,
+                                      itemBuilder: (context, index) {
+                                        final movement = movements[index];
+                                        final item = inventory
+                                            .where((i) =>
+                                                i.id ==
+                                                movement.inventoryItemId)
+                                            .firstOrNull;
+                                        return Card(
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 4),
+                                          color: AppTheme.backgroundDark,
+                                          child: ListTile(
+                                            leading: const Icon(
+                                                Icons.add_shopping_cart,
+                                                color: Colors.blueAccent),
+                                            title: Text(
+                                                item?.name ?? 'Deleted Item',
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            subtitle: Text(
+                                                '${movement.date?.toString().split(' ')[0]} • ${movement.reason}',
+                                                style: const TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 12)),
+                                            trailing: Text(
+                                                '+${movement.quantityChange} ${item?.unit ?? "pcs"}',
+                                                style: const TextStyle(
+                                                    color: Colors.greenAccent,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16)),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                );
-                              },
+                              ],
                             );
                           },
                         ),
@@ -404,12 +515,22 @@ class VendorProfileScreen extends ConsumerWidget {
     );
   }
 
+// --- THE FIX: Edit dialog updated with Phone prefix checks ---
   void _showEditDialog(BuildContext context, WidgetRef ref, Client liveVendor) {
     final nameCtrl = TextEditingController(text: liveVendor.name);
     final bizCtrl = TextEditingController(text: liveVendor.businessName);
-    final phoneCtrl = TextEditingController(text: liveVendor.phone);
-    final emailCtrl = TextEditingController(text: liveVendor.email);
     final locCtrl = TextEditingController(text: liveVendor.location);
+    final emailCtrl = TextEditingController(text: liveVendor.email);
+
+    // Check if the stored number already starts with '+' or '+91' before prepending
+    final rawPhone = liveVendor.phone?.trim() ?? '';
+    String initialPhone = rawPhone;
+    if (rawPhone.isEmpty) {
+      initialPhone = '+91 ';
+    } else if (!rawPhone.startsWith('+')) {
+      initialPhone = '+91 $rawPhone';
+    }
+    final phoneCtrl = TextEditingController(text: initialPhone);
 
     showDialog(
       context: context,
@@ -461,11 +582,16 @@ class VendorProfileScreen extends ConsumerWidget {
               child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
+              // Prevent saving junk strings
+              String finalPhone = phoneCtrl.text.trim();
+              if (finalPhone == '+91') finalPhone = '';
+
               liveVendor.name = nameCtrl.text;
               liveVendor.businessName = bizCtrl.text;
-              liveVendor.phone = phoneCtrl.text;
-              liveVendor.email = emailCtrl.text;
+              liveVendor.phone = finalPhone;
+              liveVendor.email = emailCtrl.text.trim();
               liveVendor.location = locCtrl.text;
+
               await ref.read(clientRepositoryProvider).saveClient(liveVendor);
               if (context.mounted) Navigator.pop(context);
             },

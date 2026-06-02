@@ -19,29 +19,66 @@ class OrdersScreen extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('Orders Pipeline'),
           backgroundColor: AppTheme.surfaceDark,
-          bottom: const TabBar(
-              indicatorColor: Colors.blueAccent,
-              labelColor: Colors.blueAccent,
-              unselectedLabelColor: Colors.grey,
-              tabs: [
-                Tab(icon: Icon(Icons.local_shipping), text: 'Active Pipeline'),
-                Tab(icon: Icon(Icons.history), text: 'History')
-              ]),
+          // --- THE FIX: Replaced TabBar with PreferredSize Sticky Search ---
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(116),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: TextField(
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search by client, status, or amount...',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: AppTheme.backgroundDark,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    ),
+                    onChanged: (value) => ref
+                        .read(orderSearchQueryProvider.notifier)
+                        .state = value,
+                  ),
+                ),
+                const TabBar(
+                  indicatorColor: Colors.blueAccent,
+                  labelColor: Colors.blueAccent,
+                  unselectedLabelColor: Colors.grey,
+                  tabs: [
+                    Tab(
+                        icon: Icon(Icons.local_shipping),
+                        text: 'Active Pipeline'),
+                    Tab(icon: Icon(Icons.history), text: 'History'),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
         body: const TabBarView(
-            children: [_ActiveOrdersList(), _HistoryOrdersList()]),
+          children: [
+            _ActiveOrdersList(),
+            _HistoryOrdersList(),
+          ],
+        ),
         floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.blueAccent,
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const AddOrderScreen())),
-            child: const Icon(Icons.add, color: Colors.white)),
+          backgroundColor: Colors.blueAccent,
+          onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const AddOrderScreen())),
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
     );
   }
 }
 
+// ... NOTE: Keep _ActiveOrdersList and _HistoryOrdersList exactly as they are currently.
+// They will automatically inherit the new filtered lists from the FutureProvider!
+// (I have omitted them to keep the snippet brief, you don't need to change them)
 class _ActiveOrdersList extends ConsumerWidget {
   const _ActiveOrdersList();
 
@@ -110,10 +147,66 @@ class _ActiveOrdersList extends ConsumerWidget {
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16)),
-                        subtitle: Text('Order #${order.id}  •  ${order.status}',
-                            style: TextStyle(
-                                color: _getStatusColor(order.status),
-                                fontWeight: FontWeight.bold)),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Row(
+                            children: [
+                              Text(order.status ?? 'Unknown',
+                                  style: const TextStyle(
+                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.w500)),
+                              const SizedBox(width: 8),
+                              const Text('•',
+                                  style: TextStyle(color: Colors.grey)),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.calendar_today,
+                                  size: 12, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              Text(
+                                order.date?.toString().split(' ')[0] ??
+                                    'Unknown',
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 12),
+                              ),
+
+                              // Render Overdue Badge ONLY if Delivered
+                              if (order.status == 'Delivered' &&
+                                  order.date != null) ...[
+                                Builder(builder: (context) {
+                                  final daysOverdue = DateTime.now()
+                                      .difference(order.date!)
+                                      .inDays;
+                                  if (daysOverdue > 0) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(
+                                              color: Colors.orangeAccent
+                                                  .withOpacity(0.5)),
+                                        ),
+                                        child: Text(
+                                          '$daysOverdue Days Overdue',
+                                          style: const TextStyle(
+                                            color: Colors.orangeAccent,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                }),
+                              ],
+                            ],
+                          ),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -395,8 +488,66 @@ class _HistoryOrdersList extends ConsumerWidget {
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold)),
-                        subtitle: Text('Order #${order.id}  •  ${order.status}',
-                            style: const TextStyle(color: Colors.grey)),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Row(
+                            children: [
+                              Text(order.status ?? 'Unknown',
+                                  style: const TextStyle(
+                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.w500)),
+                              const SizedBox(width: 8),
+                              const Text('•',
+                                  style: TextStyle(color: Colors.grey)),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.calendar_today,
+                                  size: 12, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              Text(
+                                order.date?.toString().split(' ')[0] ??
+                                    'Unknown',
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 12),
+                              ),
+
+                              // Render Overdue Badge ONLY if Delivered
+                              if (order.status == 'Delivered' &&
+                                  order.date != null) ...[
+                                Builder(builder: (context) {
+                                  final daysOverdue = DateTime.now()
+                                      .difference(order.date!)
+                                      .inDays;
+                                  if (daysOverdue > 0) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.orange.withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(
+                                              color: Colors.orangeAccent
+                                                  .withOpacity(0.5)),
+                                        ),
+                                        child: Text(
+                                          '$daysOverdue Days Overdue',
+                                          style: const TextStyle(
+                                            color: Colors.orangeAccent,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                }),
+                              ],
+                            ],
+                          ),
+                        ),
                         trailing: _OrderValueBadge(order: order),
                       ),
                     ),
@@ -420,28 +571,28 @@ class _OrderValueBadge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(orderLineItemsProvider(order.id));
+    // --- THE FIX: Watch the batch provider instead of a per-order query ---
+    final totalsAsync = ref.watch(globalOrderTotalsProvider);
 
-    return itemsAsync.when(
+    return totalsAsync.when(
       loading: () => const SizedBox(
-          width: 16,
-          height: 16,
+          width: 14,
+          height: 14,
           child: CircularProgressIndicator(strokeWidth: 2)),
-      error: (_, __) =>
-          const Icon(Icons.error, color: Colors.redAccent, size: 16),
-      data: (items) {
-        final double safeDelivery =
-            order.deliveryCost.isNaN ? 0.0 : order.deliveryCost;
-        final double total = items.fold(
-                0.0, (sum, item) => sum + (item.quantity * item.pricePerUnit)) +
-            safeDelivery;
+      error: (_, __) => const Icon(Icons.error, size: 16, color: Colors.red),
+      data: (totalsMap) {
+        // Look up this specific order's total from the pre-computed map in O(1) time
+        double total = totalsMap[order.id] ?? 0.0;
+
+        // Add delivery cost if applicable, sanitizing for legacy NaN records
+        double dCost = order.deliveryCost ?? 0.0;
+        if (!dCost.isNaN) total += dCost;
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.green.withOpacity(0.15),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
           ),
           child: Text(
             '₹${total.toStringAsFixed(0)}',

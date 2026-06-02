@@ -11,6 +11,8 @@ import '../crm/crm_provider.dart';
 import '../inventory/inventory_provider.dart';
 import '../finance/add_payment_screen.dart';
 import 'order_provider.dart';
+import 'edit_order_screen.dart';
+import '../finance/finance_provider.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
   final Order order;
@@ -58,6 +60,33 @@ class OrderDetailScreen extends ConsumerWidget {
               title: Text('Order #${liveOrder.id} Details'),
               backgroundColor: AppTheme.surfaceDark,
               actions: [
+                // --- THE FIX: Conditional Edit Button ---
+                if (order.status == 'Draft' || order.status == 'Confirmed')
+                  Consumer(
+                    builder: (context, ref, child) {
+                      // We need the items to pass into the Edit screen
+                      final itemsAsync =
+                          ref.watch(orderLineItemsProvider(order.id));
+
+                      return itemsAsync.maybeWhen(
+                        data: (items) => IconButton(
+                          icon: const Icon(Icons.edit,
+                              color: Colors.orangeAccent),
+                          tooltip: 'Edit Order',
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => EditOrderScreen(
+                                          order: order,
+                                          initialItems: items,
+                                        )));
+                          },
+                        ),
+                        orElse: () => const SizedBox.shrink(),
+                      );
+                    },
+                  ),
                 if (liveOrder.status != 'Delivered' &&
                     liveOrder.status != 'Paid' &&
                     liveOrder.status != 'Cancelled')
@@ -434,6 +463,9 @@ class OrderDetailScreen extends ConsumerWidget {
                         });
                   },
                 ),
+                _PaymentTrackingCard(order: order),
+
+                const SizedBox(height: 100), // Spacing for FAB
               ],
             ),
           );
@@ -574,5 +606,148 @@ class OrderDetailScreen extends ConsumerWidget {
                 : (isCompleted
                     ? Colors.greenAccent
                     : Colors.grey.withOpacity(0.3))));
+  }
+}
+
+// Add to the bottom of lib/features/orders/order_detail_screen.dart
+class _PaymentTrackingCard extends ConsumerWidget {
+  final Order order;
+  const _PaymentTrackingCard({required this.order});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final itemsAsync = ref.watch(orderLineItemsProvider(order.id));
+    final paymentsAsync = ref.watch(orderPaymentsProvider(order.id));
+
+    return itemsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error loading data: $e'),
+      data: (items) {
+        return paymentsAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (e, _) => const SizedBox.shrink(),
+          data: (payments) {
+            // 1. Calculate Total Value
+            double totalValue = items.fold(
+                0.0, (sum, item) => sum + (item.quantity * item.pricePerUnit));
+            double dCost = order.deliveryCost ?? 0.0;
+            if (!dCost.isNaN) totalValue += dCost;
+
+            // 2. Calculate Total Paid
+            double totalPaid = payments.fold(0.0, (sum, p) => sum + p.amount);
+
+            // 3. Calculate Progress (Guard against division by zero)
+            double progress =
+                totalValue > 0 ? (totalPaid / totalValue).clamp(0.0, 1.0) : 0.0;
+            bool isFullyPaid = progress >= 1.0;
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundDark,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Payment Tracking',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+
+                  // --- Progress Stats ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('₹${totalPaid.toStringAsFixed(0)} Paid',
+                          style: TextStyle(
+                              color: isFullyPaid
+                                  ? Colors.greenAccent
+                                  : Colors.orangeAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14)),
+                      Text('of ₹${totalValue.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              color: Colors.grey, fontSize: 14)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // --- Visual Progress Bar ---
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: Colors.grey.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isFullyPaid ? Colors.greenAccent : Colors.orangeAccent,
+                      ),
+                    ),
+                  ),
+
+                  // --- Balance Text ---
+                  if (!isFullyPaid && totalValue > 0) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                          'Balance: ₹${(totalValue - totalPaid).toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+
+                  // --- Instalment History List ---
+                  if (payments.isNotEmpty) ...[
+                    const Divider(color: Colors.grey, height: 32),
+                    const Text('Instalment History',
+                        style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    ...payments.map((tx) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: Colors.greenAccent, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${tx.date?.toString().split(' ')[0] ?? 'Unknown Date'} • ${tx.paymentMethod}',
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 13),
+                              ),
+                            ),
+                            Text('+ ₹${tx.amount.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                    color: Colors.greenAccent,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      );
+                    }),
+                  ] else ...[
+                    const SizedBox(height: 16),
+                    const Text('No payments recorded yet.',
+                        style: TextStyle(
+                            color: Colors.grey, fontStyle: FontStyle.italic)),
+                  ]
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

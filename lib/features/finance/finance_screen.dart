@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../dashboard/dashboard_provider.dart';
-import '../crm/crm_provider.dart'; // <--- THE FIX: Required to look up client names
+import '../crm/crm_provider.dart'; // <--- Required to look up client names
 import 'finance_provider.dart';
 import 'add_payment_screen.dart';
 import 'add_expense_screen.dart';
@@ -22,14 +22,44 @@ class FinanceScreen extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('Financial Ledger & P&L'),
           backgroundColor: AppTheme.surfaceDark,
-          bottom: const TabBar(
-            indicatorColor: Colors.blueAccent,
-            labelColor: Colors.blueAccent,
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              Tab(icon: Icon(Icons.receipt), text: 'Transaction Log'),
-              Tab(icon: Icon(Icons.analytics), text: 'Monthly Performance'),
-            ],
+          // --- THE FIX: Sticky Search Bar injected before TabBar ---
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(116),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: TextField(
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search ledger by client, method, or amount...',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: AppTheme.backgroundDark,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    ),
+                    onChanged: (value) => ref
+                        .read(financeSearchQueryProvider.notifier)
+                        .state = value,
+                  ),
+                ),
+                const TabBar(
+                  indicatorColor: Colors.blueAccent,
+                  labelColor: Colors.blueAccent,
+                  unselectedLabelColor: Colors.grey,
+                  tabs: [
+                    Tab(icon: Icon(Icons.receipt), text: 'Transaction Log'),
+                    Tab(
+                        icon: Icon(Icons.analytics),
+                        text: 'Monthly Performance'),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         body: Column(
@@ -76,7 +106,7 @@ class FinanceScreen extends ConsumerWidget {
           backgroundColor: Colors.blueAccent,
           child: const Icon(Icons.add, color: Colors.white),
           onPressed: () {
-            // --- THE FIX: Ask the user which type of transaction they are making ---
+            // --- Bottom Sheet logic preserved exactly as requested ---
             showModalBottomSheet(
               context: context,
               backgroundColor: AppTheme.surfaceDark,
@@ -159,6 +189,7 @@ class FinanceScreen extends ConsumerWidget {
   }
 }
 
+// ... NOTE: _TransactionTableList and _MonthlyAnalyticsDashboard remain below this.
 // ==========================================
 // VIEW: TRANSACTION TABLE LOG
 // ==========================================

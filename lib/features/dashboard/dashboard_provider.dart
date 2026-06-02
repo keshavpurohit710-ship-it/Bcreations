@@ -5,6 +5,7 @@ import '../../domain/models/transaction.dart';
 import '../../domain/models/order.dart';
 import '../../domain/models/order_line_item.dart';
 import '../../domain/models/inventory_item.dart';
+import '../orders/order_provider.dart';
 
 // Data blueprint for the monthly P&L view
 class MonthlyPerformance {
@@ -108,28 +109,21 @@ final monthlyAnalyticsProvider =
         netProfit: rev - exp));
   });
 
-  // --- THE FIX: Explicitly Sort Chronologically (Oldest to Newest) ---
-  performances.sort((a, b) {
-    final partsA = a.monthYear.split(' ');
-    final partsB = b.monthYear.split(' ');
+  // --- THE FIX: Clean Chronological Sort (Newest to Oldest) ---
+  int parseMonthYear(String my) {
+    final parts = my.split(' ');
+    if (parts.length != 2) return 0;
+    final mIndex = monthsList.indexOf(parts[0]) + 1;
+    final year = int.tryParse(parts[1]) ?? 0;
+    return (year * 100) + mIndex; // e.g. "Dec 2024" becomes 202412
+  }
 
-    final yearA = int.parse(partsA[1]);
-    final yearB = int.parse(partsB[1]);
-
-    // 1. Sort by Year first
-    if (yearA != yearB) {
-      return yearA.compareTo(yearB);
-    }
-
-    // 2. If same year, sort by Month Index (Jan = 0, Dec = 11)
-    final monthA = monthsList.indexOf(partsA[0]);
-    final monthB = monthsList.indexOf(partsB[0]);
-
-    return monthA.compareTo(monthB);
-  });
+  performances.sort((a, b) =>
+      parseMonthYear(b.monthYear).compareTo(parseMonthYear(a.monthYear)));
 
   return performances;
 });
+
 // 5. Calculate Total Outstanding Market Dues (Optimized Batch Query)
 final totalOutstandingProvider = FutureProvider<double>((ref) async {
   ref.watch(orderWatcher);
@@ -166,6 +160,7 @@ final lowStockProvider = FutureProvider<List<LowStockAlert>>((ref) async {
 
   return alerts;
 });
+
 // --- NEW: Badge Notification Provider ---
 // Counts how many orders are delivered but unpaid
 final pendingActionCountProvider = FutureProvider<int>((ref) async {
@@ -174,4 +169,44 @@ final pendingActionCountProvider = FutureProvider<int>((ref) async {
 
   final count = await isar.orders.filter().statusEqualTo('Delivered').count();
   return count;
+});
+// ==========================================
+// PENDING ACTIONS PROVIDERS
+// ==========================================
+
+// 1. Awaiting Dispatch (Confirmed Orders)
+final awaitingDispatchCountProvider = FutureProvider<int>((ref) async {
+  ref.watch(orderWatcher);
+  final isar = ref.read(isarProvider);
+  return await isar.orders.filter().statusEqualTo('Confirmed').count();
+});
+
+// 2. Delivered but Unpaid (Count & Total Value)
+class DeliveredUnpaidMetrics {
+  final int count;
+  final double totalValue;
+  DeliveredUnpaidMetrics(this.count, this.totalValue);
+}
+
+final deliveredUnpaidProvider =
+    FutureProvider<DeliveredUnpaidMetrics>((ref) async {
+  ref.watch(orderWatcher);
+  final isar = ref.read(isarProvider);
+
+  final deliveredOrders =
+      await isar.orders.filter().statusEqualTo('Delivered').findAll();
+  if (deliveredOrders.isEmpty) return DeliveredUnpaidMetrics(0, 0.0);
+
+  // Utilize our previously built batch provider to get totals instantly
+  final totalsMap = await ref.watch(globalOrderTotalsProvider.future);
+
+  double total = 0.0;
+  for (final order in deliveredOrders) {
+    double orderTotal = totalsMap[order.id] ?? 0.0;
+    double dCost = order.deliveryCost ?? 0.0;
+    if (!dCost.isNaN) orderTotal += dCost;
+    total += orderTotal;
+  }
+
+  return DeliveredUnpaidMetrics(deliveredOrders.length, total);
 });

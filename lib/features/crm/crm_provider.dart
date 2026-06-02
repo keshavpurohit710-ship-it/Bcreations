@@ -6,60 +6,69 @@ import '../../domain/models/order.dart';
 import '../../domain/models/transaction.dart';
 import '../../domain/models/stock_movement.dart'; // <-- 1. Needed for Supply History
 
-final crmSearchQueryProvider = StateProvider<String>((ref) => '');
+// Fetch a single client/vendor by their ID
+final singleClientProvider =
+    FutureProvider.family<Client?, int>((ref, id) async {
+  // If you have a clientWatcher to auto-refresh, uncomment the next line:
+  // ref.watch(clientWatcher);
 
+  final isar = ref.read(isarProvider);
+  return await isar.clients.get(id);
+});
+final clientSearchQueryProvider = StateProvider<String>((ref) => '');
+final vendorSearchQueryProvider = StateProvider<String>((ref) => '');
 // ==========================================
 // CLIENTS & LEADS
 // ==========================================
 final activeClientsProvider = FutureProvider<List<Client>>((ref) async {
   ref.watch(clientWatcher);
   final isar = ref.read(isarProvider);
-  final query = ref.watch(crmSearchQueryProvider).toLowerCase();
 
-  final allActiveRecords =
-      await isar.clients.filter().isArchivedEqualTo(false).findAll();
-  final clients = allActiveRecords.where((c) => c.type != 'Vendor').toList();
+  // Watch ONLY the client search query
+  final query = ref.watch(clientSearchQueryProvider).toLowerCase();
 
-  if (query.isEmpty) return clients;
+  var clients = await isar.clients
+      .filter()
+      .group((q) => q.typeEqualTo('Client').or().typeEqualTo('Lead'))
+      .findAll();
 
-  return clients.where((c) {
-    final name = c.name?.toLowerCase() ?? '';
-    final biz = c.businessName?.toLowerCase() ?? '';
-    return name.contains(query) || biz.contains(query);
-  }).toList();
+  if (query.isNotEmpty) {
+    clients = clients.where((c) {
+      final name = (c.name ?? '').toLowerCase();
+      final biz = (c.businessName ?? '').toLowerCase();
+      final phone = (c.phone ?? '').toLowerCase();
+      return name.contains(query) ||
+          biz.contains(query) ||
+          phone.contains(query);
+    }).toList();
+  }
+
+  return clients;
 });
-// --- THE FIX: Live tracking for single profiles ---
-final singleClientProvider =
-    FutureProvider.family<Client?, int>((ref, clientId) async {
-  ref.watch(clientWatcher); // Listens to Isar database changes
-  final isar = ref.read(isarProvider);
-  return await isar.clients.get(clientId);
-});
 
-// ==========================================
-// VENDORS & SUPPLIERS
-// ==========================================
+// --- Update Vendor Provider ---
 final activeVendorsProvider = FutureProvider<List<Client>>((ref) async {
   ref.watch(clientWatcher);
   final isar = ref.read(isarProvider);
-  final query =
-      ref.watch(crmSearchQueryProvider).toLowerCase(); // Watch Search Bar!
 
-  final allActiveVendors = await isar.clients
-      .filter()
-      .isArchivedEqualTo(false)
-      .typeEqualTo('Vendor')
-      .findAll();
+  // Watch ONLY the vendor search query
+  final query = ref.watch(vendorSearchQueryProvider).toLowerCase();
 
-  if (query.isEmpty) return allActiveVendors;
+  var vendors = await isar.clients.filter().typeEqualTo('Vendor').findAll();
 
-  return allActiveVendors.where((v) {
-    final name = v.name?.toLowerCase() ?? '';
-    final biz = v.businessName?.toLowerCase() ?? '';
-    return name.contains(query) || biz.contains(query);
-  }).toList();
+  if (query.isNotEmpty) {
+    vendors = vendors.where((v) {
+      final name = (v.name ?? '').toLowerCase();
+      final biz = (v.businessName ?? '').toLowerCase();
+      final phone = (v.phone ?? '').toLowerCase();
+      return name.contains(query) ||
+          biz.contains(query) ||
+          phone.contains(query);
+    }).toList();
+  }
+
+  return vendors;
 });
-
 // ==========================================
 // HISTORY & LEDGERS
 // ==========================================

@@ -6,6 +6,7 @@ import '../../core/providers/core_providers.dart';
 import '../../domain/models/client.dart';
 import '../orders/order_detail_screen.dart';
 import '../orders/add_order_screen.dart';
+import '../finance/add_payment_screen.dart'; // <-- THE FIX: Imported for Quick-Settle
 import 'crm_provider.dart';
 
 class ClientProfileScreen extends ConsumerWidget {
@@ -14,6 +15,7 @@ class ClientProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Uses your live client tracker
     final liveClientAsync = ref.watch(singleClientProvider(client.id));
 
     return liveClientAsync.when(
@@ -159,8 +161,7 @@ class ClientProfileScreen extends ConsumerWidget {
                       border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment
-                          .center, // Center aligned for better aesthetics
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -209,9 +210,6 @@ class ClientProfileScreen extends ConsumerWidget {
 
                         const SizedBox(height: 24),
 
-                        // ==========================================
-                        // THE FIX: QUICK ACTIONS ROW
-                        // ==========================================
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -237,12 +235,10 @@ class ClientProfileScreen extends ConsumerWidget {
                                     }
                                   }),
                               _buildActionIcon(
-                                  icon: Icons.chat, // Represents WhatsApp
-                                  color: const Color(
-                                      0xFF25D366), // Official WhatsApp Teal
+                                  icon: Icons.chat,
+                                  color: const Color(0xFF25D366),
                                   label: 'WhatsApp',
                                   onTap: () async {
-                                    // Strip out spaces, dashes, brackets to create a clean number
                                     final cleanPhone = liveClient.phone!
                                         .replaceAll(RegExp(r'[^0-9+]'), '');
                                     final uri =
@@ -284,38 +280,86 @@ class ClientProfileScreen extends ConsumerWidget {
                                   }),
                           ],
                         ),
-                        // ==========================================
 
                         const Divider(color: Colors.grey, height: 32),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Outstanding Dues:',
-                                style: TextStyle(color: Colors.grey)),
-                            balanceAsync.when(
-                              loading: () => const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2)),
-                              error: (_, __) => const Text('Error',
-                                  style: TextStyle(color: Colors.red)),
-                              data: (balance) => Text(
-                                balance > 0
-                                    ? 'Owes ₹${balance.toStringAsFixed(0)}'
-                                    : 'No Balance',
-                                style: TextStyle(
-                                  color: balance > 0
-                                      ? Colors.redAccent
-                                      : Colors.greenAccent,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
+                        // ==========================================
+                        // THE FIX: Correctly Constrained Dues Area
+                        // ==========================================
+                        balanceAsync.when(
+                          loading: () => const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Outstanding Dues:',
+                                    style: TextStyle(color: Colors.grey)),
+                                SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2))
+                              ]),
+                          error: (_, __) => const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Outstanding Dues:',
+                                    style: TextStyle(color: Colors.grey)),
+                                Text('Error',
+                                    style: TextStyle(color: Colors.red))
+                              ]),
+                          data: (balance) => Column(
+                            crossAxisAlignment: CrossAxisAlignment
+                                .stretch, // Prevents layout exception
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Outstanding Dues:',
+                                      style: TextStyle(color: Colors.grey)),
+                                  Text(
+                                    balance > 0
+                                        ? 'Owes ₹${balance.toStringAsFixed(0)}'
+                                        : 'No Balance',
+                                    style: TextStyle(
+                                      color: balance > 0
+                                          ? Colors.redAccent
+                                          : Colors.greenAccent,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              // Renders the button only if balance > 0
+                              if (balance > 0) ...[
+                                const SizedBox(height: 12),
+                                OutlinedButton.icon(
+                                  icon: const Icon(Icons.payment, size: 16),
+                                  label: Text(
+                                      'Settle ₹${balance.toStringAsFixed(0)}'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.greenAccent,
+                                    side: BorderSide(
+                                        color: Colors.greenAccent
+                                            .withOpacity(0.5)),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => AddPaymentScreen(
+                                                prefilledClientId:
+                                                    liveClient.id,
+                                                prefillPayAll:
+                                                    true, // Auto-triggers your bulk payment system
+                                              ))),
+                                ),
+                              ]
+                            ],
+                          ),
                         ),
+                        // ==========================================
                       ],
                     ),
                   ),
@@ -392,41 +436,147 @@ class ClientProfileScreen extends ConsumerWidget {
                               const Center(child: CircularProgressIndicator()),
                           error: (e, _) =>
                               Center(child: Text('Error loading orders: $e')),
+// ... existing code ...
                           data: (orders) {
-                            if (orders.isEmpty)
+                            if (orders.isEmpty) {
                               return const Center(
                                   child: Text('No orders recorded.',
                                       style: TextStyle(color: Colors.grey)));
+                            }
                             return ListView.builder(
                               itemCount: orders.length,
                               itemBuilder: (context, index) {
                                 final order = orders[index];
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 4),
-                                  color: AppTheme.backgroundDark,
-                                  child: ListTile(
-                                    title: Text('Order #${order.id}',
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold)),
-                                    subtitle: Text('Status: ${order.status}',
-                                        style: const TextStyle(
-                                            color: Colors.grey)),
-                                    trailing: const Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 16,
-                                        color: Colors.grey),
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => OrderDetailScreen(
-                                                order: order))),
+
+                                final isCancelled = order.status == 'Cancelled';
+
+                                Color statusColor = Colors.blueAccent;
+                                if (isCancelled)
+                                  statusColor = Colors.redAccent;
+                                else if (order.status == 'Paid')
+                                  statusColor = Colors.greenAccent;
+                                else if (order.status == 'Delivered')
+                                  statusColor = Colors.orangeAccent;
+
+                                return Opacity(
+                                  opacity: isCancelled ? 0.5 : 1.0,
+                                  child: Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 4),
+                                    color: AppTheme.backgroundDark,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: isCancelled
+                                          ? BorderSide(
+                                              color: Colors.redAccent
+                                                  .withOpacity(0.3))
+                                          : BorderSide.none,
+                                    ),
+                                    child: ListTile(
+                                      title: Text('Order #${order.id}',
+                                          style: TextStyle(
+                                            color: isCancelled
+                                                ? Colors.grey
+                                                : Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            decoration: isCancelled
+                                                ? TextDecoration.lineThrough
+                                                : null,
+                                          )),
+                                      // --- THE FIX: Added Date to Subtitle ---
+                                      subtitle: Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Text('${order.status}',
+                                                style: TextStyle(
+                                                    color: statusColor,
+                                                    fontWeight:
+                                                        FontWeight.w500)),
+                                            const SizedBox(width: 8),
+                                            const Text('•',
+                                                style: TextStyle(
+                                                    color: Colors.grey)),
+                                            const SizedBox(width: 8),
+                                            const Icon(Icons.calendar_today,
+                                                size: 12, color: Colors.grey),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                                order.date
+                                                        ?.toString()
+                                                        .split(' ')[0] ??
+                                                    'Unknown',
+                                                style: const TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 12)),
+
+                                            // Render Overdue Badge ONLY if Delivered
+                                            if (order.status == 'Delivered' &&
+                                                order.date != null) ...[
+                                              Builder(builder: (context) {
+                                                // Note: If you want to use deliveredAt instead of date, change order.date! to order.deliveredAt! here (ensure null check)
+                                                final daysOverdue =
+                                                    DateTime.now()
+                                                        .difference(order.date!)
+                                                        .inDays;
+                                                if (daysOverdue > 0) {
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 8.0),
+                                                    child: Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.orange
+                                                            .withOpacity(0.2),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(4),
+                                                        border: Border.all(
+                                                            color: Colors
+                                                                .orangeAccent
+                                                                .withOpacity(
+                                                                    0.5)),
+                                                      ),
+                                                      child: Text(
+                                                        '$daysOverdue Days Overdue',
+                                                        style: const TextStyle(
+                                                          color: Colors
+                                                              .orangeAccent,
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                                return const SizedBox.shrink();
+                                              }),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                      trailing: const Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: Colors.grey),
+                                      onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) => OrderDetailScreen(
+                                                  order: order))),
+                                    ),
                                   ),
                                 );
                               },
                             );
                           },
+// ... existing code ...
                         ),
                         txAsync.when(
                           loading: () =>
@@ -480,7 +630,6 @@ class ClientProfileScreen extends ConsumerWidget {
         });
   }
 
-  // Helper widget to build beautiful circular icon buttons
   Widget _buildActionIcon(
       {required IconData icon,
       required Color color,
@@ -504,12 +653,20 @@ class ClientProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditDialog(BuildContext context, WidgetRef ref, Client liveClient) {
-    final nameCtrl = TextEditingController(text: liveClient.name);
-    final bizCtrl = TextEditingController(text: liveClient.businessName);
-    final phoneCtrl = TextEditingController(text: liveClient.phone);
-    final emailCtrl = TextEditingController(text: liveClient.email);
-    final locCtrl = TextEditingController(text: liveClient.location);
+  void _showEditDialog(BuildContext context, WidgetRef ref, Client client) {
+    final nameCtrl = TextEditingController(text: client.name);
+    final bizCtrl = TextEditingController(text: client.businessName);
+    final locCtrl = TextEditingController(text: client.location);
+    final emailCtrl = TextEditingController(text: client.email);
+
+    final rawPhone = client.phone?.trim() ?? '';
+    String initialPhone = rawPhone;
+    if (rawPhone.isEmpty) {
+      initialPhone = '+91 ';
+    } else if (!rawPhone.startsWith('+')) {
+      initialPhone = '+91 $rawPhone';
+    }
+    final phoneCtrl = TextEditingController(text: initialPhone);
 
     showDialog(
       context: context,
@@ -562,13 +719,16 @@ class ClientProfileScreen extends ConsumerWidget {
               child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              liveClient.name = nameCtrl.text;
-              liveClient.businessName = bizCtrl.text;
-              liveClient.phone = phoneCtrl.text;
-              liveClient.email = emailCtrl.text;
-              liveClient.location = locCtrl.text;
+              String finalPhone = phoneCtrl.text.trim();
+              if (finalPhone == '+91') finalPhone = '';
 
-              await ref.read(clientRepositoryProvider).saveClient(liveClient);
+              client.name = nameCtrl.text;
+              client.businessName = bizCtrl.text;
+              client.phone = finalPhone;
+              client.email = emailCtrl.text.trim();
+              client.location = locCtrl.text;
+
+              await ref.read(clientRepositoryProvider).saveClient(client);
               if (context.mounted) Navigator.pop(context);
             },
             child: const Text('Save Changes'),

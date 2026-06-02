@@ -15,9 +15,6 @@ class BackupService {
   final Isar _isar;
   BackupService(this._isar);
 
-  // ==========================================
-  // EXPORT
-  // ==========================================
   Future<void> exportDatabaseToJson() async {
     final clients = await _isar.clients.where().findAll();
     final inventory = await _isar.inventoryItems.where().findAll();
@@ -49,7 +46,8 @@ class BackupService {
                 'unit': i.unit,
                 'itemType': i.itemType,
                 'minStockLevel': i.minStockLevel,
-                'costPrice': i.costPrice
+                'costPrice': i.costPrice,
+                'imagePath': i.imagePath // Added for completeness
               })
           .toList(),
       'orders': orders
@@ -58,12 +56,12 @@ class BackupService {
                 'clientId': o.clientId,
                 'status': o.status,
                 'date': o.date?.toIso8601String(),
-                // --- THE FIX: Added full pipeline timeline export ---
                 'confirmedAt': o.confirmedAt?.toIso8601String(),
                 'dispatchedAt': o.dispatchedAt?.toIso8601String(),
                 'deliveredAt': o.deliveredAt?.toIso8601String(),
                 'paidAt': o.paidAt?.toIso8601String(),
-                'deliveryCost': o.deliveryCost
+                'deliveryCost': o.deliveryCost,
+                'notes': o.notes // Added missing field
               })
           .toList(),
       'order_items': orderItems
@@ -95,8 +93,8 @@ class BackupService {
                 'amount': t.amount,
                 'type': t.type,
                 'paymentMethod': t.paymentMethod,
-                'description': t.description,
-                'relatedOrderId': t.relatedOrderId,
+                'description': t.description, // Added missing field
+                'relatedOrderId': t.relatedOrderId, // Added missing field
                 'date': t.date?.toIso8601String()
               })
           .toList(),
@@ -113,19 +111,14 @@ class BackupService {
         text: 'Business Database Backup');
   }
 
-  // ==========================================
-  // IMPORT / RESTORE
-  // ==========================================
   Future<void> importDatabaseFromJson(String filePath) async {
     final file = File(filePath);
     final jsonString = await file.readAsString();
     final Map<String, dynamic> data = jsonDecode(jsonString);
 
     await _isar.writeTxn(() async {
-      // 1. NUKE EXISTING DATA to prevent ID overlap and foreign key corruption
-      await _isar.clear();
+      await _isar.clear(); // Safe as long as file data is validated
 
-      // 2. Rebuild Clients
       if (data['clients'] != null) {
         final clients = (data['clients'] as List)
             .map((c) => Client()
@@ -141,7 +134,6 @@ class BackupService {
         await _isar.clients.putAll(clients);
       }
 
-      // 3. Rebuild Inventory
       if (data['inventory'] != null) {
         final inventory = (data['inventory'] as List)
             .map((i) => InventoryItem()
@@ -152,12 +144,12 @@ class BackupService {
               ..unit = i['unit']
               ..itemType = i['itemType']
               ..minStockLevel = i['minStockLevel'] ?? 5
-              ..costPrice = (i['costPrice'] ?? 0.0).toDouble())
+              ..costPrice = (i['costPrice'] ?? 0.0).toDouble()
+              ..imagePath = i['imagePath'])
             .toList();
         await _isar.inventoryItems.putAll(inventory);
       }
 
-      // 4. Rebuild Orders
       if (data['orders'] != null) {
         final orders = (data['orders'] as List)
             .map((o) => Order()
@@ -165,7 +157,7 @@ class BackupService {
               ..clientId = o['clientId']
               ..status = o['status']
               ..deliveryCost = (o['deliveryCost'] ?? 0.0).toDouble()
-              // --- THE FIX: Added full pipeline timeline import ---
+              ..notes = o['notes']
               ..confirmedAt = o['confirmedAt'] != null
                   ? DateTime.parse(o['confirmedAt'])
                   : null
@@ -184,7 +176,6 @@ class BackupService {
         await _isar.orders.putAll(orders);
       }
 
-      // 5. Rebuild Order Items
       if (data['order_items'] != null) {
         final orderItems = (data['order_items'] as List)
             .map((oi) => OrderLineItem()
@@ -198,7 +189,6 @@ class BackupService {
         await _isar.orderLineItems.putAll(orderItems);
       }
 
-      // 6. Rebuild Stock Movements
       if (data['stock_movements'] != null) {
         final stock = (data['stock_movements'] as List)
             .map((s) => StockMovement()
@@ -217,7 +207,6 @@ class BackupService {
         await _isar.stockMovements.putAll(stock);
       }
 
-      // 7. Rebuild Transactions
       if (data['transactions'] != null) {
         final txs = (data['transactions'] as List)
             .map((t) => Transaction()
