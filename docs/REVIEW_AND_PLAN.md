@@ -21,6 +21,21 @@ _Reviewed: 2026-11-11 · Codebase: Flutter + Riverpod 2 + Isar 3 · ~8,600 hand-
 | Pricing | **Decided:** wholesale + retail lists, cost-plus suggestions, editable per order, custom-item lines, bulk discounts — see §5.4 |
 | Sales channels | **All:** shops/resellers, individuals, exhibitions/fairs, Instagram/online |
 
+### 0.1 The problems this app must solve (confirmed with the user, 2026-11-12)
+
+The app is a **force multiplier**: if a feature costs her more time than it saves, it's wrong.
+
+| # | Real problem | What success looks like |
+|---|---|---|
+| P1 | **Customers pay late** (suppliers are paid on time) | She always knows who owes what and since when; reminding takes one tap |
+| P2 | **Loses track of inventory** | Stock on the app matches the shelf; she's warned before running out |
+| P3 | **Can't see profit — "nothing gets banked"** | A monthly "Where did my profit go?" answer in plain words |
+| P4 | **Doesn't know her best-selling items** | Top sellers by quantity and profit, by month and season |
+| P5 | **Family and business money get mixed** | Personal withdrawals recorded in one tap and shown separately |
+| P6 | **Onboarding must not be a burden** | Usable on day one in ≈15 minutes; history is optional, never a blocker (§5.5) |
+
+More candidate problems are awaiting her confirmation; confirmed ones will be added here.
+
 ---
 
 ## 1. What works well today (keep these ideas)
@@ -153,7 +168,38 @@ Payment status (Unpaid / Partly paid / Paid / Overdue) is **derived**, never sto
 
 **Reports this unlocks (Phase 4):** profit by channel, by product and by customer type; total discounts given and their reasons; custom vs catalogue share and margin; average real wholesale discount (so the 30 % default can be replaced by her actual figure); products sold below target margin.
 
-**Data model additions:** `settings` (hourly rate, overhead %, markups, default wholesale discount, target margin, bulk rules, review threshold); `products` (+ retail price, wholesale price, price-set cost, average cost, bulk-break override); `parties` (+ price type, default channel); `orders` (+ channel, order discount, discount reason); `order_lines` (+ product nullable for custom lines, description, photo, list-price snapshot, cost snapshot, line discount); `production_runs` (+ batch hours, labour cost, overhead cost, cost per piece).
+**Data model additions (pricing):** `settings` (hourly rate, overhead %, markups, default wholesale discount, target margin, bulk rules, review threshold); `products` (+ retail price, wholesale price, price-set cost, average cost, bulk-break override); `parties` (+ price type, default channel); `orders` (+ channel, order discount, discount reason); `order_lines` (+ product nullable for custom lines, description, photo, list-price snapshot, cost snapshot, line discount); `production_runs` (+ batch hours, labour cost, overhead cost, cost per piece).
+
+**Data model additions (from P1–P5):** `orders` (+ due date, from payment terms per customer type, e.g. shops 15 days, individuals on delivery); `owner_withdrawals` (amount, date, note: "taken for home/personal use"); `opening_balances` (customer dues / supplier dues as of the start date); `stock_counts` (periodic shelf count and the differences found).
+
+### 5.5 Onboarding & data entry (P6)
+
+**Principles**
+- **Start from today, not from history.** The app needs only what is true *right now*: what's on the shelf, who owes her, which orders are in progress. Past records are optional extras.
+- **Only a name and a number are ever required.** Cost, photo, category, phone number, recipe: all "add later", with gentle nudges ("8 items have no cost — add it to see your profit").
+- **Every step can be skipped and resumed.** A "Setup progress" card on Home, never a wall of forms.
+- **Speed targets:** record a payment < 10 s, an order < 30 s, a stock item < 15 s.
+- **Someone else can help:** you (her son) can fill a Google Sheet / Excel template on a computer and import it in one tap.
+
+**Day-one setup (≈15 minutes, each step skippable)**
+1. **Welcome:** language (हिन्दी / English), business name; logo and UPI ID optional.
+2. **"What do you have right now?"** Fast stock entry: type a name (or tap a suggestion from common craft materials), quantity, unit. One screen, "＋ next item" keeps the keyboard open. Cost and photo optional.
+3. **"Who owes you money?"** Pick customers from phone contacts and type the amount each owes. These become **opening balances**; there's no need to recreate old orders.
+4. **"Orders in progress":** customer, a short description (free text is fine), amount, advance received, delivery date.
+5. **"Do you owe any supplier?"** (optional) Same as step 3, for suppliers.
+6. Done: Home shows her to-dos straight away.
+
+**Past records (optional, never a blocker)**
+- **Monthly totals only:** "Sales in October ≈ ₹40,000" for a few past months, so trends and comparisons work without entering every bill.
+- **Spreadsheet import** if old records exist anywhere digital.
+- **Back-fill in her own time:** older orders and payments can be added with a past date whenever she wants.
+- *Future:* photograph a notebook page → app reads it (AI/OCR).
+
+**Everyday time-savers**
+- Contacts imported from her phone; customers created on the fly while making an order.
+- **Repeat last order**, recently used items first, smart defaults (today's date, last price, Cash/UPI).
+- One big **＋** button on every screen: New order · Payment received · Expense · Took money for home · Made items.
+- **Monthly 5-minute stock count:** walk the shelf, type what's there, the app records the differences.
 
 ---
 
@@ -176,6 +222,16 @@ Size key: **S** ≈ 1–2 days · **M** ≈ 3–5 days · **L** ≈ 1–2 weeks 
 - Unit tests for every calculation (partial pay, bulk allocation, advance, overpayment, decimals, recipe consumption, cancellation reversal).
 - Seed script with realistic craft-business demo data.
 - **Done when:** all balances/stock come from one tested source; no screen does arithmetic.
+
+### 🎯 First usable version (target right after Phase 1)
+Deliver the slice that attacks P1–P6 first, so she starts using the app (and giving feedback) weeks earlier:
+- Day-one onboarding (§5.5) and the Home to-do screen, in Hindi with large text.
+- Orders with due dates, payments, **one-tap WhatsApp reminders**.
+- Stock with production, adjustments and the monthly count.
+- Owner withdrawals + the "Where did my profit go?" monthly screen + best sellers.
+- **Automatic Drive backup** (pulled forward from Phase 7, because real data must never be lost).
+
+PDF bills, supplier credit, detailed reports and pricing insight follow in later phases.
 
 ### ✅ Pricing model — decided (see §5.4)
 The pricing tables and settings are built in Phase 1; the order-line pricing UX is built in Phase 2.
