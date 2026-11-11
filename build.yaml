@@ -1,0 +1,9 @@
+# Code generation only for the new Drift database. The old Isar models in
+# lib/domain/models/*.g.dart are committed as-is until Isar is removed (Phase 2).
+targets:
+  $default:
+    sources:
+      - lib/data/**
+      - lib/$lib$
+      - $package$
+      - pubspec.yaml

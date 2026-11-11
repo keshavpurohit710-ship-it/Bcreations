@@ -289,6 +289,16 @@ Phases describe *how* we build; releases describe *what she can use*. Every R1 i
 
 **Later:** exhibition cash-sale mode and exhibition profit; cloud sync; GST invoices.
 
+### ✅ Phase 1 — built (2026-11-12): what changed from the design above
+- **Code:** `lib/data/` (Drift tables, database, demo data) and `lib/domain/` (`money`, `pricing`, `stock_service`, `ledger_service`, `order_service`, `report_service`). The old Isar screens still run unchanged; Phase 2 switches them over.
+- **Profit is in money terms.** Stock moves carry their *material* value only. Her time and overhead feed suggested prices and margin colours, and appear in reports as "value of your time", but are not deducted from profit. This keeps "Where did my profit go?" equal to real cash to the paisa (guarded by a test).
+- **Opening balances** live on each customer/supplier (`openingBalancePaise`), not in a separate table; **shelf counts** are stock moves of type `count`, not a separate table.
+- **Payments have a purpose** (customer payment, refund, supplier payment) instead of in/out, so a person can be both a customer and a supplier.
+- **Advances** are payments allocated to an order that isn't delivered yet; leftovers and advances from cancelled orders become credit that is applied to the next delivery automatically.
+- **Purchases are paid immediately** in R1; supplier credit (owing a supplier) arrives with R2.
+- **Scope:** only the tables release 1 needs. Consignment, returns, workers and enquiries are added in their own phases with Drift schema migrations.
+- 37 automated tests cover money rounding, pricing rules, stock and production, advances, payments, dues, credit limits, cancellations, monthly profit and the profit bridge.
+
 ### ✅ Pricing model — decided (see §5.4)
 The pricing tables and settings are built in Phase 1; the order-line pricing UX is built in Phase 2.
 
