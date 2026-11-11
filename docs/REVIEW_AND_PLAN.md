@@ -34,7 +34,50 @@ The app is a **force multiplier**: if a feature costs her more time than it save
 | P5 | **Family and business money get mixed** | Personal withdrawals recorded in one tap and shown separately |
 | P6 | **Onboarding must not be a burden** | Usable on day one in ≈15 minutes; history is optional, never a blocker (§5.5) |
 
-More candidate problems are awaiting her confirmation; confirmed ones will be added here.
+### 0.2 Full problem list, prioritised (confirmed 2026-11-12)
+
+**Must solve (real, painful)** — R1 = first usable version, R2 = second release (see §6)
+
+| # | Problem | Feature | Release |
+|---|---|---|---|
+| P1 | Customers pay late | Dues list with ageing, due dates per order, one-tap WhatsApp reminder | R1 |
+| P2 | Loses track of inventory | Auto stock from sales and production, adjustments, monthly 5-min count | R1 |
+| P3 | Profit invisible | "Where did my profit go?" monthly screen | R1 |
+| P4 | Best sellers unknown | Top items by quantity and profit, per month | R1 |
+| P5 | Family and business money mixed | "Took money for home" one-tap entry | R1 |
+| P7 | Advances on custom orders forgotten | **Advance payments**: recorded when the order is taken, shown on the order, auto-deducted from the bill, listed under "Advances held" | R1 |
+| P8 | Undercharges (time, packaging, courier not counted) | Cost per piece incl. labour, packaging and courier; margin colour on every order line (§5.4) | R1 |
+| P9 | Credit piles up with some customers | **Credit limit per customer**; warning when a new order would cross it or old dues are overdue | R1 |
+| P10 | Small expenses leak | Quick expense from the ＋ button (2 taps for Packaging, Courier, Travel, Phone…), optional receipt photo | R1 |
+| P13 | Custom requests misunderstood | **Reference photos + spec fields** (colour, size, name to engrave, notes) on each order line; included on the quote | R1 |
+| P19 | Runs out of material mid-order | Material check when confirming an order / starting production; shortage list | R1 |
+| P26 | Old records scattered | One **search** across customers, orders, payments, items | R1 |
+| P15 | Returns, exchanges, transit damage untracked | **Returns & exchanges**: reason, restock or write-off, refund or credit note to the customer | R2 |
+| P16 | Consignment stock forgotten | **Goods with shops**: send stock to a shop, record what sold and what came back, bill only sold pieces | R2 |
+| P20 | Overbuys materials | **Slow-moving stock** list (unused for 60+ days) and stock value tied up; warning when buying more of it | R2 |
+| P22 | Material price rises eat margin | "Prices to review" list when cost rises > 10 % (§5.4) | R2 |
+| P24 | Bills and quotes by hand | PDF quote / bill with logo and UPI QR, shared on WhatsApp | R2 |
+| P25 | Sends same photos and prices repeatedly | **Shareable catalogue**: pick items → WhatsApp-ready photo set or PDF with prices (retail or wholesale) | R2 |
+| P27 | Hard to decide what to make next | **Production planner**: pending orders minus finished stock = what to make, plus materials needed | R2 |
+| P28 | Helpers / karigars on piece-rate untracked | **Workers**: log pieces done per person, rate per piece, amount due, payments made; feeds cost per piece | R2 |
+| P29 | No records for tax, loans, registration | **Year-end pack**: sales register, P&L, customer and supplier statements, stock value — PDF + Excel per financial year | R3 |
+
+**Good to have (track it, not urgent)** — R3 unless cheap enough to slip in earlier
+
+| # | Problem | Feature |
+|---|---|---|
+| P11 | Forgets order details / delivery dates | Delivery date on orders + "due this week" on Home (largely covered by P1/P13 in R1) |
+| P12 | Orders lost across WhatsApp / Instagram / calls | **Enquiry** quick-capture (name, what, source) that converts to an order in one tap |
+| P10b | UPI sender unclear | Payment reference field (UPI ref / sender name); later, match from shared UPI SMS/notification |
+| P14 | Repeat customers unknown | Customer insights: repeat buyers, last purchase, "haven't ordered in 3 months" list |
+| P21 | Real cost per piece unknown | Covered by production cost (§5.4) once materials have costs |
+| P23 | Not ready for festival seasons | Last year's sales by season + "prepare for Diwali" stock/production hints |
+
+**Later (not a current pain)**
+- Quick cash-sale mode for exhibitions (few taps, no customer needed).
+- Exhibition profit (stall fee + travel vs. sales at that event).
+
+**Design note (P30):** she is self-sufficient with her phone but not current with new tech. So the app uses familiar patterns (WhatsApp-style lists and share sheets, big buttons, plain Hindi/English), with short first-time tips on each screen — no jargon, no hidden gestures.
 
 ---
 
@@ -172,6 +215,8 @@ Payment status (Unpaid / Partly paid / Paid / Overdue) is **derived**, never sto
 
 **Data model additions (from P1–P5):** `orders` (+ due date, from payment terms per customer type, e.g. shops 15 days, individuals on delivery); `owner_withdrawals` (amount, date, note: "taken for home/personal use"); `opening_balances` (customer dues / supplier dues as of the start date); `stock_counts` (periodic shelf count and the differences found).
 
+**Data model additions (from §0.2):** `parties` (+ credit limit); `payments` (+ kind: advance / payment / refund, reference e.g. UPI ref or sender); `order_lines` (+ spec fields: colour, size, personalisation text, notes) and `order_photos` (reference images per order/line); `returns` + `return_lines` (reason, restock or write-off, refund or credit note); `stock_locations` (Home, each consignment shop) with `consignment_moves` (sent, sold, returned) and settlement into an order; `workers`, `work_logs` (worker, product, pieces, rate), `worker_payments`; `expenses` (+ quick-category, receipt photo); `enquiries` (name, phone, what, source WhatsApp/Instagram/Call, converted order). All tables keep the sync-ready columns (§5.2).
+
 ### 5.5 Onboarding & data entry (P6)
 
 **Principles**
@@ -223,15 +268,26 @@ Size key: **S** ≈ 1–2 days · **M** ≈ 3–5 days · **L** ≈ 1–2 weeks 
 - Seed script with realistic craft-business demo data.
 - **Done when:** all balances/stock come from one tested source; no screen does arithmetic.
 
-### 🎯 First usable version (target right after Phase 1)
-Deliver the slice that attacks P1–P6 first, so she starts using the app (and giving feedback) weeks earlier:
-- Day-one onboarding (§5.5) and the Home to-do screen, in Hindi with large text.
-- Orders with due dates, payments, **one-tap WhatsApp reminders**.
-- Stock with production, adjustments and the monthly count.
-- Owner withdrawals + the "Where did my profit go?" monthly screen + best sellers.
-- **Automatic Drive backup** (pulled forward from Phase 7, because real data must never be lost).
+### 🎯 Releases (what she gets, in order)
+Phases describe *how* we build; releases describe *what she can use*. Every R1 item is in §0.2.
 
-PDF bills, supplier credit, detailed reports and pricing insight follow in later phases.
+**R1 — First usable version (right after Phase 1)**
+- Day-one onboarding (§5.5) and the Home to-do screen, in Hindi with large text, plus global search.
+- Orders with due dates, **advance payments**, reference photos and specs; payments; **one-tap WhatsApp reminders**; credit limits.
+- Stock with production, material shortage check, adjustments and the monthly count.
+- Quick expenses, "took money for home", the "Where did my profit go?" screen and best sellers.
+- Cost per piece with margin colours on orders.
+- **Automatic Drive backup** (pulled forward from Phase 7: real data must never be lost).
+
+**R2 — Running the business** (Phases 3, 4, 6 work)
+- PDF quotes/bills with UPI QR and the shareable catalogue.
+- Returns & exchanges, goods with shops (consignment), workers / piece-rate.
+- Production planner, slow-moving stock, prices to review, supplier credit.
+
+**R3 — Insight & records**
+- Year-end pack for tax / loans, customer insights, enquiry capture, UPI reference matching, seasonal planning.
+
+**Later:** exhibition cash-sale mode and exhibition profit; cloud sync; GST invoices.
 
 ### ✅ Pricing model — decided (see §5.4)
 The pricing tables and settings are built in Phase 1; the order-line pricing UX is built in Phase 2.
