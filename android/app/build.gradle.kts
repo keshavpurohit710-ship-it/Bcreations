@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -11,7 +12,7 @@ plugins {
 // See docs/RELEASE.md. Without it, release builds fall back to debug signing (local testing only).
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
-val hasReleaseKeystore = keystorePropertiesFile.exists()
+val hasReleaseKeystore = keystorePropertiesFile.isFile
 if (hasReleaseKeystore) {
     keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
@@ -26,10 +27,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
         // THE FIX: Kotlin requires 'is' in front of the flag
         isCoreLibraryDesugaringEnabled = true 
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
@@ -61,6 +58,12 @@ android {
                 signingConfigs.getByName("debug")
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
