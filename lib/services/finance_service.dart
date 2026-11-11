@@ -32,7 +32,7 @@ class FinanceService {
 
       // Don't forget to add delivery costs to the billed total!
       for (final order in chargeableOrders) {
-        final dCost = order.deliveryCost ?? 0.0;
+        final dCost = order.deliveryCost;
         if (!dCost.isNaN) totalBilled += dCost;
       }
     }
@@ -87,7 +87,7 @@ class FinanceService {
         continue;
 
       double total = orderTotals[order.id] ?? 0.0;
-      double dCost = order.deliveryCost ?? 0.0;
+      double dCost = order.deliveryCost;
       if (!dCost.isNaN) total += dCost;
 
       clientBilled[order.clientId!] =
@@ -172,7 +172,7 @@ class FinanceService {
           double totalValue = items.fold(
               0.0, (sum, item) => sum + (item.quantity * item.pricePerUnit));
 
-          double deliveryCost = order.deliveryCost ?? 0.0;
+          double deliveryCost = order.deliveryCost;
           if (deliveryCost.isNaN) deliveryCost = 0.0; // --- SANITIZE ---
           totalValue += deliveryCost;
 
@@ -231,7 +231,7 @@ class FinanceService {
         double orderTotal = items.fold(
             0.0, (sum, item) => sum + (item.quantity * item.pricePerUnit));
 
-        double deliveryCost = order.deliveryCost ?? 0.0;
+        double deliveryCost = order.deliveryCost;
         if (deliveryCost.isNaN) deliveryCost = 0.0; // --- SANITIZE ---
         orderTotal += deliveryCost;
 

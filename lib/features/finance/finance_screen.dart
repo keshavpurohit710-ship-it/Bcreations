@@ -232,7 +232,7 @@ class _TransactionTableList extends ConsumerWidget {
             }
 
             // --- THE FIX: SMART SUBTITLES ---
-            String subtitleText = tx.date?.toString().split(' ')[0] ?? '';
+            String subtitleText = tx.date.toString().split(' ')[0];
             if (isIncome &&
                 tx.paymentMethod != null &&
                 tx.paymentMethod!.isNotEmpty) {

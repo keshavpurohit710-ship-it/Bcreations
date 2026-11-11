@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import '../../main.dart';
 import '../../services/inventory_service.dart';
 import '../../services/finance_service.dart';
-import '../../services/fulfillment_service.dart';
 import '../../services/order_service.dart';
 import '../../services/crm_service.dart';
 import '../../services/notification_service.dart';
@@ -34,9 +32,6 @@ final financeServiceProvider = Provider<FinanceService>((ref) {
   return FinanceService(ref.read(isarProvider));
 });
 
-final fulfillmentServiceProvider = Provider<FulfillmentService>((ref) {
-  return FulfillmentService(ref.read(isarProvider));
-});
 
 final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService(ref.read(isarProvider));

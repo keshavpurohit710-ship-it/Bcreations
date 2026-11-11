@@ -467,7 +467,7 @@ class VendorProfileScreen extends ConsumerWidget {
                                         style: const TextStyle(
                                             color: Colors.white)),
                                     subtitle: Text(
-                                        tx.date?.toString().split(' ')[0] ?? '',
+                                        tx.date.toString().split(' ')[0],
                                         style: const TextStyle(
                                             color: Colors.grey)),
                                     trailing: Text(

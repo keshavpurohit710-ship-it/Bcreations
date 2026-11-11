@@ -47,7 +47,7 @@ class InventoryScreen extends ConsumerWidget {
             _CurrentStockBadge(
               itemId: item.id,
               unit: item.unit ?? 'units',
-              minStockLevel: item.minStockLevel ?? 5,
+              minStockLevel: item.minStockLevel,
             ),
             IconButton(
               icon: const Icon(Icons.add_circle_outline,
