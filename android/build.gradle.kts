@@ -31,6 +31,12 @@ subprojects {
                 if (namespace == null) {
                     namespace = project.group.toString()
                 }
+                // Old plugins (isar_flutter_libs compiles against API 30) break current AndroidX,
+                // which needs 34+. Match Flutter's default compileSdk. Remove with Isar in Phase 1.
+                val minCompileSdk = 36
+                if ((compileSdk ?: 0) < minCompileSdk) {
+                    compileSdk = minCompileSdk
+                }
             }
         }
     }

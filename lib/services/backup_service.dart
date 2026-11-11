@@ -95,7 +95,7 @@ class BackupService {
                 'paymentMethod': t.paymentMethod,
                 'description': t.description, // Added missing field
                 'relatedOrderId': t.relatedOrderId, // Added missing field
-                'date': t.date?.toIso8601String()
+                'date': t.date.toIso8601String()
               })
           .toList(),
     };

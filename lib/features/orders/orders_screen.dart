@@ -226,18 +226,6 @@ class _ActiveOrdersList extends ConsumerWidget {
     );
   }
 
-  Color _getStatusColor(String? status) {
-    switch (status) {
-      case 'Draft':
-        return Colors.grey;
-      case 'Confirmed':
-        return Colors.blueAccent;
-      case 'Dispatched':
-        return Colors.orangeAccent;
-      default:
-        return Colors.white;
-    }
-  }
 
   Future<bool> _showDispatchDialog(
       BuildContext context, WidgetRef ref, Order order) async {
@@ -585,7 +573,7 @@ class _OrderValueBadge extends ConsumerWidget {
         double total = totalsMap[order.id] ?? 0.0;
 
         // Add delivery cost if applicable, sanitizing for legacy NaN records
-        double dCost = order.deliveryCost ?? 0.0;
+        double dCost = order.deliveryCost;
         if (!dCost.isNaN) total += dCost;
 
         return Container(

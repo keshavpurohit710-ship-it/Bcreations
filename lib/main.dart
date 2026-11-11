@@ -51,7 +51,7 @@ void callbackDispatcher() {
         final flutterLocalNotificationsPlugin =
             FlutterLocalNotificationsPlugin();
         const AndroidInitializationSettings initializationSettingsAndroid =
-            AndroidInitializationSettings('@mipmap/ic_launcher');
+            AndroidInitializationSettings('@mipmap/launcher_icon');
         const InitializationSettings initializationSettings =
             InitializationSettings(android: initializationSettingsAndroid);
 
@@ -81,9 +81,9 @@ void callbackDispatcher() {
       }
 
       await isar.close();
-      return Future.value(true);
+      return true;
     } catch (e) {
-      return Future.value(false);
+      return false;
     }
   });
 }

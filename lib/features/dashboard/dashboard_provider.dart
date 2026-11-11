@@ -3,7 +3,6 @@ import 'package:isar/isar.dart';
 import '../../core/providers/core_providers.dart';
 import '../../domain/models/transaction.dart';
 import '../../domain/models/order.dart';
-import '../../domain/models/order_line_item.dart';
 import '../../domain/models/inventory_item.dart';
 import '../orders/order_provider.dart';
 
@@ -82,8 +81,7 @@ final monthlyAnalyticsProvider =
 
   // Group by "Month Year" (e.g., "May 2025")
   for (final tx in txs) {
-    if (tx.date == null) continue;
-    final date = tx.date!;
+    final date = tx.date;
     final monthStr = monthsList[date.month - 1];
     final key = '$monthStr ${date.year}';
 
@@ -203,7 +201,7 @@ final deliveredUnpaidProvider =
   double total = 0.0;
   for (final order in deliveredOrders) {
     double orderTotal = totalsMap[order.id] ?? 0.0;
-    double dCost = order.deliveryCost ?? 0.0;
+    double dCost = order.deliveryCost;
     if (!dCost.isNaN) orderTotal += dCost;
     total += orderTotal;
   }

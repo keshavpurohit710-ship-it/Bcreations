@@ -630,7 +630,7 @@ class _PaymentTrackingCard extends ConsumerWidget {
             // 1. Calculate Total Value
             double totalValue = items.fold(
                 0.0, (sum, item) => sum + (item.quantity * item.pricePerUnit));
-            double dCost = order.deliveryCost ?? 0.0;
+            double dCost = order.deliveryCost;
             if (!dCost.isNaN) totalValue += dCost;
 
             // 2. Calculate Total Paid
@@ -723,7 +723,7 @@ class _PaymentTrackingCard extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                '${tx.date?.toString().split(' ')[0] ?? 'Unknown Date'} • ${tx.paymentMethod}',
+                                '${tx.date.toString().split(' ')[0]} • ${tx.paymentMethod}',
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 13),
                               ),

@@ -54,7 +54,7 @@ final activeOrdersProvider = FutureProvider<List<Order>>((ref) async {
 
       // Calculate total including valid delivery costs
       double total = orderTotals[o.id] ?? 0.0;
-      double dCost = o.deliveryCost ?? 0.0;
+      double dCost = o.deliveryCost;
       if (!dCost.isNaN) total += dCost;
 
       return clientName.contains(query) ||
@@ -110,7 +110,7 @@ final historyOrdersProvider = FutureProvider<List<Order>>((ref) async {
 
       // Calculate total including valid delivery costs
       double total = orderTotals[o.id] ?? 0.0;
-      double dCost = o.deliveryCost ?? 0.0;
+      double dCost = o.deliveryCost;
       if (!dCost.isNaN) total += dCost;
 
       return clientName.contains(query) ||

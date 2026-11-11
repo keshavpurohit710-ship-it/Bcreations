@@ -183,7 +183,7 @@ class ClientProfileScreen extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                liveClient.type?.toUpperCase() ?? 'CLIENT',
+                                liveClient.type.toUpperCase(),
                                 style: TextStyle(
                                   color: liveClient.type == 'Lead'
                                       ? Colors.orangeAccent
@@ -606,7 +606,7 @@ class ClientProfileScreen extends ConsumerWidget {
                                         style: const TextStyle(
                                             color: Colors.white)),
                                     subtitle: Text(
-                                        tx.date?.toString().split(' ')[0] ?? '',
+                                        tx.date.toString().split(' ')[0],
                                         style: const TextStyle(
                                             color: Colors.grey)),
                                     trailing: Text(

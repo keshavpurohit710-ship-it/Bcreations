@@ -13,7 +13,7 @@ class NotificationService {
 
   /// 1. Initialize the native notification engine (Android Only)
   Future<void> initialize() async {
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@mipmap/launcher_icon');
 
     // We removed iOS (Darwin) settings since this is an Android-first build
     const initSettings = InitializationSettings(android: androidInit);

@@ -1,16 +1,16 @@
-# flutter_application_1
+# Bcreations
 
-A new Flutter project.
+An offline Android app for running a small handmade craft business: customers and suppliers, orders and quotes, stock and production, payments, expenses and profit.
 
-## Getting Started
+- **Review & roadmap:** [docs/REVIEW_AND_PLAN.md](docs/REVIEW_AND_PLAN.md)
+- **Build & release:** [docs/RELEASE.md](docs/RELEASE.md)
 
-This project is a starting point for a Flutter application.
+## Quick start
+```bash
+flutter pub get
+flutter analyze --no-fatal-infos
+flutter test
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Stack (current): Flutter 3.47 · Riverpod · Isar. The database moves to Drift (SQLite) in Phase 1.
