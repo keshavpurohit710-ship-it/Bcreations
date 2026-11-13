@@ -58,8 +58,8 @@ class StockService {
       ..addColumns([sum])
       ..where(_live(db.stockMoves));
     if (asOf != null) {
-      q.where(db.stockMoves.movedAt.isSmallerOrEqualValue(asOf) |
-          db.stockMoves.type.equalsValue(StockMoveType.opening));
+      q.where(
+          db.stockMoves.movedAt.isSmallerOrEqualValue(asOf) | db.stockMoves.type.equalsValue(StockMoveType.opening));
     }
     return (await q.map((r) => r.read(sum)).getSingle()) ?? 0;
   }
@@ -82,8 +82,7 @@ class StockService {
       ..addColumns([inQ, inV])
       ..where(db.stockMoves.productId.equals(productId) &
           _live(db.stockMoves) &
-          db.stockMoves.type
-              .isInValues([StockMoveType.opening, StockMoveType.purchase, StockMoveType.productionIn]));
+          db.stockMoves.type.isInValues([StockMoveType.opening, StockMoveType.purchase, StockMoveType.productionIn]));
     final b = await bought.getSingle();
     final bq = b.read(inQ) ?? 0, bv = b.read(inV) ?? 0;
     return bq > 0 ? divRound(bv * milliPerUnit, bq) : 0;

@@ -39,12 +39,11 @@ void main() {
       deliveryChargePaise: 5000,
       lines: [LineInput(productId: earrings, qtyMilli: 2000, unitPricePaise: 30000)], // ₹600 + ₹50
     );
-    await w.ledger.receivePayment(
-        partyId: asha, amountPaise: 30000, method: PaymentMethod.upi, date: d(3, 10), orderId: o2.id);
+    await w.ledger
+        .receivePayment(partyId: asha, amountPaise: 30000, method: PaymentMethod.upi, date: d(3, 10), orderId: o2.id);
     await w.orders.deliver(o2.id, date: d(3, 12));
 
-    await w.ledger
-        .receivePayment(partyId: shop, amountPaise: 150000, method: PaymentMethod.bank, date: d(3, 20));
+    await w.ledger.receivePayment(partyId: shop, amountPaise: 150000, method: PaymentMethod.bank, date: d(3, 20));
     await w.expense('Courier', 12000, d(3, 12));
     await w.expense('Packaging', 8000, d(3, 15));
     await w.stock.adjust(productId: earrings, deltaMilli: -1000, reason: 'Broken', date: d(3, 18));

@@ -65,6 +65,7 @@ class Settings extends Table with SyncColumns {
   TextColumn get upiId => text().nullable()();
   TextColumn get logoPath => text().nullable()();
   TextColumn get languageCode => text().withDefault(const Constant('hi'))();
+  TextColumn get themeMode => text().withDefault(const Constant('light'))(); // light | dark | system
 
   // Pricing (plan §5.4)
   IntColumn get hourlyRatePaise => integer().withDefault(const Constant(10000))(); // ₹100/h

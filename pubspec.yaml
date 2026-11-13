@@ -4,53 +4,49 @@ publish_to: 'none' # Prevents accidental publishing to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
-  # UI & Defaults
-  cupertino_icons: ^1.0.6
-
-  # State Management
+  # State
   flutter_riverpod: ^2.5.1
-  
-  # Local Offline Database
-  isar: ^3.1.0
-  isar_flutter_libs: ^3.1.0
-  
-  # Utilities
-  path_provider: ^2.1.2     # Required by Isar to find the device's document folder
-  intl: ^0.19.0             # Required for formatting Rupees (₹) and dates
-  flutter_local_notifications: ^20.1.0
-  share_plus: ^12.0.2
-  file_picker: ^11.0.2
-  workmanager: ^0.9.0+3
-  url_launcher: ^6.3.2
-  image_picker: ^1.2.2
+
+  # Database (Drift / SQLite)
   drift: ^2.35.4
   drift_flutter: ^0.3.1
   uuid: ^4.6.0
 
+  # Utilities
+  intl: any # version is pinned by flutter_localizations
+  path: ^1.9.1
+  path_provider: ^2.1.2 # app folder for photos
+  share_plus: ^12.0.2
+  url_launcher: ^6.3.2 # call / WhatsApp
+  image_picker: ^1.2.2 # reference and product photos
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0     # Standard code linting rules
+  flutter_lints: ^3.0.0
 
-  # Code Generation Tools (Required for Isar Database)
+  # Code generation (Drift)
   build_runner: ^2.4.9
+  drift_dev: ^2.35.3
+
+  # Branding
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
-  drift_dev: ^2.35.3
 
 flutter:
   uses-material-design: true
+  generate: true # Hindi / English strings from lib/l10n/*.arb
+  assets:
+    - assets/branding/icon_foreground.png
 
-  # If you add custom fonts later or a barcode scanner beep sound, 
-  # you will declare the assets/fonts down here:
-  # assets:
-  #   - assets/images/
 # App icon — regenerate with: dart run flutter_launcher_icons
 flutter_launcher_icons:
   android: "launcher_icon"

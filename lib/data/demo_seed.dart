@@ -53,26 +53,20 @@ Future<void> seedDemoData(AppDatabase db, {required DateTime today}) async {
           .id;
 
   // Materials
-  final lace =
-      await product('Golden lace', ProductKind.rawMaterial, unit: 'm', category: 'Fabric', minStock: 5000);
-  final silk =
-      await product('Silk cloth', ProductKind.rawMaterial, unit: 'm', category: 'Fabric', minStock: 3000);
-  final beads =
-      await product('Kundan beads', ProductKind.rawMaterial, unit: 'g', category: 'Beads', minStock: 200000);
+  final lace = await product('Golden lace', ProductKind.rawMaterial, unit: 'm', category: 'Fabric', minStock: 5000);
+  final silk = await product('Silk cloth', ProductKind.rawMaterial, unit: 'm', category: 'Fabric', minStock: 3000);
+  final beads = await product('Kundan beads', ProductKind.rawMaterial, unit: 'g', category: 'Beads', minStock: 200000);
   final wax = await product('Wax', ProductKind.rawMaterial, unit: 'kg', category: 'Candle', minStock: 2000);
   final box = await product('Gift box', ProductKind.rawMaterial, category: 'Packaging', minStock: 20000);
 
   // Products
-  final rakhi =
-      await product('Kundan rakhi', ProductKind.made, category: 'Rakhi', retail: 15000, wholesale: 9000);
-  final potli =
-      await product('Silk potli bag', ProductKind.made, category: 'Bags', retail: 45000, wholesale: 30000);
+  final rakhi = await product('Kundan rakhi', ProductKind.made, category: 'Rakhi', retail: 15000, wholesale: 9000);
+  final potli = await product('Silk potli bag', ProductKind.made, category: 'Bags', retail: 45000, wholesale: 30000);
   final candle = await product('Diya candle set', ProductKind.made, category: 'Candles', retail: 60000);
   final hamper = await product('Festive hamper', ProductKind.bought, category: 'Hampers', retail: 150000);
 
-  Future<void> recipe(String p, String m, int milli) => db
-      .into(db.recipeLines)
-      .insert(RecipeLinesCompanion.insert(productId: p, materialId: m, qtyMilli: milli));
+  Future<void> recipe(String p, String m, int milli) =>
+      db.into(db.recipeLines).insert(RecipeLinesCompanion.insert(productId: p, materialId: m, qtyMilli: milli));
   await recipe(rakhi, beads, 15000);
   await recipe(rakhi, lace, 300);
   await recipe(potli, silk, 500);
@@ -88,8 +82,8 @@ Future<void> seedDemoData(AppDatabase db, {required DateTime today}) async {
       phone: '+91 98200 22222',
       creditLimit: 1000000,
       opening: 250000);
-  final boutique = await party('Rang Boutique',
-      price: PriceType.wholesale, channel: SalesChannel.shop, phone: '+91 98200 33333');
+  final boutique =
+      await party('Rang Boutique', price: PriceType.wholesale, channel: SalesChannel.shop, phone: '+91 98200 33333');
   final asha = await party('Asha Mehta', channel: SalesChannel.individual, phone: '+91 98200 44444');
   final priya = await party('Priya (Instagram)', channel: SalesChannel.online, phone: '+91 98200 55555');
 
@@ -131,8 +125,7 @@ Future<void> seedDemoData(AppDatabase db, {required DateTime today}) async {
     LineInput(productId: potli, qtyMilli: 10000, unitPricePaise: 30000, listPricePaise: 30000),
   ]);
   await orders.deliver(o1.id, date: ago(35));
-  await ledger.receivePayment(
-      partyId: giftShop, amountPaise: 300000, method: PaymentMethod.bank, date: ago(20));
+  await ledger.receivePayment(partyId: giftShop, amountPaise: 300000, method: PaymentMethod.bank, date: ago(20));
 
   final o2 = await orders.createOrder(
     partyId: asha,
@@ -144,15 +137,11 @@ Future<void> seedDemoData(AppDatabase db, {required DateTime today}) async {
       partyId: asha, amountPaise: 128000, method: PaymentMethod.upi, date: ago(28), orderId: o2.id);
   await orders.deliver(o2.id, date: ago(28));
 
-  final o3 = await orders.createOrder(
-      partyId: boutique,
-      orderDate: ago(25),
-      orderDiscountPaise: 20000,
-      discountReason: 'Bulk',
-      lines: [
-        LineInput(productId: potli, qtyMilli: 6000, unitPricePaise: 30000, listPricePaise: 30000),
-        LineInput(productId: hamper, qtyMilli: 2000, unitPricePaise: 140000, listPricePaise: 150000),
-      ]);
+  final o3 = await orders
+      .createOrder(partyId: boutique, orderDate: ago(25), orderDiscountPaise: 20000, discountReason: 'Bulk', lines: [
+    LineInput(productId: potli, qtyMilli: 6000, unitPricePaise: 30000, listPricePaise: 30000),
+    LineInput(productId: hamper, qtyMilli: 2000, unitPricePaise: 140000, listPricePaise: 150000),
+  ]);
   await orders.deliver(o3.id, date: ago(22));
 
   // Custom order in progress with an advance
@@ -191,8 +180,8 @@ Future<void> seedDemoData(AppDatabase db, {required DateTime today}) async {
     ('Phone', 39900, 15),
     ('Courier', 12000, 8),
   ]) {
-    await db.into(db.expenses).insert(ExpensesCompanion.insert(
-        category: cat, amountPaise: amt, method: PaymentMethod.cash, spentOn: ago(days)));
+    await db.into(db.expenses).insert(
+        ExpensesCompanion.insert(category: cat, amountPaise: amt, method: PaymentMethod.cash, spentOn: ago(days)));
   }
   await db.into(db.ownerWithdrawals).insert(OwnerWithdrawalsCompanion.insert(
       amountPaise: 200000, method: PaymentMethod.upi, takenOn: ago(12), note: const Value('Home')));

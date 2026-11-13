@@ -40,8 +40,7 @@ void main() {
       // materials ₹60 + 30 min at ₹100/h (₹50) + 10 % overhead = ₹121
       final labour = labourCostPaise(minutes: 30, hourlyRatePaise: 10000);
       expect(labour, 5000);
-      final cost =
-          fullCostPerPiecePaise(materialPerPiecePaise: 6000, labourPerPiecePaise: labour, overheadBp: 1000);
+      final cost = fullCostPerPiecePaise(materialPerPiecePaise: 6000, labourPerPiecePaise: labour, overheadBp: 1000);
       expect(cost, 12100);
       final p = suggestPrices(fullCostPaise: cost, retailMarkupBp: 25000, wholesaleMarkupBp: 18000);
       expect(p.retailPaise, 30300); // ₹302.50 rounded up to ₹303
@@ -51,8 +50,7 @@ void main() {
     test('order total = lines − discounts + delivery', () {
       final line1 = lineNetPaise(qtyMilli: 3000, unitPricePaise: 30000, lineDiscountPaise: 3000); // 900 − 30
       final line2 = lineNetPaise(qtyMilli: 2500, unitPricePaise: 4000); // 2.5 m × ₹40
-      expect(
-          orderTotalPaise(lineNetPaise: [line1, line2], orderDiscountPaise: 2000, deliveryChargePaise: 6000),
+      expect(orderTotalPaise(lineNetPaise: [line1, line2], orderDiscountPaise: 2000, deliveryChargePaise: 6000),
           87000 + 10000 - 2000 + 6000);
     });
 
@@ -82,9 +80,9 @@ void main() {
 
     test('bulk discounts: best global rule, product rules override, retail excluded', () {
       const rules = [
-        BulkRule(minQtyMilli: 10000, discountBp: 500),
-        BulkRule(minQtyMilli: 25000, discountBp: 1000),
-        BulkRule(productId: 'diya', minQtyMilli: 50000, discountBp: 1500),
+        DiscountRule(minQtyMilli: 10000, discountBp: 500),
+        DiscountRule(minQtyMilli: 25000, discountBp: 1000),
+        DiscountRule(productId: 'diya', minQtyMilli: 50000, discountBp: 1500),
       ];
       int bp(String? id, int qty, [PriceType t = PriceType.wholesale]) =>
           bulkDiscountBp(rules: rules, productId: id, qtyMilli: qty, priceType: t);

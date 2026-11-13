@@ -62,8 +62,7 @@ class PeriodSummary {
   int get netProfitPaise => grossProfitPaise - stockLossesPaise - expensesPaise;
 
   /// The bridge: profit − still with customers − extra stock − taken for home.
-  int get cashAddedPaise =>
-      netProfitPaise - receivablesChangePaise - stockValueChangePaise - withdrawalsPaise;
+  int get cashAddedPaise => netProfitPaise - receivablesChangePaise - stockValueChangePaise - withdrawalsPaise;
 
   /// Same number computed straight from cash in and out. Always equals
   /// [cashAddedPaise]; a test guards that.
@@ -117,12 +116,11 @@ class ReportService {
     final losses = -await _moveValue([StockMoveType.adjustment, StockMoveType.count], from, to);
 
     final expenses = await _sum(db.expenses, db.expenses.amountPaise, db.expenses.spentOn, from, to);
-    final withdrawals = await _sum(
-        db.ownerWithdrawals, db.ownerWithdrawals.amountPaise, db.ownerWithdrawals.takenOn, from, to);
+    final withdrawals =
+        await _sum(db.ownerWithdrawals, db.ownerWithdrawals.amountPaise, db.ownerWithdrawals.takenOn, from, to);
 
     final runs = await (db.select(db.productionRuns)
-          ..where((r) =>
-              r.deletedAt.isNull() & r.madeOn.isBiggerThanValue(from) & r.madeOn.isSmallerOrEqualValue(to)))
+          ..where((r) => r.deletedAt.isNull() & r.madeOn.isBiggerThanValue(from) & r.madeOn.isSmallerOrEqualValue(to)))
         .get();
 
     return PeriodSummary(
@@ -136,8 +134,7 @@ class ReportService {
       refundsPaise: await ledger.paymentsBetween(PaymentPurpose.customerRefund, from, to),
       supplierPaymentsPaise: await ledger.paymentsBetween(PaymentPurpose.supplierPayment, from, to),
       withdrawalsPaise: withdrawals,
-      receivablesChangePaise:
-          await ledger.totalReceivables(asOf: to) - await ledger.totalReceivables(asOf: from),
+      receivablesChangePaise: await ledger.totalReceivables(asOf: to) - await ledger.totalReceivables(asOf: from),
       stockValueChangePaise: await stock.stockValuePaise(asOf: to) - await stock.stockValuePaise(asOf: from),
       timeValuePaise: runs.fold(0, (a, r) => a + r.labourCostPaise),
       discountsGivenPaise: discounts,
@@ -186,8 +183,7 @@ class ReportService {
     final byProduct = <String, ItemSales>{};
     for (final o in delivered) {
       final moves = await (db.select(db.stockMoves)
-            ..where((m) =>
-                m.orderId.equals(o.id) & m.type.equalsValue(StockMoveType.sale) & m.deletedAt.isNull()))
+            ..where((m) => m.orderId.equals(o.id) & m.type.equalsValue(StockMoveType.sale) & m.deletedAt.isNull()))
           .get();
       final costByProduct = <String, int>{};
       for (final m in moves) {
@@ -196,8 +192,8 @@ class ReportService {
       for (final l in await ledger.linesOf(o.id)) {
         final pid = l.productId;
         if (pid == null) continue;
-        final item = byProduct[pid] ??=
-            ItemSales(await (db.select(db.products)..where((p) => p.id.equals(pid))).getSingle());
+        final item =
+            byProduct[pid] ??= ItemSales(await (db.select(db.products)..where((p) => p.id.equals(pid))).getSingle());
         item.qtyMilli += l.qtyMilli;
         item.revenuePaise += lineNetPaise(
             qtyMilli: l.qtyMilli, unitPricePaise: l.unitPricePaise, lineDiscountPaise: l.lineDiscountPaise);

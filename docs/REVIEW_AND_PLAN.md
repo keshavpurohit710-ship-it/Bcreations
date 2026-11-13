@@ -299,6 +299,20 @@ Phases describe *how* we build; releases describe *what she can use*. Every R1 i
 - **Scope:** only the tables release 1 needs. Consignment, returns, workers and enquiries are added in their own phases with Drift schema migrations.
 - 37 automated tests cover money rounding, pricing rules, stock and production, advances, payments, dues, credit limits, cancellations, monthly profit and the profit bridge.
 
+### 🔨 Phase 2 — first testable build (2026-11-13)
+The old Isar app is removed; the app now runs entirely on the new Drift data layer.
+- **Shell:** light theme by default (dark / follow phone in Settings), large text and 48 dp+ touch targets, Hindi by default with an English switch; 5 tabs (Home · Orders · Customers · Items · Money) and a ＋ button for quick entries from anywhere.
+- **Home:** to-dos — collect from N customers (with one-tap WhatsApp reminders), orders to deliver (late ones in red), quotes waiting, advances held, low stock, prices to review; this month's sales / profit / cash added; a "finish setting up" checklist until stock, customers and an order exist.
+- **Customers:** search, filters (owe money, suppliers); balance with days late; call, WhatsApp, reminder, receive payment, new order; payments with delete + Undo; add/edit with price list, credit limit, payment terms, "already owes you".
+- **Orders:** open / delivered / all; new & edit order with product search, prices from the customer's price list plus bulk discounts, margin colours, custom items with colour / size / name text, reference photos, delivery charge, discount + reason, deliver-by date, advance at creation, credit-limit warning; detail with status, payment state, totals, payments; confirm, deliver (warns on short stock), take payment / advance, reminder, share as text, cancel.
+- **Items:** filters (low, products, materials); detail with stock, value, cost of one, suggested prices, price-review flag, recipe and history; buy, make (material check, hours for the batch), adjust (damaged / home / found), shelf count; add/edit with photo, unit, prices, recipe, opening stock.
+- **Money:** month switcher; profit breakdown; "Where did my profit go?"; value of her time; discounts given; best sellers by quantity or profit; expenses and money for home with delete + Undo.
+- **Welcome / Settings:** first-run language + business name, "Start fresh" or "Try with sample data"; settings for business details, UPI, language, theme, pricing defaults, load demo data, delete all data.
+- **Strings:** one table in `tool/strings.mjs` (≈300 strings, English + Hindi) generates `lib/l10n/*.arb`.
+- **Tests:** 45 automated tests, including app smoke tests that open every tab, detail screen and form with demo data in both languages.
+
+**Still to do for R1:** guided day-one onboarding steps (§5.5, beyond the checklist), import customers from phone contacts, automatic Google Drive backup + restore, Hindi copy review with her, and a usability session.
+
 ### ✅ Pricing model — decided (see §5.4)
 The pricing tables and settings are built in Phase 1; the order-line pricing UX is built in Phase 2.
 
