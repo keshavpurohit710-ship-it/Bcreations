@@ -16,8 +16,7 @@ void main() {
   });
   tearDown(() => w.close());
 
-  Future<Order> order(String party, {int qty = 2, int price = 30000, int delivery = 0}) =>
-      w.orders.createOrder(
+  Future<Order> order(String party, {int qty = 2, int price = 30000, int delivery = 0}) => w.orders.createOrder(
         partyId: party,
         orderDate: d(2, 1),
         deliveryChargePaise: delivery,
@@ -33,8 +32,8 @@ void main() {
   test('advance: held before delivery, deducted from the bill after', () async {
     final c = await w.customer('Asha');
     final o = await order(c, delivery: 5000); // ₹600 + ₹50 delivery
-    await w.ledger.receivePayment(
-        partyId: c, amountPaise: 20000, method: PaymentMethod.upi, date: d(2, 1), orderId: o.id);
+    await w.ledger
+        .receivePayment(partyId: c, amountPaise: 20000, method: PaymentMethod.upi, date: d(2, 1), orderId: o.id);
 
     expect(await w.ledger.advancesHeld(), 20000);
     expect(await w.ledger.customerBalance(c), -20000, reason: 'nothing billed yet; she holds ₹200');
@@ -82,8 +81,8 @@ void main() {
   test('cancelling a delivered order returns stock and frees the advance as credit', () async {
     final c = await w.customer('Asha');
     final o = await order(c);
-    await w.ledger.receivePayment(
-        partyId: c, amountPaise: 20000, method: PaymentMethod.cash, date: d(2, 1), orderId: o.id);
+    await w.ledger
+        .receivePayment(partyId: c, amountPaise: 20000, method: PaymentMethod.cash, date: d(2, 1), orderId: o.id);
     await w.orders.deliver(o.id, date: d(2, 2));
     await w.orders.cancel(o.id, date: d(2, 3));
 
@@ -95,8 +94,7 @@ void main() {
   test('only quotes and confirmed orders can be edited', () async {
     final c = await w.customer('Asha');
     final o = await order(c);
-    await w.orders
-        .replaceLines(o.id, [LineInput(productId: earrings, qtyMilli: 1000, unitPricePaise: 28000)]);
+    await w.orders.replaceLines(o.id, [LineInput(productId: earrings, qtyMilli: 1000, unitPricePaise: 28000)]);
     expect(await w.ledger.orderTotal(o.id), 28000);
     await w.orders.deliver(o.id, date: d(2, 2));
     expect(

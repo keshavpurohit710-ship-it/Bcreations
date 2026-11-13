@@ -19,10 +19,8 @@ jobs:
       - name: Install packages
         run: flutter pub get
 
-      # Infos (mostly deprecation notices in the old UI) don't fail the build yet;
-      # warnings and errors do. Tighten to --fatal-infos once Phase 1-5 replace the old code.
       - name: Analyze
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze
 
       - name: Test
         run: flutter test

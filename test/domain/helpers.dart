@@ -57,9 +57,8 @@ class World {
       .into(db.recipeLines)
       .insert(RecipeLinesCompanion.insert(productId: productId, materialId: materialId, qtyMilli: qtyMilli));
 
-  Future<void> expense(String category, int paise, DateTime on) =>
-      db.into(db.expenses).insert(ExpensesCompanion.insert(
-          category: category, amountPaise: paise, method: PaymentMethod.cash, spentOn: on));
+  Future<void> expense(String category, int paise, DateTime on) => db.into(db.expenses).insert(
+      ExpensesCompanion.insert(category: category, amountPaise: paise, method: PaymentMethod.cash, spentOn: on));
 
   Future<void> withdraw(int paise, DateTime on) => db
       .into(db.ownerWithdrawals)

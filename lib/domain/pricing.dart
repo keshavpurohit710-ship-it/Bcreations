@@ -20,8 +20,7 @@ int orderTotalPaise({
     lineNetPaise.fold(0, (a, b) => a + b) - orderDiscountPaise + deliveryChargePaise;
 
 /// Her time for a batch, at her hourly rate.
-int labourCostPaise({required int minutes, required int hourlyRatePaise}) =>
-    divRound(minutes * hourlyRatePaise, 60);
+int labourCostPaise({required int minutes, required int hourlyRatePaise}) => divRound(minutes * hourlyRatePaise, 60);
 
 /// Full cost of one piece = (materials + her time) × (1 + overhead %).
 /// Used for suggested prices and margin colours, not for "profit banked".
@@ -67,8 +66,8 @@ int? listPricePaise({
   return retailPricePaise - applyBp(retailPricePaise, defaultWholesaleDiscountBp);
 }
 
-class BulkRule {
-  const BulkRule({
+class DiscountRule {
+  const DiscountRule({
     required this.minQtyMilli,
     required this.discountBp,
     this.productId,
@@ -83,7 +82,7 @@ class BulkRule {
 /// Best quantity discount for this line. Product-specific rules replace the
 /// global ones for that product.
 int bulkDiscountBp({
-  required List<BulkRule> rules,
+  required List<DiscountRule> rules,
   required String? productId,
   required int qtyMilli,
   required PriceType priceType,

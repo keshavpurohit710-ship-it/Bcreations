@@ -1,753 +1,238 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/providers/core_providers.dart';
-import '../../domain/models/order.dart';
-import '../../domain/models/client.dart';
-import '../../domain/models/order_line_item.dart';
-import '../../domain/models/inventory_item.dart';
-import '../crm/crm_provider.dart';
-import '../inventory/inventory_provider.dart';
-import '../finance/add_payment_screen.dart';
-import 'order_provider.dart';
-import 'edit_order_screen.dart';
-import '../finance/finance_provider.dart';
+
+import '../../app/format.dart';
+import '../../app/providers.dart';
+import '../../app/theme.dart';
+import '../../app/widgets.dart';
+import '../../data/database.dart';
+import '../customers/customer_detail_screen.dart';
+import '../customers/reminder.dart';
+import 'order_form_screen.dart';
+import 'order_tile.dart';
+import 'payment_sheet.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
-  final Order order;
-  const OrderDetailScreen({super.key, required this.order});
+  const OrderDetailScreen({super.key, required this.orderId});
+  final String orderId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final liveOrderAsync = ref.watch(singleOrderProvider(order.id));
+    final t = context.t;
+    final detail = ref.watch(orderDetailProvider(orderId));
+    final settings = ref.watch(settingsProvider).valueOrNull;
+    final d = detail.valueOrNull;
+    final status = d?.row.order.status;
+    final editable = status == OrderStatus.quote || status == OrderStatus.confirmed;
 
-    return liveOrderAsync.when(
-        loading: () => const Scaffold(
-            backgroundColor: AppTheme.backgroundDark,
-            body: Center(child: CircularProgressIndicator())),
-        error: (e, _) => Scaffold(
-            backgroundColor: AppTheme.backgroundDark,
-            body: Center(
-                child: Text('Error: $e',
-                    style: const TextStyle(color: Colors.red)))),
-        data: (liveOrder) {
-          if (liveOrder == null)
-            return const Scaffold(
-                backgroundColor: AppTheme.backgroundDark,
-                body: Center(
-                    child: Text('Order not found.',
-                        style: TextStyle(color: Colors.white))));
-
-          // --- THE FIX: Sanitize the NaN cost for the UI so it doesn't crash ---
-          final safeDeliveryCost =
-              liveOrder.deliveryCost.isNaN ? 0.0 : liveOrder.deliveryCost;
-
-          final clientAsync = ref.watch(activeClientsProvider);
-          final itemsAsync = ref.watch(orderLineItemsProvider(liveOrder.id));
-          final inventoryAsync = ref.watch(inventoryItemsProvider);
-          final balanceAsync = ref.watch(orderBalanceProvider(liveOrder.id));
-
-          final clientOrdersAsync =
-              ref.watch(clientOrdersProvider(liveOrder.clientId!));
-          final unpaidClientOrders = clientOrdersAsync.value
-                  ?.where((o) => o.status == 'Delivered')
-                  .toList() ??
-              [];
-
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('Order #${liveOrder.id} Details'),
-              backgroundColor: AppTheme.surfaceDark,
-              actions: [
-                // --- THE FIX: Conditional Edit Button ---
-                if (order.status == 'Draft' || order.status == 'Confirmed')
-                  Consumer(
-                    builder: (context, ref, child) {
-                      // We need the items to pass into the Edit screen
-                      final itemsAsync =
-                          ref.watch(orderLineItemsProvider(order.id));
-
-                      return itemsAsync.maybeWhen(
-                        data: (items) => IconButton(
-                          icon: const Icon(Icons.edit,
-                              color: Colors.orangeAccent),
-                          tooltip: 'Edit Order',
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => EditOrderScreen(
-                                          order: order,
-                                          initialItems: items,
-                                        )));
-                          },
-                        ),
-                        orElse: () => const SizedBox.shrink(),
-                      );
-                    },
-                  ),
-                if (liveOrder.status != 'Delivered' &&
-                    liveOrder.status != 'Paid' &&
-                    liveOrder.status != 'Cancelled')
-                  IconButton(
-                      icon: const Icon(Icons.cancel, color: Colors.redAccent),
-                      tooltip: 'Cancel Order',
-                      onPressed: () async {
-                        await ref
-                            .read(orderServiceProvider)
-                            .cancelOrder(liveOrder.id);
-                        if (context.mounted) Navigator.pop(context);
-                      })
-              ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(d?.row.order.number ?? ''),
+        actions: [
+          if (d != null && settings != null)
+            IconButton(
+              icon: const Icon(Icons.share),
+              tooltip: t.actionShare,
+              onPressed: () => SharePlus.instance.share(ShareParams(text: _shareText(context, d, settings))),
             ),
-            body: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  decoration: BoxDecoration(
-                      color: AppTheme.surfaceDark,
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStage('Draft', liveOrder.status),
-                      _buildLine(liveOrder.status, 'Confirmed'),
-                      _buildStage('Confirmed', liveOrder.status),
-                      _buildLine(liveOrder.status, 'Dispatched'),
-                      _buildStage('Dispatched', liveOrder.status),
-                      _buildLine(liveOrder.status, 'Delivered'),
-                      _buildStage('Delivered', liveOrder.status),
-                      _buildLine(liveOrder.status, 'Paid'),
-                      _buildStage('Paid', liveOrder.status),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text('Client Details',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                clientAsync.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('Error loading client'),
-                  data: (clients) {
-                    final client = clients
-                        .where((c) => c.id == liveOrder.clientId)
-                        .firstOrNull;
-                    if (client == null) return const SizedBox.shrink();
-                    return Card(
-                        color: AppTheme.surfaceDark,
-                        child: ListTile(
-                            leading: const Icon(Icons.business,
-                                color: Colors.blueAccent),
-                            title: Text(
-                                client.businessName ?? client.name ?? 'Unknown',
-                                style: const TextStyle(color: Colors.white)),
-                            subtitle: Text(
-                                'Location: ${client.location ?? "N/A"}',
-                                style: const TextStyle(color: Colors.grey))));
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Text('Order Items',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                itemsAsync.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('Error loading items'),
-                  data: (lineItems) {
-                    return inventoryAsync.when(
-                        loading: () => const CircularProgressIndicator(),
-                        error: (_, __) => const SizedBox(),
-                        data: (inventoryItems) {
-                          double orderTotal = 0;
-                          final clients = clientAsync.value ?? [];
-                          final client = clients
-                              .where((c) => c.id == liveOrder.clientId)
-                              .firstOrNull;
-
-                          return Column(
-                            children: [
-                              ...lineItems.map((lineItem) {
-                                final invItem = inventoryItems
-                                    .where(
-                                        (i) => i.id == lineItem.inventoryItemId)
-                                    .firstOrNull;
-                                if (invItem == null)
-                                  return const SizedBox.shrink();
-                                final itemTotal =
-                                    lineItem.quantity * lineItem.pricePerUnit;
-                                orderTotal += itemTotal;
-                                return Card(
-                                    color: AppTheme.backgroundDark,
-                                    child: ListTile(
-                                        title: Text(
-                                            invItem.name ?? 'Unknown Item',
-                                            style: const TextStyle(
-                                                color: Colors.white)),
-                                        subtitle: Text(
-                                            '${lineItem.quantity} ${lineItem.unit ?? invItem.unit ?? ""} @ ₹${lineItem.pricePerUnit}',
-                                            style: const TextStyle(
-                                                color: Colors.grey)),
-                                        trailing: Text(
-                                            '₹${itemTotal.toStringAsFixed(2)}',
-                                            style: const TextStyle(
-                                                color: Colors.greenAccent,
-                                                fontWeight: FontWeight.bold))));
-                              }),
-                              if (safeDeliveryCost > 0) ...[
-                                const SizedBox(height: 8),
-                                ListTile(
-                                  title: const Text('Logistics / Delivery',
-                                      style: TextStyle(color: Colors.white70)),
-                                  trailing: Text(
-                                      '+ ₹${safeDeliveryCost.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                          color: Colors.white70)),
-                                ),
-                              ],
-                              const Divider(color: Colors.grey, height: 32),
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text('Total Invoice Value:',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold)),
-                                    Text(
-                                        '₹${(orderTotal + safeDeliveryCost).toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                            color: Colors.greenAccent,
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold))
-                                  ]),
-                              const SizedBox(height: 32),
-                              if (liveOrder.status == 'Draft')
-                                SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blueAccent,
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 16)),
-                                        icon: const Icon(Icons.check_circle,
-                                            color: Colors.white),
-                                        label: const Text('Confirm Order',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16)),
-                                        onPressed: () => ref
-                                            .read(orderServiceProvider)
-                                            .confirmOrder(liveOrder.id))),
-                              if (liveOrder.status == 'Confirmed')
-                                SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                Colors.orangeAccent,
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 16)),
-                                        icon: const Icon(Icons.local_shipping,
-                                            color: Colors.black),
-                                        label: const Text('Dispatch Order',
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold)),
-                                        onPressed: () => _showDispatchDialog(
-                                            context, ref, liveOrder))),
-                              if (liveOrder.status == 'Dispatched')
-                                SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.teal,
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 16)),
-                                        icon: const Icon(Icons.inventory,
-                                            color: Colors.white),
-                                        label: const Text('Mark as Delivered',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16)),
-                                        onPressed: () => ref
-                                            .read(orderServiceProvider)
-                                            .deliverOrder(liveOrder.id))),
-                              const SizedBox(height: 12),
-                              // --- THE FIX: Button stays visible at all active stages ---
-                              if (client != null &&
-                                  liveOrder.status != 'Cancelled')
-                                SizedBox(
-                                    width: double.infinity,
-                                    child: OutlinedButton.icon(
-                                        style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.white,
-                                            side: const BorderSide(
-                                                color: Colors.blueAccent),
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 16)),
-                                        icon: const Icon(Icons.share,
-                                            color: Colors.blueAccent),
-                                        label: const Text(
-                                            'Share Quote / Proforma',
-                                            style: TextStyle(fontSize: 16)),
-                                        onPressed: () => _shareQuote(
-                                            liveOrder,
-                                            client,
-                                            lineItems,
-                                            inventoryItems,
-                                            orderTotal,
-                                            safeDeliveryCost))),
-                              const SizedBox(height: 12),
-                              if (liveOrder.status == 'Delivered' ||
-                                  liveOrder.status == 'Paid')
-                                balanceAsync.when(
-                                    loading: () =>
-                                        const CircularProgressIndicator(),
-                                    error: (_, __) => const SizedBox(),
-                                    data: (balance) {
-                                      if (balance <= 0 ||
-                                          liveOrder.status == 'Paid') {
-                                        return Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                                color: Colors.green
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                border: Border.all(
-                                                    color: Colors.greenAccent
-                                                        .withOpacity(0.3))),
-                                            child: const Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(Icons.verified,
-                                                      color: Colors.greenAccent,
-                                                      size: 28),
-                                                  SizedBox(width: 12),
-                                                  Text('Order Fully Paid',
-                                                      style: TextStyle(
-                                                          color: Colors
-                                                              .greenAccent,
-                                                          fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                ]));
-                                      } else {
-                                        return Column(
-                                          children: [
-                                            Container(
-                                                padding:
-                                                    const EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
-                                                    color: AppTheme.surfaceDark,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    border: Border.all(
-                                                        color: Colors
-                                                            .orangeAccent
-                                                            .withOpacity(0.3))),
-                                                child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      const Text(
-                                                          'Pending Balance:',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontSize: 16)),
-                                                      Text(
-                                                          '₹${balance.toStringAsFixed(2)}',
-                                                          style: const TextStyle(
-                                                              color: Colors
-                                                                  .orangeAccent,
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold)),
-                                                    ])),
-                                            const SizedBox(height: 16),
-                                            SizedBox(
-                                              width: double.infinity,
-                                              child: ElevatedButton.icon(
-                                                style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 16)),
-                                                icon: const Icon(Icons.payment,
-                                                    color: Colors.white),
-                                                label: const Text(
-                                                    'Record Payment (This Order)',
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 16)),
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              AddPaymentScreen(
-                                                                prefilledClientId:
-                                                                    liveOrder
-                                                                        .clientId,
-                                                                prefilledOrderId:
-                                                                    liveOrder
-                                                                        .id,
-                                                              )));
-                                                },
-                                              ),
-                                            ),
-                                            if (unpaidClientOrders.length >
-                                                1) ...[
-                                              const SizedBox(height: 12),
-                                              SizedBox(
-                                                width: double.infinity,
-                                                child: OutlinedButton.icon(
-                                                  style:
-                                                      OutlinedButton.styleFrom(
-                                                          foregroundColor:
-                                                              Colors
-                                                                  .greenAccent,
-                                                          side: const BorderSide(
-                                                              color: Colors
-                                                                  .greenAccent),
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical:
-                                                                      16)),
-                                                  icon:
-                                                      const Icon(Icons.layers),
-                                                  label: Text(
-                                                      'Pay All ${unpaidClientOrders.length} Unpaid Orders',
-                                                      style: const TextStyle(
-                                                          fontSize: 16)),
-                                                  onPressed: () {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                AddPaymentScreen(
-                                                                  prefilledClientId:
-                                                                      liveOrder
-                                                                          .clientId,
-                                                                  prefillPayAll:
-                                                                      true,
-                                                                )));
-                                                  },
-                                                ),
-                                              ),
-                                            ]
-                                          ],
-                                        );
-                                      }
-                                    })
-                            ],
-                          );
-                        });
-                  },
-                ),
-                _PaymentTrackingCard(order: order),
-
-                const SizedBox(height: 100), // Spacing for FAB
-              ],
+          if (editable)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: t.edit,
+              onPressed: () =>
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => OrderFormScreen(orderId: orderId))),
             ),
-          );
-        });
+          if (d != null && status != OrderStatus.cancelled)
+            PopupMenuButton<String>(
+              onSelected: (_) async {
+                if (!await confirmDialog(context, t.confirmCancelOrder, ok: t.actionCancelOrder, danger: true)) return;
+                await ref.read(ordersServiceProvider).cancel(orderId, date: DateTime.now());
+              },
+              itemBuilder: (_) => [PopupMenuItem(value: 'cancel', child: Text(t.actionCancelOrder))],
+            ),
+        ],
+      ),
+      body: AsyncBody(detail, builder: (d) {
+        final o = d.row.order;
+        return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
+          ListTile(
+            leading: const CircleAvatar(child: Icon(Icons.person)),
+            title: Text(d.row.party.name, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+            subtitle: Text(longDate(context, o.orderDate)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => CustomerDetailScreen(partyId: d.row.party.id))),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(spacing: 8, runSpacing: 6, children: [
+              Pill(t.status(o.status), color: statusColor(o.status)),
+              if (o.status != OrderStatus.cancelled) payPill(context, d.row),
+              if (o.promisedDate != null && o.status != OrderStatus.delivered)
+                Pill(t.orderDeliverBy(shortDate(context, o.promisedDate!)), color: Colors.blueGrey, icon: Icons.event),
+              if (o.status == OrderStatus.delivered && o.dueDate != null && d.row.balancePaise > 0)
+                Pill(t.orderDue(shortDate(context, o.dueDate!)),
+                    color: o.dueDate!.isBefore(DateTime.now()) ? badColor : warnColor, icon: Icons.schedule),
+              if (o.channel != null) Pill(t.channel(o.channel!), color: Colors.blueGrey),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          _Actions(d),
+          SectionHeader(t.orderItems),
+          for (final l in d.lines) _LineTile(l),
+          if (d.photos.isNotEmpty) ...[
+            SectionHeader(t.orderPhotos),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child:
+                  Wrap(spacing: 8, runSpacing: 8, children: [for (final p in d.photos) PhotoThumb(p.path, size: 96)]),
+            ),
+          ],
+          const Divider(height: 32),
+          _totalRow(context, t.subtotal, d.itemsTotalPaise),
+          if (o.orderDiscountPaise > 0)
+            _totalRow(context, '${t.orderDiscount}${o.discountReason == null ? '' : ' (${o.discountReason})'}',
+                -o.orderDiscountPaise),
+          if (o.deliveryChargePaise > 0) _totalRow(context, t.orderDelivery, o.deliveryChargePaise),
+          _totalRow(context, t.total, d.row.totalPaise, bold: true),
+          if (d.row.paidPaise > 0) _totalRow(context, t.paid, -d.row.paidPaise, color: goodColor),
+          if (o.status != OrderStatus.cancelled && d.row.paidPaise > 0)
+            _totalRow(context, t.balance, d.row.balancePaise, bold: true),
+          if (o.notes != null) Padding(padding: const EdgeInsets.all(16), child: Text(o.notes!)),
+          if (d.payments.isNotEmpty) ...[
+            SectionHeader(t.paymentsSection),
+            for (final (p, applied) in d.payments) PaymentTile(p, appliedPaise: applied),
+          ],
+        ]);
+      }),
+    );
   }
 
-  Future<void> _showDispatchDialog(
-      BuildContext context, WidgetRef ref, Order order) async {
-    final costController = TextEditingController();
-    bool isSubmitting = false;
-
-    await showDialog(
-        context: context,
-        builder: (ctx) => StatefulBuilder(builder: (context, setState) {
-              return AlertDialog(
-                backgroundColor: AppTheme.surfaceDark,
-                title: const Text('Dispatch Order',
-                    style: TextStyle(color: Colors.white)),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                        'Enter logistics/delivery cost (if any). Leave blank for free delivery.',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: costController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Delivery Cost (₹)',
-                        labelStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.blueAccent)),
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel',
-                          style: TextStyle(color: Colors.grey))),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orangeAccent),
-                    onPressed: isSubmitting
-                        ? null
-                        : () async {
-                            setState(() => isSubmitting = true);
-                            final cost =
-                                double.tryParse(costController.text) ?? 0.0;
-                            await ref
-                                .read(orderServiceProvider)
-                                .dispatchOrder(order.id, deliveryCost: cost);
-                            if (context.mounted) Navigator.pop(context);
-                          },
-                    child: isSubmitting
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Confirm Dispatch',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              );
-            }));
+  Widget _totalRow(BuildContext context, String label, int paise, {bool bold = false, Color? color}) {
+    final style = (bold ? Theme.of(context).textTheme.titleMedium : Theme.of(context).textTheme.bodyLarge)
+        ?.copyWith(color: color);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Row(children: [
+        Expanded(child: Text(label, style: style)),
+        Text(paise < 0 ? '− ${formatPaise(-paise)}' : formatPaise(paise), style: style),
+      ]),
+    );
   }
 
-  void _shareQuote(Order order, Client client, List<OrderLineItem> items,
-      List<InventoryItem> inventory, double total, double safeDeliveryCost) {
-    final buffer = StringBuffer();
-    buffer.writeln('📄 *PROFORMA INVOICE / QUOTE*');
-    buffer.writeln('-----------------------------------');
-    buffer.writeln('*To:* ${client.businessName ?? client.name ?? 'Customer'}');
-    buffer.writeln('*Quote Ref:* #${order.id}');
-    buffer.writeln('*Status:* ${order.status}');
-    buffer.writeln('');
-    buffer.writeln('*Items:*');
-
-    for (int i = 0; i < items.length; i++) {
-      final line = items[i];
-      final invItem =
-          inventory.where((inv) => inv.id == line.inventoryItemId).firstOrNull;
-      if (invItem != null) {
-        final itemTotal = line.quantity * line.pricePerUnit;
-        buffer.writeln('${i + 1}. ${invItem.name}');
-        buffer.writeln(
-            '   ${line.quantity} ${line.unit ?? invItem.unit ?? ""} @ ₹${line.pricePerUnit} = *₹${itemTotal.toStringAsFixed(2)}*');
-      }
+  String _shareText(BuildContext context, OrderDetail d, Setting s) {
+    final t = context.t;
+    final o = d.row.order;
+    final b = StringBuffer()
+      ..writeln('*${o.status == OrderStatus.quote ? t.quoteText(s.businessName) : t.billText(s.businessName)}*')
+      ..writeln('${o.number} · ${longDate(context, o.orderDate)}')
+      ..writeln(d.row.party.name)
+      ..writeln();
+    for (final l in d.lines) {
+      b.writeln(
+          '• ${l.name}  ${formatMilli(l.line.qtyMilli)} × ${formatPaise(l.line.unitPricePaise)} = ${formatPaise(l.netPaise)}');
+      final specs = [l.line.specColour, l.line.specSize, l.line.specText].whereType<String>();
+      if (specs.isNotEmpty) b.writeln('   (${specs.join(', ')})');
     }
-
-    buffer.writeln('-----------------------------------');
-    if (safeDeliveryCost > 0) {
-      buffer.writeln('*Subtotal: ₹${total.toStringAsFixed(2)}*');
-      buffer.writeln('*Delivery: ₹${safeDeliveryCost.toStringAsFixed(2)}*');
+    b.writeln();
+    if (o.orderDiscountPaise > 0) b.writeln('${t.orderDiscount}: − ${formatPaise(o.orderDiscountPaise)}');
+    if (o.deliveryChargePaise > 0) b.writeln('${t.orderDelivery}: ${formatPaise(o.deliveryChargePaise)}');
+    b.writeln('*${t.total}: ${formatPaise(d.row.totalPaise)}*');
+    if (d.row.paidPaise > 0) {
+      b
+        ..writeln('${t.paid}: ${formatPaise(d.row.paidPaise)}')
+        ..writeln('*${t.balance}: ${formatPaise(d.row.balancePaise)}*');
     }
-    buffer.writeln(
-        '*Total Amount: ₹${(total + safeDeliveryCost).toStringAsFixed(2)}*');
-    buffer.writeln('-----------------------------------');
-    buffer.writeln('Thank you for your business!');
-
-    Share.share(buffer.toString());
-  }
-
-  Widget _buildStage(String targetStage, String? currentStatus) {
-    final stages = ['Draft', 'Confirmed', 'Dispatched', 'Delivered', 'Paid'];
-    final targetIndex = stages.indexOf(targetStage);
-    int currentIndex = stages.indexOf(currentStatus ?? 'Draft');
-    if (currentStatus == 'Cancelled') currentIndex = -1;
-    final isCompleted = currentIndex >= targetIndex;
-    final isCancelled = currentStatus == 'Cancelled';
-    return Column(children: [
-      Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isCancelled
-              ? Colors.red
-              : (isCompleted ? Colors.greenAccent : Colors.grey)),
-      const SizedBox(height: 4),
-      Text(targetStage,
-          style: TextStyle(
-              color: isCompleted ? Colors.white : Colors.grey, fontSize: 10))
-    ]);
-  }
-
-  Widget _buildLine(String? currentStatus, String targetStage) {
-    final stages = ['Draft', 'Confirmed', 'Dispatched', 'Delivered', 'Paid'];
-    final targetIndex = stages.indexOf(targetStage);
-    int currentIndex = stages.indexOf(currentStatus ?? 'Draft');
-    final isCompleted = currentIndex >= targetIndex;
-    return Expanded(
-        child: Container(
-            height: 2,
-            color: currentStatus == 'Cancelled'
-                ? Colors.red
-                : (isCompleted
-                    ? Colors.greenAccent
-                    : Colors.grey.withOpacity(0.3))));
+    if (s.upiId != null && s.upiId!.isNotEmpty) b.writeln('\nUPI: ${s.upiId}');
+    return b.toString();
   }
 }
 
-// Add to the bottom of lib/features/orders/order_detail_screen.dart
-class _PaymentTrackingCard extends ConsumerWidget {
-  final Order order;
-  const _PaymentTrackingCard({required this.order});
+class _LineTile extends StatelessWidget {
+  const _LineTile(this.l);
+  final LineView l;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final specs = [l.line.specColour, l.line.specSize, l.line.specText].whereType<String>().toList();
+    return ListTile(
+      title: Text(l.product == null ? '${l.name} · ${t.customItem}' : l.name, style: const TextStyle(fontSize: 17)),
+      subtitle: Text([
+        '${qtyLabel(l.line.qtyMilli, l.product?.unit ?? '')} × ${formatPaise(l.line.unitPricePaise)}',
+        if (l.line.lineDiscountPaise > 0) '− ${formatPaise(l.line.lineDiscountPaise)}',
+        if (specs.isNotEmpty) specs.join(' · '),
+      ].join('\n')),
+      isThreeLine: specs.isNotEmpty,
+      trailing: Text(formatPaise(l.netPaise), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+    );
+  }
+}
+
+/// The next sensible step for this order, as big buttons.
+class _Actions extends ConsumerWidget {
+  const _Actions(this.d);
+  final OrderDetail d;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(orderLineItemsProvider(order.id));
-    final paymentsAsync = ref.watch(orderPaymentsProvider(order.id));
-
-    return itemsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('Error loading data: $e'),
-      data: (items) {
-        return paymentsAsync.when(
-          loading: () => const SizedBox.shrink(),
-          error: (e, _) => const SizedBox.shrink(),
-          data: (payments) {
-            // 1. Calculate Total Value
-            double totalValue = items.fold(
-                0.0, (sum, item) => sum + (item.quantity * item.pricePerUnit));
-            double dCost = order.deliveryCost;
-            if (!dCost.isNaN) totalValue += dCost;
-
-            // 2. Calculate Total Paid
-            double totalPaid = payments.fold(0.0, (sum, p) => sum + p.amount);
-
-            // 3. Calculate Progress (Guard against division by zero)
-            double progress =
-                totalValue > 0 ? (totalPaid / totalValue).clamp(0.0, 1.0) : 0.0;
-            bool isFullyPaid = progress >= 1.0;
-
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.backgroundDark,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Payment Tracking',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-
-                  // --- Progress Stats ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('₹${totalPaid.toStringAsFixed(0)} Paid',
-                          style: TextStyle(
-                              color: isFullyPaid
-                                  ? Colors.greenAccent
-                                  : Colors.orangeAccent,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14)),
-                      Text('of ₹${totalValue.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 14)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // --- Visual Progress Bar ---
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey.withOpacity(0.2),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        isFullyPaid ? Colors.greenAccent : Colors.orangeAccent,
-                      ),
-                    ),
-                  ),
-
-                  // --- Balance Text ---
-                  if (!isFullyPaid && totalValue > 0) ...[
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                          'Balance: ₹${(totalValue - totalPaid).toStringAsFixed(0)}',
-                          style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-
-                  // --- Instalment History List ---
-                  if (payments.isNotEmpty) ...[
-                    const Divider(color: Colors.grey, height: 32),
-                    const Text('Instalment History',
-                        style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    ...payments.map((tx) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.check_circle,
-                                color: Colors.greenAccent, size: 16),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                '${tx.date.toString().split(' ')[0]} • ${tx.paymentMethod}',
-                                style: const TextStyle(
-                                    color: Colors.grey, fontSize: 13),
-                              ),
-                            ),
-                            Text('+ ₹${tx.amount.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                    color: Colors.greenAccent,
-                                    fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      );
-                    }),
-                  ] else ...[
-                    const SizedBox(height: 16),
-                    const Text('No payments recorded yet.',
-                        style: TextStyle(
-                            color: Colors.grey, fontStyle: FontStyle.italic)),
-                  ]
-                ],
-              ),
-            );
+    final t = context.t;
+    final o = d.row.order;
+    final svc = ref.read(ordersServiceProvider);
+    final settings = ref.watch(settingsProvider).valueOrNull;
+    final buttons = <Widget>[
+      if (o.status == OrderStatus.quote)
+        FilledButton.icon(
+            onPressed: () => svc.confirm(o.id), icon: const Icon(Icons.thumb_up), label: Text(t.actionConfirm)),
+      if (o.status == OrderStatus.confirmed)
+        FilledButton.icon(
+          onPressed: () => _deliver(context, ref),
+          icon: const Icon(Icons.local_shipping),
+          label: Text(t.actionDeliver),
+        ),
+      if (o.status != OrderStatus.cancelled && d.row.balancePaise > 0)
+        (o.status == OrderStatus.delivered ? FilledButton.icon : OutlinedButton.icon)(
+          onPressed: () => showPaymentSheet(context, orderId: o.id),
+          icon: const Icon(Icons.payments),
+          label: Text(o.status == OrderStatus.delivered ? t.receivePayment : t.takeAdvance),
+        ),
+      if (o.status == OrderStatus.delivered && d.row.balancePaise > 0 && settings != null)
+        OutlinedButton.icon(
+          onPressed: () async {
+            final bal = await ref.read(ledgerProvider).customerBalance(d.row.party.id);
+            if (context.mounted) {
+              sendReminder(context,
+                  party: d.row.party, balancePaise: bal > 0 ? bal : d.row.balancePaise, settings: settings);
+            }
           },
-        );
-      },
+          icon: const Icon(Icons.chat, color: goodColor),
+          label: Text(t.sendReminder),
+        ),
+    ];
+    if (buttons.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(spacing: 12, runSpacing: 10, children: buttons),
     );
+  }
+
+  /// Warns if stock is short, then delivers.
+  Future<void> _deliver(BuildContext context, WidgetRef ref) async {
+    final t = context.t;
+    final stock = ref.read(stockProvider);
+    for (final l in d.lines.where((l) => l.product != null)) {
+      final have = await stock.onHandMilli(l.product!.id);
+      if (have < l.line.qtyMilli) {
+        if (!context.mounted) return;
+        final go = await confirmDialog(
+          context,
+          t.stockWarnBody(qtyLabel(have, l.product!.unit), l.name, qtyLabel(l.line.qtyMilli, l.product!.unit)),
+          ok: t.deliverAnyway,
+        );
+        if (!go) return;
+      }
+    }
+    await ref.read(ordersServiceProvider).deliver(d.row.order.id, date: DateTime.now());
   }
 }

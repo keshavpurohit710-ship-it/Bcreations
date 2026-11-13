@@ -45,8 +45,8 @@ class OrderService {
   /// BC-0001, BC-0002 ... (prefix from Settings).
   Future<String> _takeNumber() async {
     final s = await db.getSettings();
-    await (db.update(db.settings)..where((t) => t.id.equals(settingsRowId))).write(
-        SettingsCompanion(nextOrderNumber: Value(s.nextOrderNumber + 1), updatedAt: Value(DateTime.now())));
+    await (db.update(db.settings)..where((t) => t.id.equals(settingsRowId)))
+        .write(SettingsCompanion(nextOrderNumber: Value(s.nextOrderNumber + 1), updatedAt: Value(DateTime.now())));
     return '${s.orderPrefix}${s.nextOrderNumber.toString().padLeft(4, '0')}';
   }
 
@@ -88,8 +88,7 @@ class OrderService {
   Future<void> _insertLines(String orderId, List<LineInput> lines) async {
     for (var i = 0; i < lines.length; i++) {
       final l = lines[i];
-      final cost =
-          l.unitCostPaise ?? (l.productId == null ? null : await stock.costPerPiecePaise(l.productId!));
+      final cost = l.unitCostPaise ?? (l.productId == null ? null : await stock.costPerPiecePaise(l.productId!));
       await db.into(db.orderLines).insert(OrderLinesCompanion.insert(
             orderId: orderId,
             productId: Value(l.productId),
@@ -127,8 +126,33 @@ class OrderService {
   Future<Order> _get(String id) => (db.select(db.orders)..where((o) => o.id.equals(id))).getSingle();
 
   Future<void> _touch(String id, [OrdersCompanion c = const OrdersCompanion()]) =>
-      (db.update(db.orders)..where((o) => o.id.equals(id)))
-          .write(c.copyWith(updatedAt: Value(DateTime.now())));
+      (db.update(db.orders)..where((o) => o.id.equals(id))).write(c.copyWith(updatedAt: Value(DateTime.now())));
+
+  /// Edit an order's details (not its items; see [replaceLines]).
+  Future<void> updateDetails(
+    String orderId, {
+    required DateTime orderDate,
+    SalesChannel? channel,
+    DateTime? promisedDate,
+    int deliveryChargePaise = 0,
+    int orderDiscountPaise = 0,
+    String? discountReason,
+    String? notes,
+  }) =>
+      _touch(
+        orderId,
+        OrdersCompanion(
+          orderDate: Value(orderDate),
+          channel: Value(channel),
+          promisedDate: Value(promisedDate),
+          deliveryChargePaise: Value(deliveryChargePaise),
+          orderDiscountPaise: Value(orderDiscountPaise),
+          discountReason: Value(discountReason),
+          notes: Value(notes),
+        ),
+      );
+
+  Future<Order> get(String id) => _get(id);
 
   Future<void> confirm(String orderId) async {
     final o = await _get(orderId);
@@ -139,8 +163,7 @@ class OrderService {
   /// Handed over: stock goes out at material value, payment due date is set
   /// from the customer's terms (unless already set), and any advance or credit
   /// the customer has is applied.
-  Future<void> deliver(String orderId, {required DateTime date, int? deliveryChargePaise}) =>
-      db.transaction(() async {
+  Future<void> deliver(String orderId, {required DateTime date, int? deliveryChargePaise}) => db.transaction(() async {
         final o = await _get(orderId);
         if (o.status == OrderStatus.delivered) throw StateError('Already delivered');
         if (o.status == OrderStatus.cancelled) throw StateError('This order was cancelled');
@@ -167,8 +190,7 @@ class OrderService {
             status: const Value(OrderStatus.delivered),
             deliveredAt: Value(date),
             dueDate: Value(o.dueDate ?? DateTime(date.year, date.month, date.day + terms)),
-            deliveryChargePaise:
-                deliveryChargePaise == null ? const Value.absent() : Value(deliveryChargePaise),
+            deliveryChargePaise: deliveryChargePaise == null ? const Value.absent() : Value(deliveryChargePaise),
           ),
         );
         await ledger.applyCredit(o.partyId);
@@ -181,10 +203,8 @@ class OrderService {
         if (o.status == OrderStatus.cancelled) return;
         if (o.status == OrderStatus.delivered) {
           final sales = await (db.select(db.stockMoves)
-                ..where((m) =>
-                    m.orderId.equals(orderId) &
-                    m.type.equalsValue(StockMoveType.sale) &
-                    m.deletedAt.isNull()))
+                ..where(
+                    (m) => m.orderId.equals(orderId) & m.type.equalsValue(StockMoveType.sale) & m.deletedAt.isNull()))
               .get();
           for (final m in sales) {
             await db.into(db.stockMoves).insert(StockMovesCompanion.insert(
@@ -197,8 +217,7 @@ class OrderService {
                 ));
           }
         }
-        await (db.update(db.paymentAllocations)
-              ..where((a) => a.orderId.equals(orderId) & a.deletedAt.isNull()))
+        await (db.update(db.paymentAllocations)..where((a) => a.orderId.equals(orderId) & a.deletedAt.isNull()))
             .write(PaymentAllocationsCompanion(deletedAt: Value(DateTime.now())));
         await _touch(orderId, const OrdersCompanion(status: Value(OrderStatus.cancelled)));
         await ledger.applyCredit(o.partyId);

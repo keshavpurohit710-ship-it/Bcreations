@@ -67,8 +67,7 @@ class LedgerService {
   Future<Map<String, int>> orderTotals(List<Order> orders) async {
     if (orders.isEmpty) return {};
     final ids = orders.map((o) => o.id).toList();
-    final lines =
-        await (db.select(db.orderLines)..where((l) => l.orderId.isIn(ids) & l.deletedAt.isNull())).get();
+    final lines = await (db.select(db.orderLines)..where((l) => l.orderId.isIn(ids) & l.deletedAt.isNull())).get();
     final byOrder = <String, List<OrderLine>>{};
     for (final l in lines) {
       byOrder.putIfAbsent(l.orderId, () => []).add(l);
@@ -141,8 +140,7 @@ class LedgerService {
 
   Future<List<Order>> _unpaidDelivered(String partyId) async {
     final delivered = await (db.select(db.orders)
-          ..where((o) =>
-              o.partyId.equals(partyId) & o.status.equalsValue(OrderStatus.delivered) & o.deletedAt.isNull())
+          ..where((o) => o.partyId.equals(partyId) & o.status.equalsValue(OrderStatus.delivered) & o.deletedAt.isNull())
           ..orderBy([(o) => OrderingTerm.asc(o.deliveredAt), (o) => OrderingTerm.asc(o.orderDate)]))
         .get();
     final unpaid = <Order>[];
@@ -174,9 +172,7 @@ class LedgerService {
   Future<List<Payment>> _paymentsWithCredit(String partyId) async {
     final payments = await (db.select(db.payments)
           ..where((p) =>
-              p.partyId.equals(partyId) &
-              p.purpose.equalsValue(PaymentPurpose.customerPayment) &
-              p.deletedAt.isNull())
+              p.partyId.equals(partyId) & p.purpose.equalsValue(PaymentPurpose.customerPayment) & p.deletedAt.isNull())
           ..orderBy([(p) => OrderingTerm.asc(p.paidOn)]))
         .get();
     final withCredit = <Payment>[];
@@ -211,6 +207,45 @@ class LedgerService {
             note: Value(note),
           ));
 
+  /// Removes a payment (and where it was applied). Returns a stamp for [restorePayment].
+  Future<DateTime> deletePayment(String paymentId) => db.transaction(() async {
+        final stamp = DateTime.now();
+        await (db.update(db.payments)..where((p) => p.id.equals(paymentId)))
+            .write(PaymentsCompanion(deletedAt: Value(stamp), updatedAt: Value(stamp)));
+        await (db.update(db.paymentAllocations)..where((a) => a.paymentId.equals(paymentId) & a.deletedAt.isNull()))
+            .write(PaymentAllocationsCompanion(deletedAt: Value(stamp), updatedAt: Value(stamp)));
+        return stamp;
+      });
+
+  /// Undo for [deletePayment].
+  Future<void> restorePayment(String paymentId, DateTime stamp) => db.transaction(() async {
+        await (db.update(db.payments)..where((p) => p.id.equals(paymentId)))
+            .write(PaymentsCompanion(deletedAt: const Value(null), updatedAt: Value(DateTime.now())));
+        await (db.update(db.paymentAllocations)
+              ..where((a) => a.paymentId.equals(paymentId) & a.deletedAt.equals(stamp)))
+            .write(PaymentAllocationsCompanion(deletedAt: const Value(null), updatedAt: Value(DateTime.now())));
+      });
+
+  /// Payments received from / given to a customer, newest first.
+  Future<List<Payment>> paymentsOf(String partyId) => (db.select(db.payments)
+        ..where((p) => p.partyId.equals(partyId) & p.deletedAt.isNull())
+        ..orderBy([(p) => OrderingTerm.desc(p.paidOn)]))
+      .get();
+
+  /// Payments applied to an order (advance or after delivery), newest first.
+  Future<List<(Payment, int)>> paymentsForOrder(String orderId) async {
+    final q = db.select(db.paymentAllocations).join([
+      innerJoin(db.payments, db.payments.id.equalsExp(db.paymentAllocations.paymentId)),
+    ])
+      ..where(db.paymentAllocations.orderId.equals(orderId) &
+          db.paymentAllocations.deletedAt.isNull() &
+          db.payments.deletedAt.isNull())
+      ..orderBy([OrderingTerm.desc(db.payments.paidOn)]);
+    return [
+      for (final r in await q.get()) (r.readTable(db.payments), r.readTable(db.paymentAllocations).amountPaise),
+    ];
+  }
+
   // -------------------------------------------------------------- balances
 
   /// What a customer owes her (positive) or she holds for them (negative):
@@ -220,9 +255,7 @@ class LedgerService {
     final party = await (db.select(db.parties)..where((p) => p.id.equals(partyId))).getSingle();
     final delivered = await (db.select(db.orders)
           ..where((o) {
-            var c = o.partyId.equals(partyId) &
-                o.status.equalsValue(OrderStatus.delivered) &
-                o.deletedAt.isNull();
+            var c = o.partyId.equals(partyId) & o.status.equalsValue(OrderStatus.delivered) & o.deletedAt.isNull();
             if (asOf != null) c = c & o.deliveredAt.isSmallerOrEqualValue(asOf);
             return c;
           }))

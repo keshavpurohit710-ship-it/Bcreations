@@ -33,17 +33,9 @@ void main() {
   test('average cost blends purchases at different prices', () async {
     final beads = await w.product('Beads', ProductKind.rawMaterial, unit: 'g');
     await w.stock.recordPurchase(
-        productId: beads,
-        qtyMilli: 100000,
-        totalCostPaise: 20000,
-        date: d(1, 1),
-        paidWith: PaymentMethod.cash);
+        productId: beads, qtyMilli: 100000, totalCostPaise: 20000, date: d(1, 1), paidWith: PaymentMethod.cash);
     await w.stock.recordPurchase(
-        productId: beads,
-        qtyMilli: 100000,
-        totalCostPaise: 30000,
-        date: d(1, 2),
-        paidWith: PaymentMethod.cash);
+        productId: beads, qtyMilli: 100000, totalCostPaise: 30000, date: d(1, 2), paidWith: PaymentMethod.cash);
     expect(await w.stock.averageCostPaise(beads), 250); // ₹2.50 per gram
   });
 
@@ -56,17 +48,9 @@ void main() {
       await w.recipe(earrings, lace, 500); // 0.5 m per pair
       await w.recipe(earrings, beads, 20000); // 20 g per pair
       await w.stock.recordPurchase(
-          productId: lace,
-          qtyMilli: 2000,
-          totalCostPaise: 10000,
-          date: d(1, 1),
-          paidWith: PaymentMethod.cash);
+          productId: lace, qtyMilli: 2000, totalCostPaise: 10000, date: d(1, 1), paidWith: PaymentMethod.cash);
       await w.stock.recordPurchase(
-          productId: beads,
-          qtyMilli: 100000,
-          totalCostPaise: 20000,
-          date: d(1, 1),
-          paidWith: PaymentMethod.cash);
+          productId: beads, qtyMilli: 100000, totalCostPaise: 20000, date: d(1, 1), paidWith: PaymentMethod.cash);
     });
 
     test('uses decimal quantities exactly (no rounding to whole units)', () async {
@@ -110,11 +94,7 @@ void main() {
   test('shelf count records only the difference', () async {
     final thread = await w.product('Thread', ProductKind.rawMaterial, unit: 'rolls');
     await w.stock.recordPurchase(
-        productId: thread,
-        qtyMilli: 10000,
-        totalCostPaise: 20000,
-        date: d(1, 1),
-        paidWith: PaymentMethod.cash);
+        productId: thread, qtyMilli: 10000, totalCostPaise: 20000, date: d(1, 1), paidWith: PaymentMethod.cash);
     expect(await w.stock.recordCount(productId: thread, countedMilli: 10000, date: d(2, 1)), 0);
     expect(await w.stock.recordCount(productId: thread, countedMilli: 8000, date: d(2, 1)), -2000);
     expect(await w.stock.onHandMilli(thread), 8000);

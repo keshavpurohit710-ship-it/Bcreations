@@ -1,0 +1,520 @@
+{
+  "@@locale": "en",
+  "appName": "Bcreations",
+  "navHome": "Home",
+  "navOrders": "Orders",
+  "navCustomers": "Customers",
+  "navItems": "Items",
+  "navMoney": "Money",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "undo": "Undo",
+  "done": "Done",
+  "skip": "Skip",
+  "search": "Search",
+  "required": "Required",
+  "amount": "Amount (₹)",
+  "date": "Date",
+  "note": "Note",
+  "quantity": "Quantity",
+  "price": "Price (₹)",
+  "total": "Total",
+  "paid": "Paid",
+  "balance": "Balance",
+  "deleted": "Deleted",
+  "saved": "Saved",
+  "paidWith": "Paid by",
+  "methodCash": "Cash",
+  "methodUpi": "UPI",
+  "methodBank": "Bank",
+  "methodCheque": "Cheque",
+  "methodOther": "Other",
+  "amountMustBePositive": "Enter an amount",
+  "settingsTitle": "Settings",
+  "homeGreeting": "Namaste 🙏",
+  "homeToDo": "Needs your attention",
+  "homeCollect": "Collect {amount} from {count} customers",
+  "@homeCollect": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCollectNone": "Nobody owes you money",
+  "homeOverdue": "{count} late",
+  "@homeOverdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeToDeliver": "{count} orders to deliver",
+  "@homeToDeliver": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeQuotes": "{count} quotes waiting",
+  "@homeQuotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeAdvances": "Advances held: {amount}",
+  "@homeAdvances": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeLowStock": "{count} items running low",
+  "@homeLowStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homePriceReview": "{count} prices to review",
+  "@homePriceReview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeAllGood": "All caught up 👍",
+  "homeMonth": "This month so far",
+  "homeSetupTitle": "Finish setting up",
+  "homeSetupItems": "Add what you have in stock",
+  "homeSetupCustomers": "Add customers who owe you",
+  "homeSetupOrders": "Add orders in progress",
+  "quickAdd": "Add",
+  "quickNewOrder": "New order",
+  "quickPayment": "Payment received",
+  "quickExpense": "Expense",
+  "quickWithdrawal": "Took money for home",
+  "quickMake": "Made items",
+  "quickBuy": "Bought materials",
+  "customersAll": "All",
+  "customersOwe": "Owe money",
+  "customersSuppliers": "Suppliers",
+  "customersEmpty": "No customers yet. Tap + to add one.",
+  "customerNew": "New customer",
+  "customerEdit": "Edit customer",
+  "customerName": "Name",
+  "customerBusiness": "Shop / business name",
+  "customerPhone": "Phone",
+  "customerType": "Who is this?",
+  "roleCustomer": "Customer",
+  "roleSupplier": "Supplier",
+  "roleBoth": "Both",
+  "priceTypeLabel": "Price list",
+  "priceRetail": "Retail (individual)",
+  "priceWholesale": "Wholesale (shop)",
+  "creditLimit": "Credit limit (₹)",
+  "paymentTerms": "Pays within (days)",
+  "openingOwes": "Already owes you (₹)",
+  "owes": "Owes {amount}",
+  "@owes": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "youHold": "You hold {amount}",
+  "@youHold": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "settled": "Settled",
+  "daysLate": "{days} days late",
+  "@daysLate": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "call": "Call",
+  "whatsapp": "WhatsApp",
+  "sendReminder": "Send reminder",
+  "reminderText": "Namaste {name}, a gentle reminder from {business}: {amount} is pending.{upiLine} Thank you!",
+  "@reminderText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "business": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "upiLine": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderUpiLine": " You can pay by UPI to {upi}.",
+  "@reminderUpiLine": {
+    "placeholders": {
+      "upi": {
+        "type": "String"
+      }
+    }
+  },
+  "noPhone": "Add a phone number first",
+  "receivePayment": "Receive payment",
+  "archive": "Archive",
+  "archived": "Archived",
+  "ordersSection": "Orders",
+  "paymentsSection": "Payments",
+  "noOrders": "No orders yet",
+  "noPayments": "No payments yet",
+  "creditWarnLimit": "This goes over {name}'s credit limit of {limit}.",
+  "@creditWarnLimit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "creditWarnOverdue": "{name} has late payments ({amount} owed).",
+  "@creditWarnOverdue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "ordersOpen": "Open",
+  "ordersDelivered": "Delivered",
+  "ordersAll": "All",
+  "ordersEmpty": "No orders here yet.",
+  "statusQuote": "Quote",
+  "statusConfirmed": "To deliver",
+  "statusDelivered": "Delivered",
+  "statusCancelled": "Cancelled",
+  "payUnpaid": "Unpaid",
+  "payPartly": "Part paid",
+  "payPaid": "Paid",
+  "payAdvance": "Advance {amount}",
+  "@payAdvance": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "orderNew": "New order",
+  "orderEdit": "Edit order",
+  "orderCustomer": "Customer",
+  "orderPickCustomer": "Choose customer",
+  "orderItems": "Items",
+  "orderAddItem": "Add item",
+  "orderAddCustom": "Custom item",
+  "orderCustomName": "What is it?",
+  "orderColour": "Colour",
+  "orderSize": "Size",
+  "orderNameText": "Name / words on it",
+  "orderDelivery": "Delivery charge (₹)",
+  "orderDiscount": "Discount on bill (₹)",
+  "orderDiscountReason": "Reason for discount",
+  "orderPromised": "Deliver by",
+  "orderDate": "Order date",
+  "orderChannel": "Where did this order come from?",
+  "channelShop": "Shop",
+  "channelIndividual": "Individual",
+  "channelExhibition": "Exhibition",
+  "channelOnline": "Instagram / online",
+  "orderJustQuote": "Just a quote for now",
+  "orderAdvance": "Advance received now (₹)",
+  "takeAdvance": "Take advance",
+  "orderPhotos": "Reference photos",
+  "orderAddPhoto": "Add photo",
+  "orderNotes": "Notes",
+  "orderMore": "More details",
+  "orderNeedsItem": "Add at least one item",
+  "orderNeedsCustomer": "Choose a customer",
+  "lineDiscount": "Discount on this item (₹)",
+  "marginHealthy": "Good margin",
+  "marginThin": "Low margin",
+  "marginLoss": "Below cost!",
+  "listPriceWas": "List price {price}",
+  "@listPriceWas": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "inStock": "{qty} in stock",
+  "@inStock": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "actionConfirm": "Confirm order",
+  "actionDeliver": "Mark delivered",
+  "actionCancelOrder": "Cancel order",
+  "confirmCancelOrder": "Cancel this order? Any advance paid becomes credit for the customer.",
+  "actionShare": "Share",
+  "orderDue": "Payment due {date}",
+  "@orderDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDeliverBy": "Deliver by {date}",
+  "@orderDeliverBy": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subtotal": "Items total",
+  "stockWarnTitle": "Not enough stock",
+  "stockWarnBody": "Only {have} of {name} in stock; this order needs {need}. Deliver anyway?",
+  "@stockWarnBody": {
+    "placeholders": {
+      "have": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "need": {
+        "type": "String"
+      }
+    }
+  },
+  "deliverAnyway": "Deliver anyway",
+  "customItem": "Custom item",
+  "quoteText": "Quote from {business}",
+  "@quoteText": {
+    "placeholders": {
+      "business": {
+        "type": "String"
+      }
+    }
+  },
+  "billText": "Bill from {business}",
+  "@billText": {
+    "placeholders": {
+      "business": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentTitle": "Payment received",
+  "paymentForOrder": "For order {number}",
+  "@paymentForOrder": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentAnyOrder": "Clears oldest dues first",
+  "paymentReference": "UPI ref / sender",
+  "paymentSaved": "{amount} received",
+  "@paymentSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "itemsAll": "All",
+  "itemsLow": "Running low",
+  "itemsMaterials": "Materials",
+  "itemsProducts": "Products",
+  "itemsEmpty": "No items yet. Tap + to add what you have.",
+  "itemNew": "New item",
+  "itemEdit": "Edit item",
+  "itemName": "Name",
+  "itemKind": "What kind?",
+  "kindRaw": "Raw material",
+  "kindMade": "I make this",
+  "kindBought": "I buy & resell",
+  "itemUnit": "Unit",
+  "itemCategory": "Category",
+  "itemRetail": "Retail price (₹)",
+  "itemWholesale": "Wholesale price (₹)",
+  "retailLabel": "Retail",
+  "wholesaleLabel": "Wholesale",
+  "itemMinStock": "Warn me below",
+  "itemOpeningQty": "How many do you have now?",
+  "itemOpeningCost": "Cost of one (₹)",
+  "itemRecipe": "What goes into one piece?",
+  "itemAddMaterial": "Add material",
+  "itemPhoto": "Photo",
+  "onHand": "In stock",
+  "stockValue": "Stock value",
+  "costPerPiece": "Cost of one",
+  "suggestedPrices": "Suggested: retail {retail} · wholesale {wholesale}",
+  "@suggestedPrices": {
+    "placeholders": {
+      "retail": {
+        "type": "String"
+      },
+      "wholesale": {
+        "type": "String"
+      }
+    }
+  },
+  "priceReview": "Material cost has gone up — review the price",
+  "actionBuy": "Buy",
+  "actionMake": "Make",
+  "actionAdjust": "Adjust",
+  "actionCount": "Count",
+  "history": "History",
+  "buyTitle": "Bought materials",
+  "buyItem": "What did you buy?",
+  "buyTotalCost": "Total paid (₹)",
+  "buySupplier": "Supplier",
+  "makeTitle": "Made items",
+  "makeItem": "What did you make?",
+  "makeHowMany": "How many did you make?",
+  "makeHours": "About how many hours did this batch take?",
+  "makeNeeds": "Materials needed",
+  "makeShort": "short by {qty}",
+  "@makeShort": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "makeAnyway": "Make anyway",
+  "makeShortConfirm": "Some materials are short. Make anyway?",
+  "makeNoRecipe": "First add what goes into one piece (edit the item).",
+  "adjustTitle": "Adjust stock",
+  "adjustRemove": "Remove",
+  "adjustAdd": "Add",
+  "reasonDamaged": "Damaged",
+  "reasonHome": "Used at home",
+  "reasonFound": "Found extra",
+  "reasonOther": "Other",
+  "countTitle": "Shelf count",
+  "countHowMany": "How many are on the shelf?",
+  "countResult": "Difference recorded: {qty}",
+  "@countResult": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "countMatched": "Matches the app 👍",
+  "moveOpening": "Opening stock",
+  "movePurchase": "Bought",
+  "moveProductionIn": "Made",
+  "moveProductionUse": "Used in making",
+  "moveSale": "Sold",
+  "moveSaleReversal": "Order cancelled",
+  "moveAdjustment": "Adjusted",
+  "moveCount": "Count difference",
+  "photoCamera": "Take a photo",
+  "photoGallery": "Choose from gallery",
+  "pickProduct": "Choose item",
+  "pickNone": "No matching items",
+  "moneySales": "Sales",
+  "moneyCostOfGoods": "Material cost of what sold",
+  "moneyLosses": "Stock lost / damaged",
+  "moneyExpenses": "Expenses",
+  "moneyProfit": "Profit",
+  "moneyBridgeTitle": "Where did my profit go?",
+  "moneyBridgeCustomers": "Still with customers",
+  "moneyBridgeCustomersBack": "Collected from older dues",
+  "moneyBridgeStock": "Spent on extra stock",
+  "moneyBridgeStockBack": "Sold from older stock",
+  "moneyBridgeHome": "Taken for home",
+  "moneyBridgeCash": "Cash actually added",
+  "moneyTime": "Value of your time",
+  "moneyTimeHint": "Your hours at {rate}/hour. Not deducted from profit.",
+  "@moneyTimeHint": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDiscounts": "Discounts given",
+  "moneyBest": "Best sellers",
+  "moneyByQty": "By quantity",
+  "moneyByProfit": "By profit",
+  "moneyNoSales": "No sales this month yet",
+  "moneyEntries": "Expenses & money for home",
+  "moneyNoEntries": "Nothing recorded this month",
+  "expenseTitle": "Expense",
+  "expenseCategory": "What for?",
+  "withdrawalTitle": "Took money for home",
+  "withdrawalHint": "Money taken out for family or personal use. It is not a business expense.",
+  "toCollect": "To collect",
+  "advancesHeld": "Advances held",
+  "catPackaging": "Packaging",
+  "catCourier": "Courier",
+  "catTravel": "Travel",
+  "catPhone": "Phone",
+  "catRent": "Rent",
+  "catElectricity": "Electricity",
+  "catHelper": "Helper",
+  "catOther": "Other",
+  "settingsBusiness": "Business name",
+  "settingsUpi": "UPI ID",
+  "settingsPhone": "Phone",
+  "settingsLanguage": "Language",
+  "settingsTheme": "Appearance",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "Like phone",
+  "settingsPricing": "Pricing",
+  "settingsHourly": "Your time, per hour (₹)",
+  "settingsOverhead": "Overhead %",
+  "settingsRetailMarkup": "Retail price = cost ×",
+  "settingsWholesaleMarkup": "Wholesale price = cost ×",
+  "settingsTargetMargin": "Target margin %",
+  "settingsTerms": "Shops pay within (days)",
+  "settingsData": "Data",
+  "settingsDemo": "Load demo data",
+  "settingsDemoConfirm": "This deletes everything in the app and loads sample data. Continue?",
+  "settingsReset": "Delete all data",
+  "settingsResetConfirm": "This deletes everything in the app. It cannot be undone. Continue?",
+  "demoLoaded": "Demo data loaded",
+  "welcomeTitle": "Welcome to Bcreations",
+  "welcomeSubtitle": "Orders, stock and money — all in one place.",
+  "welcomeLanguage": "Choose language",
+  "welcomeBusiness": "Your business name",
+  "welcomeStart": "Start fresh",
+  "welcomeDemo": "Try with sample data",
+  "welcomeFreshHint": "You only need what is true today: stock on the shelf, who owes you, and orders in progress. Old records are optional."
+}
