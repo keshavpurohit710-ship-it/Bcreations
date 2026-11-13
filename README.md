@@ -13,4 +13,6 @@ flutter test
 flutter run
 ```
 
-Stack (current): Flutter 3.47 · Riverpod · Isar. The database moves to Drift (SQLite) in Phase 1.
+Stack: Flutter 3.47 · Riverpod · Drift (SQLite) for the new data layer in `lib/data` + `lib/domain` (the old screens still use Isar until Phase 2).
+
+After changing tables in `lib/data/tables.dart`, regenerate with `dart run build_runner build`.
