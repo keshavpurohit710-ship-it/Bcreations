@@ -313,6 +313,29 @@ The old Isar app is removed; the app now runs entirely on the new Drift data lay
 
 **Still to do for R1:** guided day-one onboarding steps (§5.5, beyond the checklist), import customers from phone contacts, automatic Google Drive backup + restore, Hindi copy review with her, and a usability session.
 
+### 📝 Feedback round 1 (2026-11-16) — what changed and what was added to the plan
+Context: you don't live with your mother; you'll send her the APK. So the app must teach itself, and you need to see how she uses it from afar.
+
+**Fixed now**
+- White text on chips in light mode (payment methods, units, kinds) — caused by a theme setting; rule added to the theme.
+- All text and shapes one step smaller; long labels moved to one per line so nothing is cut off.
+- Wording says clearly what is per piece and what is for everything: "Cost per piece", "Retail price per metre", "Total paid for all" (with "= ₹x per metre"), "Price per piece" and "Total for this item" on order lines; units in words in Hindi and English.
+- "Add item" is the main button on the order screen; "Custom item" and specs are quieter.
+- The Undo bar disappears after 5 seconds (it used to stay until dismissed).
+- "Prices to review": sample data remembers costs; editing a name/photo no longer clears a warning — only changing the price does.
+- Every Home card opens exactly what it talks about (customers who owe; orders to deliver / quotes / with advance; low stock; prices to review — straight to the item if only one; this month in Money).
+- **Stock to check:** making or delivering with less stock than the app shows now asks *what happened* — count the shelf, enter the missing purchase/batch, or continue. Continuing raises a "Stock to check" card on Home until she counts (clears automatically) or says it's fine. Money stays right in every path. Database upgraded to v2 with a tested upgrade step.
+- Money clarity: paying more than owed asks to confirm the extra is kept as credit; customers she holds credit for have a "Give money back" button.
+
+**Added to the plan**
+
+| Item | Release | Notes |
+|---|---|---|
+| **Guided tutorial** | R1 | First run: choose language → tutorial with a *practice shop* (prompted sample entries: add stock, a customer who owes, an order with advance, a payment) → optional tour of every feature → "Start entering your real data" (the day-one setup in §5.5). The practice shop stays available separately (Settings → Practice), so she can experiment without touching real data. |
+| **Phone notifications** | R1 | A daily reminder at a time she chooses (e.g. "Collect ₹9,600 from 2 customers · 1 order to deliver") and on-the-day alerts for promised delivery dates. Rescheduled with fresh numbers whenever the app opens or data changes; no internet needed. |
+| **Remote insights for you (Firebase)** | R1, before she starts | Crashlytics (crashes arrive automatically) + a tap/screen log in Firestore (visible per session within seconds) + a full data copy uploaded daily and on "Send report". A clear consent screen on first run and an on/off switch in Settings; photos stay on the phone. Needs a Firebase project in your Google account (≈15 min of your time). Also the base for multi-device sync later. |
+| **Money dashboard** | R2 (low priority) | One overview: cash in hand vs. with customers vs. in stock, month-by-month trend of sales/profit/cash, biggest expenses, best customers. |
+
 ### ✅ Pricing model — decided (see §5.4)
 The pricing tables and settings are built in Phase 1; the order-line pricing UX is built in Phase 2.
 

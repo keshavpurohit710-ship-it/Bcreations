@@ -67,11 +67,21 @@ class _PaymentFormState extends ConsumerState<_PaymentForm> {
 
   Future<void> _save() async {
     if (_party == null || !_form.currentState!.validate()) return;
-    setState(() => _saving = true);
     final ledger = ref.read(ledgerProvider);
+    final t = context.t;
     final notice = UndoNotice.of(context);
-    final savedText = context.t.paymentSaved(formatPaise(parseRupees(_amount.text)!));
     final amount = parseRupees(_amount.text)!;
+    final savedText = t.paymentSaved(formatPaise(amount));
+
+    // More than they owe? Say clearly that the extra stays as credit.
+    final owed = _order != null ? await ledger.orderBalance(_order!.id) : await ledger.customerBalance(_party!.id);
+    final extra = amount - (owed > 0 ? owed : 0);
+    if (extra > 0) {
+      if (!mounted) return;
+      final ok = await confirmDialog(context, t.overpayBody(formatPaise(extra), _party!.name), ok: t.overpayKeep);
+      if (!ok) return;
+    }
+    setState(() => _saving = true);
     final id = await ledger.receivePayment(
       partyId: _party!.id,
       amountPaise: amount,
@@ -117,6 +127,55 @@ class _PaymentFormState extends ConsumerState<_PaymentForm> {
         TextFormField(controller: _ref, decoration: InputDecoration(labelText: t.paymentReference)),
         const SizedBox(height: 20),
         FilledButton(onPressed: _saving || _party == null ? null : _save, child: Text(t.save)),
+      ]),
+    );
+  }
+}
+
+/// Money given back to a customer she holds credit for.
+Future<void> showRefundSheet(BuildContext context, {required Party party, required int maxPaise}) =>
+    showFormSheet(context, _RefundForm(party: party, maxPaise: maxPaise));
+
+class _RefundForm extends ConsumerStatefulWidget {
+  const _RefundForm({required this.party, required this.maxPaise});
+  final Party party;
+  final int maxPaise;
+
+  @override
+  ConsumerState<_RefundForm> createState() => _RefundFormState();
+}
+
+class _RefundFormState extends ConsumerState<_RefundForm> {
+  final _form = GlobalKey<FormState>();
+  late final _amount = TextEditingController(text: rupeesText(widget.maxPaise));
+  PaymentMethod _method = PaymentMethod.upi;
+  DateTime _date = DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    return Form(
+      key: _form,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('${t.giveBackTitle} · ${widget.party.name}', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Text(t.youHold(formatPaise(widget.maxPaise))),
+        const SizedBox(height: 16),
+        MoneyField(controller: _amount, label: t.amount, validator: (v) => requiredAmount(context, v)),
+        const SizedBox(height: 16),
+        MethodChips(value: _method, onChanged: (m) => setState(() => _method = m)),
+        const SizedBox(height: 16),
+        DateRow(label: t.date, date: _date, onChanged: (d) => setState(() => _date = d ?? DateTime.now())),
+        const SizedBox(height: 20),
+        FilledButton(
+          onPressed: () async {
+            if (!_form.currentState!.validate()) return;
+            await ref.read(ledgerProvider).refund(
+                partyId: widget.party.id, amountPaise: parseRupees(_amount.text)!, method: _method, date: _date);
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: Text(t.save),
+        ),
       ]),
     );
   }

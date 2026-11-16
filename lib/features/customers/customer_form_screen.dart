@@ -76,7 +76,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
             autofocus: widget.party == null,
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(labelText: t.customerName),
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 17),
             validator: (v) => (v ?? '').trim().isEmpty ? t.required : null,
           ),
           const SizedBox(height: 16),

@@ -75,7 +75,7 @@ class _PartyPickerState extends ConsumerState<_PartyPicker> {
               itemCount: shown.length,
               itemBuilder: (_, i) => ListTile(
                 leading: CircleAvatar(child: Text(shown[i].party.name.isEmpty ? '?' : shown[i].party.name[0])),
-                title: Text(shown[i].party.name, style: const TextStyle(fontSize: 18)),
+                title: Text(shown[i].party.name, style: const TextStyle(fontSize: 16)),
                 subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(shown[i].party.businessName ?? shown[i].party.phone ?? ''),
                   if (!widget.suppliers)
@@ -124,7 +124,7 @@ class PartyField extends StatelessWidget {
           prefixIcon: const Icon(Icons.person),
           suffixIcon: enabled ? const Icon(Icons.arrow_drop_down) : null,
         ),
-        child: Text(party?.name ?? t.orderPickCustomer, style: const TextStyle(fontSize: 18)),
+        child: Text(party?.name ?? t.orderPickCustomer, style: const TextStyle(fontSize: 16)),
       ),
     );
   }

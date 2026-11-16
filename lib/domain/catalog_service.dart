@@ -33,6 +33,9 @@ class CatalogService {
 
   /// Creates or updates a product. For a new product, [openingQtyMilli] is what
   /// she has on the shelf right now (at [openingUnitCostPaise] each).
+  ///
+  /// The cost behind "prices to review" is remembered when a price is first set
+  /// or changed — never when she only edits the name, photo, recipe, etc.
   Future<String> saveProduct(
     ProductsCompanion data, {
     String? id,
@@ -42,11 +45,18 @@ class CatalogService {
     required DateTime today,
   }) =>
       db.transaction(() async {
+        final before = id == null ? null : await (db.select(db.products)..where((p) => p.id.equals(id))).getSingle();
         final productId = id ?? (await db.into(db.products).insertReturning(data)).id;
         if (id != null) {
           await (db.update(db.products)..where((p) => p.id.equals(id)))
               .write(data.copyWith(updatedAt: Value(DateTime.now())));
         }
+        final after = await (db.select(db.products)..where((p) => p.id.equals(productId))).getSingle();
+        final hasPrice = after.retailPricePaise != null || after.wholesalePricePaise != null;
+        final priceChanged = before == null ||
+            before.retailPricePaise != after.retailPricePaise ||
+            before.wholesalePricePaise != after.wholesalePricePaise;
+        final markPrice = hasPrice && priceChanged;
         if (recipe != null) {
           await (db.update(db.recipeLines)..where((r) => r.productId.equals(productId) & r.deletedAt.isNull()))
               .write(RecipeLinesCompanion(deletedAt: Value(DateTime.now())));
@@ -59,6 +69,8 @@ class CatalogService {
           await stock.addOpeningStock(
               productId: productId, qtyMilli: openingQtyMilli, unitCostPaise: openingUnitCostPaise, date: today);
         }
+        // After recipe and opening stock, so the remembered cost reflects them.
+        if (markPrice) await markPriceSet(productId);
         return productId;
       });
 

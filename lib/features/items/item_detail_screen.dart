@@ -43,6 +43,7 @@ class ItemDetailScreen extends ConsumerWidget {
       ),
       body: AsyncBody(detail, builder: (d) {
         final p = d.row.product;
+        final unit = unitWord(context, p.unit);
         final low = d.row.isLow || d.row.onHandMilli < 0;
         final suggested = d.costPerPiecePaise == null || settings == null || p.kind == ProductKind.rawMaterial
             ? null
@@ -65,13 +66,15 @@ class ItemDetailScreen extends ConsumerWidget {
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: low ? badColor : null)),
                 const SizedBox(height: 8),
                 Text('${t.stockValue}: ${formatPaise(d.stockValuePaise)}'),
-                if (d.costPerPiecePaise != null) Text('${t.costPerPiece}: ${formatPaise(d.costPerPiecePaise!)}'),
-                if (p.retailPricePaise != null)
-                  Text('${t.retailLabel}: ${formatPaise(p.retailPricePaise!)}'
-                      '${p.wholesalePricePaise == null ? '' : ' · ${t.wholesaleLabel}: ${formatPaise(p.wholesalePricePaise!)}'}'),
+                if (d.costPerPiecePaise != null) Text('${t.costPerPiece(unit)}: ${formatPaise(d.costPerPiecePaise!)}'),
+                if (p.retailPricePaise != null) Text('${t.retailLabel(unit)}: ${formatPaise(p.retailPricePaise!)}'),
+                if (p.wholesalePricePaise != null)
+                  Text('${t.wholesaleLabel(unit)}: ${formatPaise(p.wholesalePricePaise!)}'),
                 if (suggested != null) ...[
                   const SizedBox(height: 6),
-                  Text(t.suggestedPrices(formatPaise(suggested.retailPaise), formatPaise(suggested.wholesalePaise)),
+                  Text(
+                      t.suggestedPrices(
+                          unit, formatPaise(suggested.retailPaise), formatPaise(suggested.wholesalePaise)),
                       style: Theme.of(context).textTheme.bodySmall),
                 ],
                 if (d.needsReview) ...[

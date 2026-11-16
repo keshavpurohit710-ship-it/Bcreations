@@ -112,11 +112,18 @@ class ProductListTile extends StatelessWidget {
     final p = row.product;
     return ListTile(
       leading: ProductAvatar(p),
-      title: Text(p.name, style: const TextStyle(fontSize: 18)),
-      subtitle: Text(
-        t.inStock(qtyLabel(row.onHandMilli, p.unit)),
-        style: TextStyle(color: row.isLow || row.onHandMilli <= 0 ? badColor : null),
-      ),
+      title: Text(p.name, style: const TextStyle(fontSize: 16)),
+      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          t.inStock(qtyLabel(row.onHandMilli, p.unit)),
+          style: TextStyle(color: row.isLow || row.onHandMilli <= 0 ? badColor : null),
+        ),
+        if (row.needsReview)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Pill(t.reviewPrice, color: warnColor, icon: Icons.trending_up),
+          ),
+      ]),
       trailing: p.retailPricePaise == null
           ? null
           : Text(formatPaise(p.retailPricePaise!), style: const TextStyle(fontSize: 16)),

@@ -115,7 +115,13 @@ class SEn extends S {
 
   @override
   String homeCollect(String amount, int count) {
-    return 'Collect $amount from $count customers';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collect $amount from $count customers',
+      one: 'Collect $amount from 1 customer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -128,12 +134,24 @@ class SEn extends S {
 
   @override
   String homeToDeliver(int count) {
-    return '$count orders to deliver';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orders to deliver',
+      one: '1 order to deliver',
+    );
+    return '$_temp0';
   }
 
   @override
   String homeQuotes(int count) {
-    return '$count quotes waiting';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count quotes waiting',
+      one: '1 quote waiting',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -143,12 +161,24 @@ class SEn extends S {
 
   @override
   String homeLowStock(int count) {
-    return '$count items running low';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items running low',
+      one: '1 item running low',
+    );
+    return '$_temp0';
   }
 
   @override
   String homePriceReview(int count) {
-    return '$count prices to review';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count prices to review',
+      one: '1 price to review',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -576,31 +606,41 @@ class SEn extends S {
   String get kindBought => 'I buy & resell';
 
   @override
-  String get itemUnit => 'Unit';
+  String get itemUnit => 'Unit (how you count it)';
 
   @override
   String get itemCategory => 'Category';
 
   @override
-  String get itemRetail => 'Retail price (₹)';
+  String itemRetail(String unit) {
+    return 'Retail price per $unit (₹)';
+  }
 
   @override
-  String get itemWholesale => 'Wholesale price (₹)';
+  String itemWholesale(String unit) {
+    return 'Wholesale price per $unit (₹)';
+  }
 
   @override
-  String get retailLabel => 'Retail';
+  String retailLabel(String unit) {
+    return 'Retail per $unit';
+  }
 
   @override
-  String get wholesaleLabel => 'Wholesale';
+  String wholesaleLabel(String unit) {
+    return 'Wholesale per $unit';
+  }
 
   @override
-  String get itemMinStock => 'Warn me below';
+  String get itemMinStock => 'Warn me when stock is below';
 
   @override
-  String get itemOpeningQty => 'How many do you have now?';
+  String get itemOpeningQty => 'Stock you have now';
 
   @override
-  String get itemOpeningCost => 'Cost of one (₹)';
+  String itemOpeningCost(String unit) {
+    return 'Cost per $unit (₹)';
+  }
 
   @override
   String get itemRecipe => 'What goes into one piece?';
@@ -615,14 +655,16 @@ class SEn extends S {
   String get onHand => 'In stock';
 
   @override
-  String get stockValue => 'Stock value';
+  String get stockValue => 'Value of all this stock';
 
   @override
-  String get costPerPiece => 'Cost of one';
+  String costPerPiece(String unit) {
+    return 'Cost per $unit';
+  }
 
   @override
-  String suggestedPrices(String retail, String wholesale) {
-    return 'Suggested: retail $retail · wholesale $wholesale';
+  String suggestedPrices(String unit, String retail, String wholesale) {
+    return 'Suggested per $unit: retail $retail · wholesale $wholesale';
   }
 
   @override
@@ -650,7 +692,7 @@ class SEn extends S {
   String get buyItem => 'What did you buy?';
 
   @override
-  String get buyTotalCost => 'Total paid (₹)';
+  String get buyTotalCost => 'Total paid for all (₹)';
 
   @override
   String get buySupplier => 'Supplier';
@@ -662,7 +704,7 @@ class SEn extends S {
   String get makeItem => 'What did you make?';
 
   @override
-  String get makeHowMany => 'How many did you make?';
+  String get makeHowMany => 'How many pieces did you make?';
 
   @override
   String get makeHours => 'About how many hours did this batch take?';
@@ -946,4 +988,96 @@ class SEn extends S {
   @override
   String get welcomeFreshHint =>
       'You only need what is true today: stock on the shelf, who owes you, and orders in progress. Old records are optional.';
+
+  @override
+  String linePrice(String unit) {
+    return 'Price per $unit (₹)';
+  }
+
+  @override
+  String lineTotal(String amount) {
+    return 'Total for this item: $amount';
+  }
+
+  @override
+  String buyPerUnit(String price, String unit) {
+    return 'That is $price per $unit';
+  }
+
+  @override
+  String get recipePerPiece => 'For one piece';
+
+  @override
+  String get itemsReview => 'Prices to review';
+
+  @override
+  String get reviewPrice => 'Review price';
+
+  @override
+  String get ordersToDeliver => 'To deliver';
+
+  @override
+  String get ordersQuotes => 'Quotes';
+
+  @override
+  String get ordersWithAdvance => 'Advance taken';
+
+  @override
+  String get stockCheckTitle => 'Stock to check';
+
+  @override
+  String stockCheckMade(String qty, String name) {
+    return 'Made with $qty $name missing on the app';
+  }
+
+  @override
+  String stockCheckDelivered(String qty, String name) {
+    return 'Delivered $qty more $name than the app showed';
+  }
+
+  @override
+  String get stockCheckHint => 'Count the shelf, or look for a purchase or batch that was not entered.';
+
+  @override
+  String get checkCountNow => 'Count now';
+
+  @override
+  String get checkFine => 'It\'s fine';
+
+  @override
+  String get shortageTitle => 'Not enough on the app';
+
+  @override
+  String shortageLine(String name, String need, String have) {
+    return '$name: need $need, app shows $have';
+  }
+
+  @override
+  String get shortageQuestion => 'What happened?';
+
+  @override
+  String get shortageCount => 'Count the shelf — the app may be wrong';
+
+  @override
+  String get shortageBuy => 'I bought more but did not enter it';
+
+  @override
+  String get shortageMade => 'I made more but did not enter it';
+
+  @override
+  String get shortageProceed => 'Continue — remind me to check';
+
+  @override
+  String overpayBody(String extra, String name) {
+    return '$extra more than $name owes. It will be kept as credit for their next order.';
+  }
+
+  @override
+  String get overpayKeep => 'Keep as credit';
+
+  @override
+  String get giveBack => 'Give money back';
+
+  @override
+  String get giveBackTitle => 'Money given back';
 }

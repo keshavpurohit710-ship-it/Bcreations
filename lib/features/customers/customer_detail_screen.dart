@@ -91,6 +91,12 @@ class CustomerDetailScreen extends ConsumerWidget {
                       icon: const Icon(Icons.payments),
                       label: Text(t.receivePayment),
                     ),
+                    if (d.balancePaise < 0)
+                      OutlinedButton.icon(
+                        onPressed: () => showRefundSheet(context, party: p, maxPaise: -d.balancePaise),
+                        icon: const Icon(Icons.undo),
+                        label: Text(t.giveBack),
+                      ),
                     if (d.balancePaise > 0 && settings != null)
                       FilledButton.tonalIcon(
                         onPressed: () =>

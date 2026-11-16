@@ -1,5 +1,9 @@
-// Light (default) and dark themes. Large, readable text and big touch targets
-// for comfortable everyday use; colours from the Bcreations logo.
+// Light (default) and dark themes. Comfortably readable text and touch targets
+// (48 dp+) without wasting space; colours from the Bcreations logo.
+//
+// Rule: never give a component a TextStyle without a colour — that drops the
+// theme's colour and can leave white text on a light background (this happened
+// to chips). Only adjust sizes through the text theme.
 
 import 'package:flutter/material.dart';
 
@@ -21,42 +25,46 @@ ThemeData buildTheme(Brightness brightness) {
   final text = base.textTheme;
   return base.copyWith(
     textTheme: text.copyWith(
-      bodyLarge: text.bodyLarge?.copyWith(fontSize: 18),
-      bodyMedium: text.bodyMedium?.copyWith(fontSize: 16),
-      bodySmall: text.bodySmall?.copyWith(fontSize: 14),
-      titleLarge: text.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w600),
-      titleMedium: text.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      labelLarge: text.labelLarge?.copyWith(fontSize: 16),
+      bodyLarge: text.bodyLarge?.copyWith(fontSize: 16),
+      bodyMedium: text.bodyMedium?.copyWith(fontSize: 15),
+      bodySmall: text.bodySmall?.copyWith(fontSize: 13),
+      titleLarge: text.titleLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.w600),
+      titleMedium: text.titleMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w600),
+      titleSmall: text.titleSmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w600),
+      labelLarge: text.labelLarge?.copyWith(fontSize: 15),
     ),
     visualDensity: VisualDensity.standard,
     materialTapTargetSize: MaterialTapTargetSize.padded,
     appBarTheme: AppBarTheme(centerTitle: false, backgroundColor: scheme.surface, scrolledUnderElevation: 1),
     inputDecorationTheme: const InputDecorationTheme(
       border: OutlineInputBorder(),
-      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(64, 52),
-        textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-      ),
+      style: FilledButton.styleFrom(minimumSize: const Size(64, 48)),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(minimumSize: const Size(64, 48), textStyle: const TextStyle(fontSize: 16)),
+      style: OutlinedButton.styleFrom(minimumSize: const Size(64, 44)),
     ),
-    chipTheme: base.chipTheme.copyWith(labelStyle: const TextStyle(fontSize: 15)),
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: scheme.outlineVariant),
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
     ),
-    listTileTheme: const ListTileThemeData(minVerticalPadding: 12),
+    listTileTheme: const ListTileThemeData(minVerticalPadding: 8),
+    snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
     navigationBarTheme: NavigationBarThemeData(
-      labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-      height: 72,
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: states.contains(WidgetState.selected) ? scheme.onSurface : scheme.onSurfaceVariant,
+        ),
+      ),
+      height: 66,
     ),
   );
 }

@@ -9,6 +9,7 @@ import '../../app/widgets.dart';
 import '../../data/database.dart';
 import '../customers/customer_detail_screen.dart';
 import '../customers/reminder.dart';
+import '../items/shortage_dialog.dart';
 import 'order_form_screen.dart';
 import 'order_tile.dart';
 import 'payment_sheet.dart';
@@ -58,7 +59,7 @@ class OrderDetailScreen extends ConsumerWidget {
         return ListView(padding: const EdgeInsets.only(bottom: 40), children: [
           ListTile(
             leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text(d.row.party.name, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+            title: Text(d.row.party.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
             subtitle: Text(longDate(context, o.orderDate)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
@@ -158,14 +159,14 @@ class _LineTile extends StatelessWidget {
     final t = context.t;
     final specs = [l.line.specColour, l.line.specSize, l.line.specText].whereType<String>().toList();
     return ListTile(
-      title: Text(l.product == null ? '${l.name} · ${t.customItem}' : l.name, style: const TextStyle(fontSize: 17)),
+      title: Text(l.product == null ? '${l.name} · ${t.customItem}' : l.name, style: const TextStyle(fontSize: 15)),
       subtitle: Text([
         '${qtyLabel(l.line.qtyMilli, l.product?.unit ?? '')} × ${formatPaise(l.line.unitPricePaise)}',
         if (l.line.lineDiscountPaise > 0) '− ${formatPaise(l.line.lineDiscountPaise)}',
         if (specs.isNotEmpty) specs.join(' · '),
       ].join('\n')),
       isThreeLine: specs.isNotEmpty,
-      trailing: Text(formatPaise(l.netPaise), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+      trailing: Text(formatPaise(l.netPaise), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
     );
   }
 }
@@ -219,19 +220,21 @@ class _Actions extends ConsumerWidget {
 
   /// Warns if stock is short, then delivers.
   Future<void> _deliver(BuildContext context, WidgetRef ref) async {
-    final t = context.t;
     final stock = ref.read(stockProvider);
+    // Same item on several lines counts together
+    final need = <String, (Product, int)>{};
     for (final l in d.lines.where((l) => l.product != null)) {
-      final have = await stock.onHandMilli(l.product!.id);
-      if (have < l.line.qtyMilli) {
-        if (!context.mounted) return;
-        final go = await confirmDialog(
-          context,
-          t.stockWarnBody(qtyLabel(have, l.product!.unit), l.name, qtyLabel(l.line.qtyMilli, l.product!.unit)),
-          ok: t.deliverAnyway,
-        );
-        if (!go) return;
-      }
+      final prev = need[l.product!.id];
+      need[l.product!.id] = (l.product!, (prev?.$2 ?? 0) + l.line.qtyMilli);
+    }
+    final short = <ShortItem>[];
+    for (final (product, qty) in need.values) {
+      final have = await stock.onHandMilli(product.id);
+      if (have < qty) short.add(ShortItem(product, haveMilli: have, needMilli: qty));
+    }
+    if (short.isNotEmpty) {
+      if (!context.mounted) return;
+      if (!await handleShortage(context, short)) return; // she counted / entered stock; tap Deliver again
     }
     await ref.read(ordersServiceProvider).deliver(d.row.order.id, date: DateTime.now());
   }

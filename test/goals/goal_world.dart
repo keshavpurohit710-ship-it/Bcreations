@@ -10,6 +10,7 @@ import 'package:drift/drift.dart' show driftRuntimeOptions;
 
 import '../domain/helpers.dart';
 
+export 'package:bcreations/domain/catalog_service.dart' show RecipeInput;
 export 'package:bcreations/domain/order_service.dart' show LineInput;
 export '../domain/helpers.dart';
 

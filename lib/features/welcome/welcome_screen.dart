@@ -53,7 +53,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           TextField(
             controller: _name,
             decoration: InputDecoration(labelText: t.welcomeBusiness),
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 17),
           ),
           const SizedBox(height: 24),
           Text(t.welcomeFreshHint, style: Theme.of(context).textTheme.bodyMedium),

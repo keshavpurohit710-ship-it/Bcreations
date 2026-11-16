@@ -3,6 +3,7 @@
 
 import 'package:drift/drift.dart';
 
+import '../domain/catalog_service.dart';
 import '../domain/ledger_service.dart';
 import '../domain/order_service.dart';
 import '../domain/stock_service.dart';
@@ -186,4 +187,11 @@ Future<void> seedDemoData(AppDatabase db, {required DateTime today}) async {
   await db.into(db.ownerWithdrawals).insert(OwnerWithdrawalsCompanion.insert(
       amountPaise: 200000, method: PaymentMethod.upi, takenOn: ago(12), note: const Value('Home')));
   await stock.adjust(productId: candle, deltaMilli: -1000, reason: 'Cracked in transit', date: ago(26));
+
+  // She set her prices knowing today's costs; remember them so "prices to review"
+  // can warn when material costs rise later.
+  final catalog = CatalogService(db, stock);
+  for (final p in [rakhi, potli, candle, hamper]) {
+    await catalog.markPriceSet(p);
+  }
 }

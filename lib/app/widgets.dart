@@ -142,7 +142,7 @@ class MoneyField extends StatelessWidget {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [_decimal],
         decoration: InputDecoration(labelText: label, prefixText: '₹ ', helperText: helper),
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         onChanged: onChanged,
         validator: validator,
       );
@@ -171,7 +171,7 @@ class QtyField extends StatelessWidget {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [_decimal],
         decoration: InputDecoration(labelText: label, suffixText: unit),
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         onChanged: onChanged,
         validator: validator,
       );
@@ -233,7 +233,7 @@ class DateRow extends StatelessWidget {
                 ? IconButton(icon: const Icon(Icons.close), onPressed: () => onChanged(null))
                 : const Icon(Icons.calendar_today),
           ),
-          child: Text(date == null ? '—' : longDate(context, date!), style: const TextStyle(fontSize: 18)),
+          child: Text(date == null ? '—' : longDate(context, date!), style: const TextStyle(fontSize: 16)),
         ),
       );
 }
@@ -244,7 +244,7 @@ Future<bool> confirmDialog(BuildContext context, String message, {String? ok, bo
     await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        content: Text(message, style: const TextStyle(fontSize: 17)),
+        content: Text(message, style: const TextStyle(fontSize: 15)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.t.cancel)),
           FilledButton(
@@ -273,7 +273,8 @@ class UndoNotice {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         content: Text(message, style: const TextStyle(fontSize: 16)),
-        duration: const Duration(seconds: 6),
+        duration: const Duration(seconds: 5),
+        persist: false, // messages with an Undo button would otherwise stay until dismissed
         action: SnackBarAction(label: _undoLabel, onPressed: onUndo),
       ));
   }

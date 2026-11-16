@@ -24,19 +24,25 @@ const settingsRowId = 'settings';
   PaymentAllocations,
   Expenses,
   OwnerWithdrawals,
+  StockChecks,
 ])
 class AppDatabase extends _$AppDatabase {
   /// Pass an executor in tests (e.g. NativeDatabase.memory()).
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'bcreations'));
 
+  /// v1: release-1 tables. v2: stock checks.
+  /// Every change needs a step in onUpgrade so installed apps keep their data.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
           await into(settings).insert(SettingsCompanion.insert(id: const Value(settingsRowId)));
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) await m.createTable(stockChecks);
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');

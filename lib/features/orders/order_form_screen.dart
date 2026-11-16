@@ -287,11 +287,20 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
           ),
         SectionHeader(t.orderItems),
         for (final (i, l) in _lines.indexed) _lineCard(i, l, settings),
-        Wrap(spacing: 12, runSpacing: 8, children: [
-          FilledButton.tonalIcon(onPressed: _addProduct, icon: const Icon(Icons.add), label: Text(t.orderAddItem)),
-          OutlinedButton.icon(
-              onPressed: _addCustom, icon: const Icon(Icons.brush_outlined), label: Text(t.orderAddCustom)),
-        ]),
+        // The main action on this screen: big and filled. Everything else is quieter.
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _addProduct,
+            icon: const Icon(Icons.add_shopping_cart),
+            label: Text(t.orderAddItem),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+              onPressed: _addCustom, icon: const Icon(Icons.brush_outlined, size: 18), label: Text(t.orderAddCustom)),
+        ),
         const SizedBox(height: 20),
         MoneyField(controller: _delivery, label: t.orderDelivery, onChanged: (_) => setState(() {})),
         const SizedBox(height: 16),
@@ -437,7 +446,7 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
               Expanded(
                 child: MoneyField(
                   controller: l.price,
-                  label: t.price,
+                  label: t.linePrice(unitWord(context, l.product?.unit ?? 'pcs')),
                   onChanged: (_) => setState(() => l.priceTouched = true),
                 ),
               ),
@@ -445,13 +454,16 @@ class _OrderFormScreenState extends ConsumerState<OrderFormScreen> {
           ),
           const SizedBox(height: 6),
           Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            Text(formatPaise(l.netPaise), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            Text(t.lineTotal(formatPaise(l.netPaise)),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
             if (band != MarginBand.unknown) Pill(bandText, color: bandColor),
             if (l.listPricePaise != null && l.listPricePaise != l.unitPaise)
               Text(t.listPriceWas(formatPaise(l.listPricePaise!)), style: Theme.of(context).textTheme.bodySmall),
             TextButton.icon(
+              style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact, textStyle: Theme.of(context).textTheme.bodySmall),
               onPressed: () => setState(() => l.showSpecs = !l.showSpecs),
-              icon: Icon(l.showSpecs ? Icons.expand_less : Icons.tune),
+              icon: Icon(l.showSpecs ? Icons.expand_less : Icons.tune, size: 16),
               label: Text('${t.orderColour} / ${t.orderSize} / ${t.orderNameText}'),
             ),
           ]),

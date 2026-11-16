@@ -17,6 +17,24 @@ extension L10nX on BuildContext {
 /// "2.5 m", "3 pcs"
 String qtyLabel(int milli, String unit) => '${formatMilli(milli)} $unit';
 
+const _unitWordsEn = {'pcs': 'piece', 'm': 'metre', 'kg': 'kg', 'g': 'gram', 'L': 'litre', 'ml': 'ml'};
+const _unitWordsHi = {
+  'pcs': 'पीस',
+  'm': 'मीटर',
+  'cm': 'से.मी.',
+  'kg': 'किलो',
+  'g': 'ग्राम',
+  'L': 'लीटर',
+  'ml': 'मि.ली.',
+  'box': 'डिब्बा',
+  'set': 'सेट',
+  'pair': 'जोड़ी',
+};
+
+/// One unit in words, for "price per …": pcs -> "piece" / "पीस", m -> "metre" / "मीटर".
+String unitWord(BuildContext context, String unit) =>
+    (context.lang == 'hi' ? _unitWordsHi : _unitWordsEn)[unit] ?? unit;
+
 /// "12 Nov" (Hindi: "12 नव॰")
 String shortDate(BuildContext context, DateTime d) => DateFormat('d MMM', context.lang).format(d);
 

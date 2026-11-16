@@ -185,21 +185,39 @@ final orderDetailProvider = FutureProvider.family<OrderDetail, String>((ref, id)
 // -------------------------------------------------------------------- items
 
 class ProductRow {
-  ProductRow(this.product, this.onHandMilli);
+  ProductRow(this.product, this.onHandMilli, {this.needsReview = false});
   final Product product;
   final int onHandMilli;
+
+  /// Cost has risen more than the review threshold since the price was set.
+  final bool needsReview;
   bool get isLow => product.minStockMilli > 0 && onHandMilli <= product.minStockMilli;
 }
 
 final productsProvider = FutureProvider<List<ProductRow>>((ref) async {
   ref.watch(dbTickProvider);
   final db = ref.watch(databaseProvider);
-  final onHand = await ref.watch(stockProvider).onHandAll();
+  final stock = ref.watch(stockProvider);
+  final settings = await db.getSettings();
+  final onHand = await stock.onHandAll();
   final products = await (db.select(db.products)
         ..where((p) => p.deletedAt.isNull() & p.archived.equals(false))
         ..orderBy([(p) => OrderingTerm.asc(p.name)]))
       .get();
-  return [for (final p in products) ProductRow(p, onHand[p.id] ?? 0)];
+  final rows = <ProductRow>[];
+  for (final p in products) {
+    var review = false;
+    if (p.priceSetCostPaise != null) {
+      final cost = await stock.costPerPiecePaise(p.id);
+      review = cost != null &&
+          needsPriceReview(
+              priceSetCostPaise: p.priceSetCostPaise,
+              currentCostPaise: cost,
+              thresholdBp: settings.priceReviewThresholdBp);
+    }
+    rows.add(ProductRow(p, onHand[p.id] ?? 0, needsReview: review));
+  }
+  return rows;
 });
 
 class ProductDetail {
@@ -250,7 +268,8 @@ class HomeData {
     required this.quotes,
     required this.advancesPaise,
     required this.lowStock,
-    required this.priceReviewCount,
+    required this.priceReview,
+    required this.stockChecks,
     required this.month,
     required this.productCount,
     required this.customerCount,
@@ -261,7 +280,11 @@ class HomeData {
   final int quotes;
   final int advancesPaise;
   final List<ProductRow> lowStock;
-  final int priceReviewCount;
+  final List<ProductRow> priceReview;
+
+  /// Times she went ahead with less stock than the app showed.
+  final List<(StockCheck, Product)> stockChecks;
+  int get priceReviewCount => priceReview.length;
   final PeriodSummary month;
   final int productCount, customerCount, orderCount;
 
@@ -273,22 +296,9 @@ final homeProvider = FutureProvider<HomeData>((ref) async {
   ref.watch(dbTickProvider);
   final db = ref.watch(databaseProvider);
   final ledger = ref.watch(ledgerProvider);
-  final stock = ref.watch(stockProvider);
-  final settings = await db.getSettings();
   final open = await ref.watch(ordersListProvider(OrderFilter.open).future);
   final products = await ref.watch(productsProvider.future);
   final parties = await ref.watch(partiesProvider.future);
-  var review = 0;
-  for (final p in products.where((p) => p.product.priceSetCostPaise != null)) {
-    final cost = await stock.costPerPiecePaise(p.product.id);
-    if (cost != null &&
-        needsPriceReview(
-            priceSetCostPaise: p.product.priceSetCostPaise,
-            currentCostPaise: cost,
-            thresholdBp: settings.priceReviewThresholdBp)) {
-      review++;
-    }
-  }
   final (from, to) = ReportService.monthBounds(today());
   return HomeData(
     dues: await ledger.customerDues(today: today()),
@@ -296,7 +306,8 @@ final homeProvider = FutureProvider<HomeData>((ref) async {
     quotes: open.where((o) => o.order.status == OrderStatus.quote).length,
     advancesPaise: await ledger.advancesHeld(),
     lowStock: products.where((p) => p.isLow).toList(),
-    priceReviewCount: review,
+    priceReview: products.where((p) => p.needsReview).toList(),
+    stockChecks: await ref.watch(stockProvider).openChecks(),
     month: await ref.watch(reportsProvider).summary(from: from, to: to),
     productCount: products.length,
     customerCount: parties.where((p) => p.party.role != PartyRole.supplier).length,
