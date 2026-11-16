@@ -4,6 +4,7 @@ An offline Android app for running a small handmade craft business: customers an
 
 - **Review & roadmap:** [docs/REVIEW_AND_PLAN.md](docs/REVIEW_AND_PLAN.md)
 - **Build & release:** [docs/RELEASE.md](docs/RELEASE.md)
+- **Test plan** (automated tests, release checklist, session with the user): [docs/TEST_PLAN.md](docs/TEST_PLAN.md)
 
 ## Quick start
 ```bash
