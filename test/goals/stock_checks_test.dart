@@ -100,7 +100,7 @@ void main() {
     final parties = await db.select(db.parties).get();
     expect(parties.single.openingBalancePaise, 120000, reason: 'existing data kept');
     expect(await db.select(db.stockChecks).get(), isEmpty, reason: 'new table created');
-    expect((await db.customSelect('PRAGMA user_version').getSingle()).data.values.first, 3);
+    expect((await db.customSelect('PRAGMA user_version').getSingle()).data.values.first, 4);
     expect((await db.getSettings()).notifyMinutes, 540, reason: 'v3 settings columns added with defaults');
     await db.close();
   });
@@ -126,13 +126,40 @@ void main() {
     expect(settings.notifyEnabled, isTrue);
     expect(settings.practiceActive, isFalse);
     expect(settings.tutorialDoneAt, isNull);
+    expect(settings.insightsConsent, isNull, reason: 'v4: not asked yet');
+    await db.close();
+  });
+
+  test('upgrading from v3 (tutorial build) asks about insights once', () async {
+    final dir = await Directory.systemTemp.createTemp('bc_migration_v3');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    var db = AppDatabase(NativeDatabase(file));
+    await db.customStatement('UPDATE settings SET notify_minutes = 600');
+    await _dropV4Columns(db);
+    await db.customStatement('PRAGMA user_version = 3');
+    await db.close();
+
+    db = AppDatabase(NativeDatabase(file));
+    final settings = await db.getSettings();
+    expect(settings.notifyMinutes, 600, reason: 'v3 data kept');
+    expect(settings.insightsConsent, isNull);
+    expect(settings.lastSnapshotAt, isNull);
     await db.close();
   });
 }
 
 /// Turns a current database back into its pre-v3 shape (SQLite 3.35+ can drop columns).
 Future<void> _dropV3Columns(AppDatabase db) async {
+  await _dropV4Columns(db);
   for (final c in ['tutorial_done_at', 'practice_active', 'notify_enabled', 'notify_minutes']) {
+    await db.customStatement('ALTER TABLE settings DROP COLUMN $c');
+  }
+}
+
+Future<void> _dropV4Columns(AppDatabase db) async {
+  for (final c in ['insights_consent', 'last_snapshot_at']) {
     await db.customStatement('ALTER TABLE settings DROP COLUMN $c');
   }
 }

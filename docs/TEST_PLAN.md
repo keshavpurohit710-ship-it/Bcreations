@@ -70,6 +70,16 @@ flutter install --release
 | R.4 | Restart the phone | Reminders still arrive | |
 | R.5 | Switch reminders off | No more reminders | |
 
+### B0c · Help from afar (see docs/INSIGHTS.md)
+| # | Do this | Expect | ✅ / note |
+|---|---|---|---|
+| I.1 | Fresh install, open the app | First screen: language switch + "Help fix problems from afar" | |
+| I.2 | Tap **Yes, send it**, use the app for 2 minutes, press Home | Firebase console → Firestore → `devices` shows this phone; `sessions/…/events` has screens and taps | |
+| I.3 | Within a few minutes of I.2 | `snapshots` has one entry with row counts | |
+| I.4 | Settings → Help from afar → **Send a report now** | "Report sent"; a new snapshot appears | |
+| I.5 | Switch it off, use the app | No new events arrive | |
+| I.6 | Install over the previous build (not fresh) | Data intact; asked once about help from afar | |
+
 For the rest, use **Settings → Learning → Practice shop with sample data** (two months of sample activity; your real shop is untouched).
 
 ### B1 · Late payments (P1, P9)

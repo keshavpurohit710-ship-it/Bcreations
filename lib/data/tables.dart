@@ -97,6 +97,13 @@ class Settings extends Table with SyncColumns {
   /// Daily reminder on the phone, at [notifyMinutes] after midnight (540 = 9:00).
   BoolColumn get notifyEnabled => boolean().withDefault(const Constant(true))();
   IntColumn get notifyMinutes => integer().withDefault(const Constant(540))();
+
+  // --- v4: help from afar (Firebase insights)
+  /// May the app send usage and a copy of the data? null = not asked yet.
+  BoolColumn get insightsConsent => boolean().nullable()();
+
+  /// When the last automatic data copy was sent.
+  DateTimeColumn get lastSnapshotAt => dateTime().nullable()();
 }
 
 /// Quantity discounts. productId == null -> applies to every product.

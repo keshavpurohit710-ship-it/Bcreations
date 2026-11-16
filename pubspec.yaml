@@ -30,6 +30,10 @@ dependencies:
   flutter_local_notifications: ^20.1.0 # 21+ needs Android Gradle Plugin 9.1 / compileSdk 37
   timezone: ^0.10.0
   flutter_timezone: ^5.1.1
+  firebase_core: ^5.1.0
+  firebase_auth: ^7.0.1
+  cloud_firestore: ^7.1.0
+  firebase_crashlytics: ^6.0.1
 
 dev_dependencies:
   flutter_test:

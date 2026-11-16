@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/format.dart';
+import '../../app/insights/insights_sync.dart';
 import '../../app/providers.dart';
 import '../../app/shell.dart';
 import '../../app/widgets.dart';
@@ -189,6 +190,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: Text(t.tutorialTour),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeatureTourScreen())),
         ),
+        SectionHeader(t.settingsHelp),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(t.settingsInsights),
+          subtitle: Text(t.settingsInsightsHint),
+          value: real?.insightsConsent ?? false,
+          onChanged: (v) => _writeReal(SettingsCompanion(insightsConsent: Value(v))),
+        ),
+        if (real?.insightsConsent ?? false)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.cloud_upload_outlined),
+            title: Text(t.settingsSendReport),
+            onTap: () async {
+              final insights = ref.read(insightsProvider);
+              insights.event('report_requested');
+              await insights.flush();
+              final ok = await insights.sendSnapshot(reason: 'manual');
+              if (context.mounted) showMessage(context, ok ? t.reportSent : t.reportFailed);
+            },
+          ),
         SectionHeader(t.settingsData),
         OutlinedButton.icon(
           icon: const Icon(Icons.delete_forever_outlined),
@@ -204,6 +226,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   notifyMinutes: Value(settings.notifyMinutes),
                   tutorialDoneAt: Value(settings.tutorialDoneAt),
                   practiceActive: Value(settings.practiceActive),
+                  insightsConsent: Value(settings.insightsConsent),
+                  lastSnapshotAt: Value(settings.lastSnapshotAt),
                 ));
             if (context.mounted) Navigator.pop(context);
           },

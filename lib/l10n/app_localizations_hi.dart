@@ -1253,4 +1253,56 @@ class SHi extends S {
 
   @override
   String get settingsReminderTime => 'याद का समय';
+
+  @override
+  String get consentTitle => 'दूर से ही दिक्कतें ठीक करने में मदद करें';
+
+  @override
+  String get consentIntro =>
+      'आपका परिवार देख सकेगा कि ऐप आपके लिए कैसा चल रहा है, और दूर से भी जल्दी दिक्कतें ठीक कर सकेगा। आप हाँ कहें तो ऐप भेजेगा:';
+
+  @override
+  String get consentTaps => 'आप कौन सी स्क्रीन और बटन इस्तेमाल करती हैं';
+
+  @override
+  String get consentErrors => 'कोई गड़बड़ी या ऐप बंद होना';
+
+  @override
+  String get consentData =>
+      'दिन में एक बार, आपकी दुकान के हिसाब की कॉपी (ग्राहक, ऑर्डर, रकम, स्टॉक)';
+
+  @override
+  String get consentPhotos => 'फ़ोटो नहीं भेजी जातीं — वे इसी फ़ोन पर रहती हैं';
+
+  @override
+  String get consentWho => 'इसे सिर्फ़ वही देख सकता है जिसने यह ऐप सेट किया है';
+
+  @override
+  String get consentChange => 'आप इसे कभी भी सेटिंग्स में बंद कर सकती हैं';
+
+  @override
+  String get consentYes => 'हाँ, भेजें';
+
+  @override
+  String get consentNo => 'नहीं, सब इसी फ़ोन पर रहे';
+
+  @override
+  String get settingsHelp => 'दूर से मदद';
+
+  @override
+  String get settingsInsights => 'उपयोग और हिसाब की कॉपी भेजें';
+
+  @override
+  String get settingsInsightsHint =>
+      'स्क्रीन, बटन, गड़बड़ी, और रोज़ हिसाब की कॉपी। फ़ोटो फ़ोन पर ही रहती हैं।';
+
+  @override
+  String get settingsSendReport => 'अभी रिपोर्ट भेजें';
+
+  @override
+  String get reportSent =>
+      'रिपोर्ट भेज दी। इंटरनेट न हो तो मिलते ही चली जाएगी।';
+
+  @override
+  String get reportFailed => 'नहीं भेज पाए। इंटरनेट देखें और फिर कोशिश करें।';
 }

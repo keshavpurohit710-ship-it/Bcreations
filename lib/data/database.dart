@@ -31,9 +31,10 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'bcreations'));
 
   /// v1: release-1 tables. v2: stock checks. v3: tutorial, practice shop, reminders.
+  /// v4: insights consent and last data copy.
   /// Every change needs a step in onUpgrade so installed apps keep their data.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -48,6 +49,10 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(settings, settings.practiceActive);
             await m.addColumn(settings, settings.notifyEnabled);
             await m.addColumn(settings, settings.notifyMinutes);
+          }
+          if (from < 4) {
+            await m.addColumn(settings, settings.insightsConsent);
+            await m.addColumn(settings, settings.lastSnapshotAt);
           }
         },
         beforeOpen: (details) async {

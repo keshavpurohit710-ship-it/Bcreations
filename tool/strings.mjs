@@ -409,6 +409,22 @@ const S = [
   ['settingsReminders', 'Reminders', 'याद दिलाना'],
   ['settingsRemindersOn', 'Daily reminder on the phone', 'फ़ोन पर रोज़ याद दिलाएँ'],
   ['settingsReminderTime', 'Reminder time', 'याद का समय'],
+  ['consentTitle', 'Help fix problems from afar', 'दूर से ही दिक्कतें ठीक करने में मदद करें'],
+  ['consentIntro', 'Your family can see how the app is working for you and fix problems quickly, even from far away. If you agree, the app sends:', 'आपका परिवार देख सकेगा कि ऐप आपके लिए कैसा चल रहा है, और दूर से भी जल्दी दिक्कतें ठीक कर सकेगा। आप हाँ कहें तो ऐप भेजेगा:'],
+  ['consentTaps', 'Which screens and buttons you use', 'आप कौन सी स्क्रीन और बटन इस्तेमाल करती हैं'],
+  ['consentErrors', 'Any errors or crashes', 'कोई गड़बड़ी या ऐप बंद होना'],
+  ['consentData', 'Once a day, a copy of your shop records (customers, orders, amounts, stock)', 'दिन में एक बार, आपकी दुकान के हिसाब की कॉपी (ग्राहक, ऑर्डर, रकम, स्टॉक)'],
+  ['consentPhotos', 'Photos are NOT sent — they stay on this phone', 'फ़ोटो नहीं भेजी जातीं — वे इसी फ़ोन पर रहती हैं'],
+  ['consentWho', 'Only the person who set up this app can see it', 'इसे सिर्फ़ वही देख सकता है जिसने यह ऐप सेट किया है'],
+  ['consentChange', 'You can switch this off any time in Settings', 'आप इसे कभी भी सेटिंग्स में बंद कर सकती हैं'],
+  ['consentYes', 'Yes, send it', 'हाँ, भेजें'],
+  ['consentNo', 'No, keep everything on this phone', 'नहीं, सब इसी फ़ोन पर रहे'],
+  ['settingsHelp', 'Help from afar', 'दूर से मदद'],
+  ['settingsInsights', 'Send usage and data copy', 'उपयोग और हिसाब की कॉपी भेजें'],
+  ['settingsInsightsHint', 'Screens, buttons, errors, and a daily copy of your records. Photos stay on the phone.', 'स्क्रीन, बटन, गड़बड़ी, और रोज़ हिसाब की कॉपी। फ़ोटो फ़ोन पर ही रहती हैं।'],
+  ['settingsSendReport', 'Send a report now', 'अभी रिपोर्ट भेजें'],
+  ['reportSent', 'Report sent. If there is no internet, it goes as soon as there is.', 'रिपोर्ट भेज दी। इंटरनेट न हो तो मिलते ही चली जाएगी।'],
+  ['reportFailed', 'Could not send. Check the internet and try again.', 'नहीं भेज पाए। इंटरनेट देखें और फिर कोशिश करें।'],
 ];
 
 const keys = new Set();
