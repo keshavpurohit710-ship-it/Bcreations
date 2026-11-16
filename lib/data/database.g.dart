@@ -7493,6 +7493,533 @@ class OwnerWithdrawalsCompanion extends UpdateCompanion<OwnerWithdrawal> {
   }
 }
 
+class $StockChecksTable extends StockChecks with TableInfo<$StockChecksTable, StockCheck> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StockChecksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>('id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: false, clientDefault: newId);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>('created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false, clientDefault: DateTime.now);
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>('updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false, clientDefault: DateTime.now);
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>('deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _productIdMeta = const VerificationMeta('productId');
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>('product_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES products (id)'));
+  @override
+  late final GeneratedColumnWithTypeConverter<StockCheckKind, String> kind =
+      GeneratedColumn<String>('kind', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<StockCheckKind>($StockChecksTable.$converterkind);
+  static const VerificationMeta _shortMilliMeta = const VerificationMeta('shortMilli');
+  @override
+  late final GeneratedColumn<int> shortMilli =
+      GeneratedColumn<int>('short_milli', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _orderIdMeta = const VerificationMeta('orderId');
+  @override
+  late final GeneratedColumn<String> orderId = GeneratedColumn<String>('order_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES orders (id)'));
+  static const VerificationMeta _productionRunIdMeta = const VerificationMeta('productionRunId');
+  @override
+  late final GeneratedColumn<String> productionRunId = GeneratedColumn<String>('production_run_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES production_runs (id)'));
+  static const VerificationMeta _raisedOnMeta = const VerificationMeta('raisedOn');
+  @override
+  late final GeneratedColumn<DateTime> raisedOn = GeneratedColumn<DateTime>('raised_on', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _resolvedAtMeta = const VerificationMeta('resolvedAt');
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>('resolved_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _resolutionMeta = const VerificationMeta('resolution');
+  @override
+  late final GeneratedColumn<String> resolution =
+      GeneratedColumn<String>('resolution', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        productId,
+        kind,
+        shortMilli,
+        orderId,
+        productionRunId,
+        raisedOn,
+        resolvedAt,
+        resolution
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stock_checks';
+  @override
+  VerificationContext validateIntegrity(Insertable<StockCheck> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta, createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta, updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta, deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(_productIdMeta, productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('short_milli')) {
+      context.handle(_shortMilliMeta, shortMilli.isAcceptableOrUnknown(data['short_milli']!, _shortMilliMeta));
+    } else if (isInserting) {
+      context.missing(_shortMilliMeta);
+    }
+    if (data.containsKey('order_id')) {
+      context.handle(_orderIdMeta, orderId.isAcceptableOrUnknown(data['order_id']!, _orderIdMeta));
+    }
+    if (data.containsKey('production_run_id')) {
+      context.handle(_productionRunIdMeta,
+          productionRunId.isAcceptableOrUnknown(data['production_run_id']!, _productionRunIdMeta));
+    }
+    if (data.containsKey('raised_on')) {
+      context.handle(_raisedOnMeta, raisedOn.isAcceptableOrUnknown(data['raised_on']!, _raisedOnMeta));
+    } else if (isInserting) {
+      context.missing(_raisedOnMeta);
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(_resolvedAtMeta, resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta));
+    }
+    if (data.containsKey('resolution')) {
+      context.handle(_resolutionMeta, resolution.isAcceptableOrUnknown(data['resolution']!, _resolutionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StockCheck map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StockCheck(
+      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      productId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}product_id'])!,
+      kind: $StockChecksTable.$converterkind
+          .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}kind'])!),
+      shortMilli: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}short_milli'])!,
+      orderId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}order_id']),
+      productionRunId:
+          attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}production_run_id']),
+      raisedOn: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}raised_on'])!,
+      resolvedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}resolved_at']),
+      resolution: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}resolution']),
+    );
+  }
+
+  @override
+  $StockChecksTable createAlias(String alias) {
+    return $StockChecksTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<StockCheckKind, String, String> $converterkind =
+      const EnumNameConverter<StockCheckKind>(StockCheckKind.values);
+}
+
+class StockCheck extends DataClass implements Insertable<StockCheck> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String productId;
+  final StockCheckKind kind;
+  final int shortMilli;
+  final String? orderId;
+  final String? productionRunId;
+  final DateTime raisedOn;
+  final DateTime? resolvedAt;
+  final String? resolution;
+  const StockCheck(
+      {required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.productId,
+      required this.kind,
+      required this.shortMilli,
+      this.orderId,
+      this.productionRunId,
+      required this.raisedOn,
+      this.resolvedAt,
+      this.resolution});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['product_id'] = Variable<String>(productId);
+    {
+      map['kind'] = Variable<String>($StockChecksTable.$converterkind.toSql(kind));
+    }
+    map['short_milli'] = Variable<int>(shortMilli);
+    if (!nullToAbsent || orderId != null) {
+      map['order_id'] = Variable<String>(orderId);
+    }
+    if (!nullToAbsent || productionRunId != null) {
+      map['production_run_id'] = Variable<String>(productionRunId);
+    }
+    map['raised_on'] = Variable<DateTime>(raisedOn);
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    if (!nullToAbsent || resolution != null) {
+      map['resolution'] = Variable<String>(resolution);
+    }
+    return map;
+  }
+
+  StockChecksCompanion toCompanion(bool nullToAbsent) {
+    return StockChecksCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent ? const Value.absent() : Value(deletedAt),
+      productId: Value(productId),
+      kind: Value(kind),
+      shortMilli: Value(shortMilli),
+      orderId: orderId == null && nullToAbsent ? const Value.absent() : Value(orderId),
+      productionRunId: productionRunId == null && nullToAbsent ? const Value.absent() : Value(productionRunId),
+      raisedOn: Value(raisedOn),
+      resolvedAt: resolvedAt == null && nullToAbsent ? const Value.absent() : Value(resolvedAt),
+      resolution: resolution == null && nullToAbsent ? const Value.absent() : Value(resolution),
+    );
+  }
+
+  factory StockCheck.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StockCheck(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      productId: serializer.fromJson<String>(json['productId']),
+      kind: $StockChecksTable.$converterkind.fromJson(serializer.fromJson<String>(json['kind'])),
+      shortMilli: serializer.fromJson<int>(json['shortMilli']),
+      orderId: serializer.fromJson<String?>(json['orderId']),
+      productionRunId: serializer.fromJson<String?>(json['productionRunId']),
+      raisedOn: serializer.fromJson<DateTime>(json['raisedOn']),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+      resolution: serializer.fromJson<String?>(json['resolution']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'productId': serializer.toJson<String>(productId),
+      'kind': serializer.toJson<String>($StockChecksTable.$converterkind.toJson(kind)),
+      'shortMilli': serializer.toJson<int>(shortMilli),
+      'orderId': serializer.toJson<String?>(orderId),
+      'productionRunId': serializer.toJson<String?>(productionRunId),
+      'raisedOn': serializer.toJson<DateTime>(raisedOn),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+      'resolution': serializer.toJson<String?>(resolution),
+    };
+  }
+
+  StockCheck copyWith(
+          {String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? productId,
+          StockCheckKind? kind,
+          int? shortMilli,
+          Value<String?> orderId = const Value.absent(),
+          Value<String?> productionRunId = const Value.absent(),
+          DateTime? raisedOn,
+          Value<DateTime?> resolvedAt = const Value.absent(),
+          Value<String?> resolution = const Value.absent()}) =>
+      StockCheck(
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        productId: productId ?? this.productId,
+        kind: kind ?? this.kind,
+        shortMilli: shortMilli ?? this.shortMilli,
+        orderId: orderId.present ? orderId.value : this.orderId,
+        productionRunId: productionRunId.present ? productionRunId.value : this.productionRunId,
+        raisedOn: raisedOn ?? this.raisedOn,
+        resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+        resolution: resolution.present ? resolution.value : this.resolution,
+      );
+  StockCheck copyWithCompanion(StockChecksCompanion data) {
+    return StockCheck(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      shortMilli: data.shortMilli.present ? data.shortMilli.value : this.shortMilli,
+      orderId: data.orderId.present ? data.orderId.value : this.orderId,
+      productionRunId: data.productionRunId.present ? data.productionRunId.value : this.productionRunId,
+      raisedOn: data.raisedOn.present ? data.raisedOn.value : this.raisedOn,
+      resolvedAt: data.resolvedAt.present ? data.resolvedAt.value : this.resolvedAt,
+      resolution: data.resolution.present ? data.resolution.value : this.resolution,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockCheck(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('productId: $productId, ')
+          ..write('kind: $kind, ')
+          ..write('shortMilli: $shortMilli, ')
+          ..write('orderId: $orderId, ')
+          ..write('productionRunId: $productionRunId, ')
+          ..write('raisedOn: $raisedOn, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('resolution: $resolution')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, createdAt, updatedAt, deletedAt, productId, kind, shortMilli, orderId,
+      productionRunId, raisedOn, resolvedAt, resolution);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StockCheck &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.productId == this.productId &&
+          other.kind == this.kind &&
+          other.shortMilli == this.shortMilli &&
+          other.orderId == this.orderId &&
+          other.productionRunId == this.productionRunId &&
+          other.raisedOn == this.raisedOn &&
+          other.resolvedAt == this.resolvedAt &&
+          other.resolution == this.resolution);
+}
+
+class StockChecksCompanion extends UpdateCompanion<StockCheck> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> productId;
+  final Value<StockCheckKind> kind;
+  final Value<int> shortMilli;
+  final Value<String?> orderId;
+  final Value<String?> productionRunId;
+  final Value<DateTime> raisedOn;
+  final Value<DateTime?> resolvedAt;
+  final Value<String?> resolution;
+  final Value<int> rowid;
+  const StockChecksCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.shortMilli = const Value.absent(),
+    this.orderId = const Value.absent(),
+    this.productionRunId = const Value.absent(),
+    this.raisedOn = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.resolution = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StockChecksCompanion.insert({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String productId,
+    required StockCheckKind kind,
+    required int shortMilli,
+    this.orderId = const Value.absent(),
+    this.productionRunId = const Value.absent(),
+    required DateTime raisedOn,
+    this.resolvedAt = const Value.absent(),
+    this.resolution = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : productId = Value(productId),
+        kind = Value(kind),
+        shortMilli = Value(shortMilli),
+        raisedOn = Value(raisedOn);
+  static Insertable<StockCheck> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? productId,
+    Expression<String>? kind,
+    Expression<int>? shortMilli,
+    Expression<String>? orderId,
+    Expression<String>? productionRunId,
+    Expression<DateTime>? raisedOn,
+    Expression<DateTime>? resolvedAt,
+    Expression<String>? resolution,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (productId != null) 'product_id': productId,
+      if (kind != null) 'kind': kind,
+      if (shortMilli != null) 'short_milli': shortMilli,
+      if (orderId != null) 'order_id': orderId,
+      if (productionRunId != null) 'production_run_id': productionRunId,
+      if (raisedOn != null) 'raised_on': raisedOn,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (resolution != null) 'resolution': resolution,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StockChecksCompanion copyWith(
+      {Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? productId,
+      Value<StockCheckKind>? kind,
+      Value<int>? shortMilli,
+      Value<String?>? orderId,
+      Value<String?>? productionRunId,
+      Value<DateTime>? raisedOn,
+      Value<DateTime?>? resolvedAt,
+      Value<String?>? resolution,
+      Value<int>? rowid}) {
+    return StockChecksCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      productId: productId ?? this.productId,
+      kind: kind ?? this.kind,
+      shortMilli: shortMilli ?? this.shortMilli,
+      orderId: orderId ?? this.orderId,
+      productionRunId: productionRunId ?? this.productionRunId,
+      raisedOn: raisedOn ?? this.raisedOn,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      resolution: resolution ?? this.resolution,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>($StockChecksTable.$converterkind.toSql(kind.value));
+    }
+    if (shortMilli.present) {
+      map['short_milli'] = Variable<int>(shortMilli.value);
+    }
+    if (orderId.present) {
+      map['order_id'] = Variable<String>(orderId.value);
+    }
+    if (productionRunId.present) {
+      map['production_run_id'] = Variable<String>(productionRunId.value);
+    }
+    if (raisedOn.present) {
+      map['raised_on'] = Variable<DateTime>(raisedOn.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    if (resolution.present) {
+      map['resolution'] = Variable<String>(resolution.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StockChecksCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('productId: $productId, ')
+          ..write('kind: $kind, ')
+          ..write('shortMilli: $shortMilli, ')
+          ..write('orderId: $orderId, ')
+          ..write('productionRunId: $productionRunId, ')
+          ..write('raisedOn: $raisedOn, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('resolution: $resolution, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7510,6 +8037,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PaymentAllocationsTable paymentAllocations = $PaymentAllocationsTable(this);
   late final $ExpensesTable expenses = $ExpensesTable(this);
   late final $OwnerWithdrawalsTable ownerWithdrawals = $OwnerWithdrawalsTable(this);
+  late final $StockChecksTable stockChecks = $StockChecksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
@@ -7527,7 +8055,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         payments,
         paymentAllocations,
         expenses,
-        ownerWithdrawals
+        ownerWithdrawals,
+        stockChecks
       ];
 }
 
@@ -8057,6 +8586,17 @@ final class $$ProductsTableReferences extends BaseReferences<_$AppDatabase, $Pro
     final cache = $_typedResult.readTableOrNull(_orderLinesRefsTable($_db));
     return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$StockChecksTable, List<StockCheck>> _stockChecksRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.stockChecks, aliasName: 'products__id__stock_checks__product_id');
+
+  $$StockChecksTableProcessedTableManager get stockChecksRefs {
+    final manager = $$StockChecksTableTableManager($_db, $_db.stockChecks)
+        .filter((f) => f.productId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stockChecksRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$ProductsTableFilterComposer extends Composer<_$AppDatabase, $ProductsTable> {
@@ -8206,6 +8746,23 @@ class $$ProductsTableFilterComposer extends Composer<_$AppDatabase, $ProductsTab
             $$OrderLinesTableFilterComposer(
               $db: $db,
               $table: $db.orderLines,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> stockChecksRefs(Expression<bool> Function($$StockChecksTableFilterComposer f) f) {
+    final $$StockChecksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockChecks,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$StockChecksTableFilterComposer(
+              $db: $db,
+              $table: $db.stockChecks,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
@@ -8417,6 +8974,23 @@ class $$ProductsTableAnnotationComposer extends Composer<_$AppDatabase, $Product
             ));
     return f(composer);
   }
+
+  Expression<T> stockChecksRefs<T extends Object>(Expression<T> Function($$StockChecksTableAnnotationComposer a) f) {
+    final $$StockChecksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockChecks,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$StockChecksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stockChecks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ProductsTableTableManager extends RootTableManager<
@@ -8436,7 +9010,8 @@ class $$ProductsTableTableManager extends RootTableManager<
         bool usedInRecipes,
         bool productionRunsRefs,
         bool stockMovesRefs,
-        bool orderLinesRefs})> {
+        bool orderLinesRefs,
+        bool stockChecksRefs})> {
   $$ProductsTableTableManager(_$AppDatabase db, $ProductsTable table)
       : super(TableManagerState(
           db: db,
@@ -8529,7 +9104,8 @@ class $$ProductsTableTableManager extends RootTableManager<
               usedInRecipes = false,
               productionRunsRefs = false,
               stockMovesRefs = false,
-              orderLinesRefs = false}) {
+              orderLinesRefs = false,
+              stockChecksRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
@@ -8538,7 +9114,8 @@ class $$ProductsTableTableManager extends RootTableManager<
                 if (usedInRecipes) db.recipeLines,
                 if (productionRunsRefs) db.productionRuns,
                 if (stockMovesRefs) db.stockMoves,
-                if (orderLinesRefs) db.orderLines
+                if (orderLinesRefs) db.orderLines,
+                if (stockChecksRefs) db.stockChecks
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -8590,6 +9167,14 @@ class $$ProductsTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) => $$ProductsTableReferences(db, table, p0).orderLinesRefs,
                         currentColumn: 'id',
                         referencedColumn: 'product_id',
+                        typedResults: items),
+                  if (stockChecksRefs)
+                    await $_getPrefetchedDataByColumns<Product, $ProductsTable, StockCheck, $StockChecksTable>(
+                        currentTable: table,
+                        referencedTable: $$ProductsTableReferences._stockChecksRefsTable(db),
+                        managerFromTypedResult: (p0) => $$ProductsTableReferences(db, table, p0).stockChecksRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'product_id',
                         typedResults: items)
                 ];
               },
@@ -8615,7 +9200,8 @@ typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
         bool usedInRecipes,
         bool productionRunsRefs,
         bool stockMovesRefs,
-        bool orderLinesRefs})>;
+        bool orderLinesRefs,
+        bool stockChecksRefs})>;
 typedef $$BulkRulesTableCreateCompanionBuilder = BulkRulesCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
@@ -9872,6 +10458,17 @@ final class $$OrdersTableReferences extends BaseReferences<_$AppDatabase, $Order
     final cache = $_typedResult.readTableOrNull(_paymentAllocationsRefsTable($_db));
     return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$StockChecksTable, List<StockCheck>> _stockChecksRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.stockChecks, aliasName: 'orders__id__stock_checks__order_id');
+
+  $$StockChecksTableProcessedTableManager get stockChecksRefs {
+    final manager = $$StockChecksTableTableManager($_db, $_db.stockChecks)
+        .filter((f) => f.orderId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stockChecksRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$OrdersTableFilterComposer extends Composer<_$AppDatabase, $OrdersTable> {
@@ -10004,6 +10601,23 @@ class $$OrdersTableFilterComposer extends Composer<_$AppDatabase, $OrdersTable> 
             $$PaymentAllocationsTableFilterComposer(
               $db: $db,
               $table: $db.paymentAllocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> stockChecksRefs(Expression<bool> Function($$StockChecksTableFilterComposer f) f) {
+    final $$StockChecksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockChecks,
+        getReferencedColumn: (t) => t.orderId,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$StockChecksTableFilterComposer(
+              $db: $db,
+              $table: $db.stockChecks,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
@@ -10212,6 +10826,23 @@ class $$OrdersTableAnnotationComposer extends Composer<_$AppDatabase, $OrdersTab
             ));
     return f(composer);
   }
+
+  Expression<T> stockChecksRefs<T extends Object>(Expression<T> Function($$StockChecksTableAnnotationComposer a) f) {
+    final $$StockChecksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockChecks,
+        getReferencedColumn: (t) => t.orderId,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$StockChecksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stockChecks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$OrdersTableTableManager extends RootTableManager<
@@ -10226,7 +10857,12 @@ class $$OrdersTableTableManager extends RootTableManager<
     (Order, $$OrdersTableReferences),
     Order,
     PrefetchHooks Function(
-        {bool partyId, bool stockMovesRefs, bool orderLinesRefs, bool orderPhotosRefs, bool paymentAllocationsRefs})> {
+        {bool partyId,
+        bool stockMovesRefs,
+        bool orderLinesRefs,
+        bool orderPhotosRefs,
+        bool paymentAllocationsRefs,
+        bool stockChecksRefs})> {
   $$OrdersTableTableManager(_$AppDatabase db, $OrdersTable table)
       : super(TableManagerState(
           db: db,
@@ -10317,14 +10953,16 @@ class $$OrdersTableTableManager extends RootTableManager<
               stockMovesRefs = false,
               orderLinesRefs = false,
               orderPhotosRefs = false,
-              paymentAllocationsRefs = false}) {
+              paymentAllocationsRefs = false,
+              stockChecksRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (stockMovesRefs) db.stockMoves,
                 if (orderLinesRefs) db.orderLines,
                 if (orderPhotosRefs) db.orderPhotos,
-                if (paymentAllocationsRefs) db.paymentAllocations
+                if (paymentAllocationsRefs) db.paymentAllocations,
+                if (stockChecksRefs) db.stockChecks
               ],
               addJoins: <
                   T extends TableManagerState<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic,
@@ -10374,6 +11012,14 @@ class $$OrdersTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) => $$OrdersTableReferences(db, table, p0).paymentAllocationsRefs,
                         currentColumn: 'id',
                         referencedColumn: 'order_id',
+                        typedResults: items),
+                  if (stockChecksRefs)
+                    await $_getPrefetchedDataByColumns<Order, $OrdersTable, StockCheck, $StockChecksTable>(
+                        currentTable: table,
+                        referencedTable: $$OrdersTableReferences._stockChecksRefsTable(db),
+                        managerFromTypedResult: (p0) => $$OrdersTableReferences(db, table, p0).stockChecksRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'order_id',
                         typedResults: items)
                 ];
               },
@@ -10394,7 +11040,12 @@ typedef $$OrdersTableProcessedTableManager = ProcessedTableManager<
     (Order, $$OrdersTableReferences),
     Order,
     PrefetchHooks Function(
-        {bool partyId, bool stockMovesRefs, bool orderLinesRefs, bool orderPhotosRefs, bool paymentAllocationsRefs})>;
+        {bool partyId,
+        bool stockMovesRefs,
+        bool orderLinesRefs,
+        bool orderPhotosRefs,
+        bool paymentAllocationsRefs,
+        bool stockChecksRefs})>;
 typedef $$ProductionRunsTableCreateCompanionBuilder = ProductionRunsCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
@@ -10449,6 +11100,17 @@ final class $$ProductionRunsTableReferences extends BaseReferences<_$AppDatabase
         .filter((f) => f.productionRunId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_stockMovesRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$StockChecksTable, List<StockCheck>> _stockChecksRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.stockChecks, aliasName: 'production_runs__id__stock_checks__production_run_id');
+
+  $$StockChecksTableProcessedTableManager get stockChecksRefs {
+    final manager = $$StockChecksTableTableManager($_db, $_db.stockChecks)
+        .filter((f) => f.productionRunId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stockChecksRefsTable($_db));
     return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
   }
 }
@@ -10519,6 +11181,23 @@ class $$ProductionRunsTableFilterComposer extends Composer<_$AppDatabase, $Produ
             $$StockMovesTableFilterComposer(
               $db: $db,
               $table: $db.stockMoves,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> stockChecksRefs(Expression<bool> Function($$StockChecksTableFilterComposer f) f) {
+    final $$StockChecksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockChecks,
+        getReferencedColumn: (t) => t.productionRunId,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$StockChecksTableFilterComposer(
+              $db: $db,
+              $table: $db.stockChecks,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
@@ -10651,6 +11330,23 @@ class $$ProductionRunsTableAnnotationComposer extends Composer<_$AppDatabase, $P
             ));
     return f(composer);
   }
+
+  Expression<T> stockChecksRefs<T extends Object>(Expression<T> Function($$StockChecksTableAnnotationComposer a) f) {
+    final $$StockChecksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockChecks,
+        getReferencedColumn: (t) => t.productionRunId,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$StockChecksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stockChecks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ProductionRunsTableTableManager extends RootTableManager<
@@ -10664,7 +11360,7 @@ class $$ProductionRunsTableTableManager extends RootTableManager<
     $$ProductionRunsTableUpdateCompanionBuilder,
     (ProductionRun, $$ProductionRunsTableReferences),
     ProductionRun,
-    PrefetchHooks Function({bool productId, bool stockMovesRefs})> {
+    PrefetchHooks Function({bool productId, bool stockMovesRefs, bool stockChecksRefs})> {
   $$ProductionRunsTableTableManager(_$AppDatabase db, $ProductionRunsTable table)
       : super(TableManagerState(
           db: db,
@@ -10738,10 +11434,10 @@ class $$ProductionRunsTableTableManager extends RootTableManager<
                     $$ProductionRunsTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({productId = false, stockMovesRefs = false}) {
+          prefetchHooksCallback: ({productId = false, stockMovesRefs = false, stockChecksRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (stockMovesRefs) db.stockMoves],
+              explicitlyWatchedTables: [if (stockMovesRefs) db.stockMoves, if (stockChecksRefs) db.stockChecks],
               addJoins: <
                   T extends TableManagerState<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic,
                       dynamic, dynamic, dynamic>>(state) {
@@ -10766,6 +11462,15 @@ class $$ProductionRunsTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) => $$ProductionRunsTableReferences(db, table, p0).stockMovesRefs,
                         currentColumn: 'id',
                         referencedColumn: 'production_run_id',
+                        typedResults: items),
+                  if (stockChecksRefs)
+                    await $_getPrefetchedDataByColumns<ProductionRun, $ProductionRunsTable, StockCheck,
+                            $StockChecksTable>(
+                        currentTable: table,
+                        referencedTable: $$ProductionRunsTableReferences._stockChecksRefsTable(db),
+                        managerFromTypedResult: (p0) => $$ProductionRunsTableReferences(db, table, p0).stockChecksRefs,
+                        currentColumn: 'id',
+                        referencedColumn: 'production_run_id',
                         typedResults: items)
                 ];
               },
@@ -10785,7 +11490,7 @@ typedef $$ProductionRunsTableProcessedTableManager = ProcessedTableManager<
     $$ProductionRunsTableUpdateCompanionBuilder,
     (ProductionRun, $$ProductionRunsTableReferences),
     ProductionRun,
-    PrefetchHooks Function({bool productId, bool stockMovesRefs})>;
+    PrefetchHooks Function({bool productId, bool stockMovesRefs, bool stockChecksRefs})>;
 typedef $$StockMovesTableCreateCompanionBuilder = StockMovesCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
@@ -13395,6 +14100,466 @@ typedef $$OwnerWithdrawalsTableProcessedTableManager = ProcessedTableManager<
     (OwnerWithdrawal, BaseReferences<_$AppDatabase, $OwnerWithdrawalsTable, OwnerWithdrawal>),
     OwnerWithdrawal,
     PrefetchHooks Function()>;
+typedef $$StockChecksTableCreateCompanionBuilder = StockChecksCompanion Function({
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String productId,
+  required StockCheckKind kind,
+  required int shortMilli,
+  Value<String?> orderId,
+  Value<String?> productionRunId,
+  required DateTime raisedOn,
+  Value<DateTime?> resolvedAt,
+  Value<String?> resolution,
+  Value<int> rowid,
+});
+typedef $$StockChecksTableUpdateCompanionBuilder = StockChecksCompanion Function({
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> productId,
+  Value<StockCheckKind> kind,
+  Value<int> shortMilli,
+  Value<String?> orderId,
+  Value<String?> productionRunId,
+  Value<DateTime> raisedOn,
+  Value<DateTime?> resolvedAt,
+  Value<String?> resolution,
+  Value<int> rowid,
+});
+
+final class $$StockChecksTableReferences extends BaseReferences<_$AppDatabase, $StockChecksTable, StockCheck> {
+  $$StockChecksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProductsTable _productIdTable(_$AppDatabase db) =>
+      db.products.createAlias('stock_checks__product_id__products__id');
+
+  $$ProductsTableProcessedTableManager get productId {
+    final $_column = $_itemColumn<String>('product_id')!;
+
+    final manager = $$ProductsTableTableManager($_db, $_db.products).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_productIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $OrdersTable _orderIdTable(_$AppDatabase db) => db.orders.createAlias('stock_checks__order_id__orders__id');
+
+  $$OrdersTableProcessedTableManager? get orderId {
+    final $_column = $_itemColumn<String>('order_id');
+    if ($_column == null) return null;
+    final manager = $$OrdersTableTableManager($_db, $_db.orders).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_orderIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $ProductionRunsTable _productionRunIdTable(_$AppDatabase db) =>
+      db.productionRuns.createAlias('stock_checks__production_run_id__production_runs__id');
+
+  $$ProductionRunsTableProcessedTableManager? get productionRunId {
+    final $_column = $_itemColumn<String>('production_run_id');
+    if ($_column == null) return null;
+    final manager =
+        $$ProductionRunsTableTableManager($_db, $_db.productionRuns).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_productionRunIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$StockChecksTableFilterComposer extends Composer<_$AppDatabase, $StockChecksTable> {
+  $$StockChecksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<StockCheckKind, StockCheckKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<int> get shortMilli =>
+      $composableBuilder(column: $table.shortMilli, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get raisedOn =>
+      $composableBuilder(column: $table.raisedOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get resolvedAt =>
+      $composableBuilder(column: $table.resolvedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get resolution =>
+      $composableBuilder(column: $table.resolution, builder: (column) => ColumnFilters(column));
+
+  $$ProductsTableFilterComposer get productId {
+    final $$ProductsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableFilterComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$OrdersTableFilterComposer get orderId {
+    final $$OrdersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.orderId,
+        referencedTable: $db.orders,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$OrdersTableFilterComposer(
+              $db: $db,
+              $table: $db.orders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ProductionRunsTableFilterComposer get productionRunId {
+    final $$ProductionRunsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productionRunId,
+        referencedTable: $db.productionRuns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$ProductionRunsTableFilterComposer(
+              $db: $db,
+              $table: $db.productionRuns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StockChecksTableOrderingComposer extends Composer<_$AppDatabase, $StockChecksTable> {
+  $$StockChecksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get shortMilli =>
+      $composableBuilder(column: $table.shortMilli, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get raisedOn =>
+      $composableBuilder(column: $table.raisedOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get resolvedAt =>
+      $composableBuilder(column: $table.resolvedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get resolution =>
+      $composableBuilder(column: $table.resolution, builder: (column) => ColumnOrderings(column));
+
+  $$ProductsTableOrderingComposer get productId {
+    final $$ProductsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableOrderingComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$OrdersTableOrderingComposer get orderId {
+    final $$OrdersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.orderId,
+        referencedTable: $db.orders,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$OrdersTableOrderingComposer(
+              $db: $db,
+              $table: $db.orders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ProductionRunsTableOrderingComposer get productionRunId {
+    final $$ProductionRunsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productionRunId,
+        referencedTable: $db.productionRuns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$ProductionRunsTableOrderingComposer(
+              $db: $db,
+              $table: $db.productionRuns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StockChecksTableAnnotationComposer extends Composer<_$AppDatabase, $StockChecksTable> {
+  $$StockChecksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt => $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt => $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt => $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<StockCheckKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get shortMilli => $composableBuilder(column: $table.shortMilli, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get raisedOn => $composableBuilder(column: $table.raisedOn, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get resolvedAt =>
+      $composableBuilder(column: $table.resolvedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get resolution => $composableBuilder(column: $table.resolution, builder: (column) => column);
+
+  $$ProductsTableAnnotationComposer get productId {
+    final $$ProductsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$OrdersTableAnnotationComposer get orderId {
+    final $$OrdersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.orderId,
+        referencedTable: $db.orders,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$OrdersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.orders,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ProductionRunsTableAnnotationComposer get productionRunId {
+    final $$ProductionRunsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productionRunId,
+        referencedTable: $db.productionRuns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+            $$ProductionRunsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.productionRuns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StockChecksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $StockChecksTable,
+    StockCheck,
+    $$StockChecksTableFilterComposer,
+    $$StockChecksTableOrderingComposer,
+    $$StockChecksTableAnnotationComposer,
+    $$StockChecksTableCreateCompanionBuilder,
+    $$StockChecksTableUpdateCompanionBuilder,
+    (StockCheck, $$StockChecksTableReferences),
+    StockCheck,
+    PrefetchHooks Function({bool productId, bool orderId, bool productionRunId})> {
+  $$StockChecksTableTableManager(_$AppDatabase db, $StockChecksTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$StockChecksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$StockChecksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$StockChecksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> productId = const Value.absent(),
+            Value<StockCheckKind> kind = const Value.absent(),
+            Value<int> shortMilli = const Value.absent(),
+            Value<String?> orderId = const Value.absent(),
+            Value<String?> productionRunId = const Value.absent(),
+            Value<DateTime> raisedOn = const Value.absent(),
+            Value<DateTime?> resolvedAt = const Value.absent(),
+            Value<String?> resolution = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StockChecksCompanion(
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            productId: productId,
+            kind: kind,
+            shortMilli: shortMilli,
+            orderId: orderId,
+            productionRunId: productionRunId,
+            raisedOn: raisedOn,
+            resolvedAt: resolvedAt,
+            resolution: resolution,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String productId,
+            required StockCheckKind kind,
+            required int shortMilli,
+            Value<String?> orderId = const Value.absent(),
+            Value<String?> productionRunId = const Value.absent(),
+            required DateTime raisedOn,
+            Value<DateTime?> resolvedAt = const Value.absent(),
+            Value<String?> resolution = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StockChecksCompanion.insert(
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            productId: productId,
+            kind: kind,
+            shortMilli: shortMilli,
+            orderId: orderId,
+            productionRunId: productionRunId,
+            raisedOn: raisedOn,
+            resolvedAt: resolvedAt,
+            resolution: resolution,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) =>
+                  (e.readTable<$StockChecksTable, StockCheck>(table), $$StockChecksTableReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: ({productId = false, orderId = false, productionRunId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic, dynamic,
+                      dynamic, dynamic, dynamic>>(state) {
+                if (productId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.productId,
+                    referencedTable: $$StockChecksTableReferences._productIdTable(db),
+                    referencedColumn: $$StockChecksTableReferences._productIdTable(db).id,
+                  ) as T;
+                }
+                if (orderId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.orderId,
+                    referencedTable: $$StockChecksTableReferences._orderIdTable(db),
+                    referencedColumn: $$StockChecksTableReferences._orderIdTable(db).id,
+                  ) as T;
+                }
+                if (productionRunId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.productionRunId,
+                    referencedTable: $$StockChecksTableReferences._productionRunIdTable(db),
+                    referencedColumn: $$StockChecksTableReferences._productionRunIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$StockChecksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $StockChecksTable,
+    StockCheck,
+    $$StockChecksTableFilterComposer,
+    $$StockChecksTableOrderingComposer,
+    $$StockChecksTableAnnotationComposer,
+    $$StockChecksTableCreateCompanionBuilder,
+    $$StockChecksTableUpdateCompanionBuilder,
+    (StockCheck, $$StockChecksTableReferences),
+    StockCheck,
+    PrefetchHooks Function({bool productId, bool orderId, bool productionRunId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -13415,4 +14580,5 @@ class $AppDatabaseManager {
   $$ExpensesTableTableManager get expenses => $$ExpensesTableTableManager(_db, _db.expenses);
   $$OwnerWithdrawalsTableTableManager get ownerWithdrawals =>
       $$OwnerWithdrawalsTableTableManager(_db, _db.ownerWithdrawals);
+  $$StockChecksTableTableManager get stockChecks => $$StockChecksTableTableManager(_db, _db.stockChecks);
 }

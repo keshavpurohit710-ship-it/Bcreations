@@ -43,7 +43,7 @@ class _ShellState extends State<Shell> {
         heroTag: 'quickAdd',
         onPressed: () => showQuickAdd(context),
         icon: const Icon(Icons.add, size: 28),
-        label: Text(t.quickAdd, style: const TextStyle(fontSize: 17)),
+        label: Text(t.quickAdd, style: const TextStyle(fontSize: 15)),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
@@ -88,7 +88,7 @@ Future<void> showQuickAdd(BuildContext context) async {
         ])
           ListTile(
             leading: Icon(icon, size: 28),
-            title: Text(label, style: const TextStyle(fontSize: 18)),
+            title: Text(label, style: const TextStyle(fontSize: 16)),
             onTap: () => Navigator.pop(ctx, i),
           ),
       ]),

@@ -111,7 +111,6 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
       openingUnitCostPaise: parseRupees(_openingCost.text) ?? 0,
       today: DateTime.now(),
     );
-    if (retail != null) await catalog.markPriceSet(id);
     if (mounted) Navigator.pop(context, id);
   }
 
@@ -149,7 +148,7 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
                 autofocus: !_editing,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(labelText: t.itemName),
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 17),
                 validator: (v) => (v ?? '').trim().isEmpty ? t.required : null,
               ),
             ),
@@ -170,19 +169,15 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
           ]),
           if (!_editing) ...[
             const SizedBox(height: 20),
-            Row(children: [
-              Expanded(child: QtyField(controller: _openingQty, label: t.itemOpeningQty, unit: _unit)),
-              const SizedBox(width: 12),
-              Expanded(child: MoneyField(controller: _openingCost, label: t.itemOpeningCost)),
-            ]),
+            QtyField(controller: _openingQty, label: t.itemOpeningQty, unit: _unit),
+            const SizedBox(height: 14),
+            MoneyField(controller: _openingCost, label: t.itemOpeningCost(unitWord(context, _unit))),
           ],
           if (sells) ...[
             const SizedBox(height: 20),
-            Row(children: [
-              Expanded(child: MoneyField(controller: _retail, label: t.itemRetail)),
-              const SizedBox(width: 12),
-              Expanded(child: MoneyField(controller: _wholesale, label: t.itemWholesale)),
-            ]),
+            MoneyField(controller: _retail, label: t.itemRetail(unitWord(context, _unit))),
+            const SizedBox(height: 14),
+            MoneyField(controller: _wholesale, label: t.itemWholesale(unitWord(context, _unit))),
           ],
           if (_kind == ProductKind.made) ...[
             SectionHeader(t.itemRecipe),
@@ -190,8 +185,8 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(children: [
-                  Expanded(flex: 3, child: Text(r.material.name, style: const TextStyle(fontSize: 17))),
-                  Expanded(flex: 2, child: QtyField(controller: r.qty, label: t.quantity, unit: r.material.unit)),
+                  Expanded(flex: 3, child: Text(r.material.name, style: const TextStyle(fontSize: 15))),
+                  Expanded(flex: 2, child: QtyField(controller: r.qty, label: t.recipePerPiece, unit: r.material.unit)),
                   IconButton(
                       icon: const Icon(Icons.delete_outline), onPressed: () => setState(() => _recipe.removeAt(i))),
                 ]),
@@ -209,12 +204,9 @@ class _ItemFormScreenState extends ConsumerState<ItemFormScreen> {
             ),
           ],
           const SizedBox(height: 20),
-          Row(children: [
-            Expanded(child: QtyField(controller: _minStock, label: t.itemMinStock, unit: _unit)),
-            const SizedBox(width: 12),
-            Expanded(
-                child: TextFormField(controller: _category, decoration: InputDecoration(labelText: t.itemCategory))),
-          ]),
+          QtyField(controller: _minStock, label: t.itemMinStock, unit: _unit),
+          const SizedBox(height: 14),
+          TextFormField(controller: _category, decoration: InputDecoration(labelText: t.itemCategory)),
           const SizedBox(height: 28),
           FilledButton(onPressed: _saving ? null : _save, child: Text(t.save)),
         ]),

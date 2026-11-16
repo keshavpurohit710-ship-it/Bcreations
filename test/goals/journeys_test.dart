@@ -8,7 +8,9 @@ import 'package:bcreations/app/app.dart';
 import 'package:bcreations/app/providers.dart';
 import 'package:bcreations/data/database.dart';
 import 'package:bcreations/features/customers/customer_detail_screen.dart';
+import 'package:bcreations/features/orders/order_detail_screen.dart';
 import 'package:bcreations/features/orders/order_form_screen.dart';
+import 'package:bcreations/domain/stock_service.dart';
 import 'package:bcreations/features/settings/settings_screen.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
@@ -99,7 +101,7 @@ void main() {
 
       await _tap(tester, find.text('Add what you have in stock'));
       await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Silk potli');
-      await tester.enterText(find.widgetWithText(TextFormField, 'How many do you have now?'), '12');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Stock you have now'), '12');
       await _tap(tester, find.widgetWithText(FilledButton, 'Save'));
 
       final items = await _q(tester, () => db.select(db.products).get());
@@ -178,6 +180,58 @@ void main() {
       await _settle(tester);
       expect(find.text('Asha Mehta'), findsOneWidget);
       expect(find.text('Kala Gift Shop'), findsNothing);
+      await _end(tester);
+    });
+  });
+
+  group('Home cards open exactly what needs attention', () {
+    testWidgets('"Collect from N customers" shows only people who owe', timeout: _timeout, (tester) async {
+      final db = await _db(tester, demo: true);
+      await _start(tester, db);
+      await _tap(tester, find.textContaining('Collect'));
+      expect(find.text('Kala Gift Shop'), findsOneWidget);
+      expect(find.text('Rang Boutique'), findsOneWidget);
+      expect(find.text('Asha Mehta'), findsNothing, reason: 'Asha has paid everything');
+      await _end(tester);
+    });
+
+    testWidgets('"1 quote waiting" shows just the quote', timeout: _timeout, (tester) async {
+      final db = await _db(tester, demo: true);
+      await _start(tester, db);
+      await _tap(tester, find.text('1 quote waiting'));
+      expect(find.text('Asha Mehta'), findsOneWidget);
+      expect(find.text('Priya (Instagram)'), findsNothing, reason: 'that one is an order to deliver');
+      await _end(tester);
+    });
+
+    testWidgets('delivering more than in stock asks what happened, then shows "Stock to check"',
+        timeout: _timeout, (tester) async {
+      final db = await _db(tester, demo: true);
+      await _start(tester, db);
+      final asha =
+          await _q(tester, () => (db.select(db.parties)..where((p) => p.name.equals('Asha Mehta'))).getSingle());
+      final quote = await _q(tester, () => (db.select(db.orders)
+            ..where((o) => o.partyId.equals(asha.id) & o.status.equalsValue(OrderStatus.quote)))
+          .getSingle());
+      // Only 1 hamper left on the app; the order needs 3
+      await _q(tester, () async {
+        final hamper = await (db.select(db.products)..where((p) => p.name.equals('Festive hamper'))).getSingle();
+        final stock = StockService(db);
+        await stock.adjust(
+            productId: hamper.id,
+            deltaMilli: 1000 - await stock.onHandMilli(hamper.id),
+            reason: 'test',
+            date: DateTime.now());
+      });
+      await _push(tester, OrderDetailScreen(orderId: quote.id));
+      await _tap(tester, find.text('Confirm order'));
+      await _tap(tester, find.text('Mark delivered'));
+      expect(find.text('Not enough on the app'), findsOneWidget);
+      await _tap(tester, find.text('Continue — remind me to check'));
+      tester.state<NavigatorState>(find.byType(Navigator).first).popUntil((r) => r.isFirst);
+      await _settle(tester);
+      expect(find.text('Stock to check'), findsOneWidget);
+      expect(find.textContaining('2 pcs more Festive hamper than the app showed'), findsOneWidget);
       await _end(tester);
     });
   });

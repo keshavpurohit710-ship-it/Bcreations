@@ -576,31 +576,41 @@ class SHi extends S {
   String get kindBought => 'खरीदकर बेचती हूँ';
 
   @override
-  String get itemUnit => 'इकाई';
+  String get itemUnit => 'इकाई (कैसे गिनती है)';
 
   @override
   String get itemCategory => 'श्रेणी';
 
   @override
-  String get itemRetail => 'खुदरा दाम (₹)';
+  String itemRetail(String unit) {
+    return 'खुदरा दाम, प्रति $unit (₹)';
+  }
 
   @override
-  String get itemWholesale => 'थोक दाम (₹)';
+  String itemWholesale(String unit) {
+    return 'थोक दाम, प्रति $unit (₹)';
+  }
 
   @override
-  String get retailLabel => 'खुदरा';
+  String retailLabel(String unit) {
+    return 'खुदरा, प्रति $unit';
+  }
 
   @override
-  String get wholesaleLabel => 'थोक';
+  String wholesaleLabel(String unit) {
+    return 'थोक, प्रति $unit';
+  }
 
   @override
-  String get itemMinStock => 'इससे कम हो तो बताएँ';
+  String get itemMinStock => 'स्टॉक इससे कम हो तो बताएँ';
 
   @override
-  String get itemOpeningQty => 'अभी कितना है?';
+  String get itemOpeningQty => 'अभी स्टॉक में कितना है';
 
   @override
-  String get itemOpeningCost => 'एक का दाम (₹)';
+  String itemOpeningCost(String unit) {
+    return 'प्रति $unit लागत (₹)';
+  }
 
   @override
   String get itemRecipe => 'एक पीस में क्या लगता है?';
@@ -615,14 +625,16 @@ class SHi extends S {
   String get onHand => 'स्टॉक में';
 
   @override
-  String get stockValue => 'स्टॉक की कीमत';
+  String get stockValue => 'इस सारे स्टॉक की कीमत';
 
   @override
-  String get costPerPiece => 'एक की लागत';
+  String costPerPiece(String unit) {
+    return 'प्रति $unit लागत';
+  }
 
   @override
-  String suggestedPrices(String retail, String wholesale) {
-    return 'सुझाव: खुदरा $retail · थोक $wholesale';
+  String suggestedPrices(String unit, String retail, String wholesale) {
+    return 'सुझाव प्रति $unit: खुदरा $retail · थोक $wholesale';
   }
 
   @override
@@ -650,7 +662,7 @@ class SHi extends S {
   String get buyItem => 'क्या खरीदा?';
 
   @override
-  String get buyTotalCost => 'कुल दिए (₹)';
+  String get buyTotalCost => 'सब का कुल दाम (₹)';
 
   @override
   String get buySupplier => 'सप्लायर';
@@ -662,7 +674,7 @@ class SHi extends S {
   String get makeItem => 'क्या बनाया?';
 
   @override
-  String get makeHowMany => 'कितने बनाए?';
+  String get makeHowMany => 'कितने पीस बनाए?';
 
   @override
   String get makeHours => 'इस बैच में लगभग कितने घंटे लगे?';
@@ -946,4 +958,96 @@ class SHi extends S {
   @override
   String get welcomeFreshHint =>
       'आज की जानकारी ही काफ़ी है: शेल्फ़ पर स्टॉक, किस पर बकाया है, और चल रहे ऑर्डर। पुराना हिसाब ज़रूरी नहीं।';
+
+  @override
+  String linePrice(String unit) {
+    return 'दाम प्रति $unit (₹)';
+  }
+
+  @override
+  String lineTotal(String amount) {
+    return 'इस सामान का कुल: $amount';
+  }
+
+  @override
+  String buyPerUnit(String price, String unit) {
+    return 'यानी $price प्रति $unit';
+  }
+
+  @override
+  String get recipePerPiece => 'एक पीस के लिए';
+
+  @override
+  String get itemsReview => 'दाम देखें';
+
+  @override
+  String get reviewPrice => 'दाम दोबारा देखें';
+
+  @override
+  String get ordersToDeliver => 'देने हैं';
+
+  @override
+  String get ordersQuotes => 'कोटेशन';
+
+  @override
+  String get ordersWithAdvance => 'एडवांस लिया';
+
+  @override
+  String get stockCheckTitle => 'स्टॉक जाँचें';
+
+  @override
+  String stockCheckMade(String qty, String name) {
+    return 'ऐप में $qty $name कम होते हुए भी बनाया';
+  }
+
+  @override
+  String stockCheckDelivered(String qty, String name) {
+    return 'ऐप से $qty ज़्यादा $name दिया';
+  }
+
+  @override
+  String get stockCheckHint => 'शेल्फ़ गिनें, या देखें कोई खरीद या बनाया माल दर्ज होना रह गया हो।';
+
+  @override
+  String get checkCountNow => 'अभी गिनें';
+
+  @override
+  String get checkFine => 'ठीक है';
+
+  @override
+  String get shortageTitle => 'ऐप में स्टॉक कम है';
+
+  @override
+  String shortageLine(String name, String need, String have) {
+    return '$name: चाहिए $need, ऐप में $have';
+  }
+
+  @override
+  String get shortageQuestion => 'क्या हुआ?';
+
+  @override
+  String get shortageCount => 'शेल्फ़ गिनें — शायद ऐप गलत है';
+
+  @override
+  String get shortageBuy => 'खरीदा था पर दर्ज नहीं किया';
+
+  @override
+  String get shortageMade => 'बनाया था पर दर्ज नहीं किया';
+
+  @override
+  String get shortageProceed => 'आगे बढ़ें — बाद में जाँचने को याद दिलाएँ';
+
+  @override
+  String overpayBody(String extra, String name) {
+    return '$name के बकाये से $extra ज़्यादा। यह उनके अगले ऑर्डर के लिए जमा रहेगा।';
+  }
+
+  @override
+  String get overpayKeep => 'जमा रखें';
+
+  @override
+  String get giveBack => 'पैसे लौटाएँ';
+
+  @override
+  String get giveBackTitle => 'लौटाए पैसे';
 }

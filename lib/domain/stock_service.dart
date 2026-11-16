@@ -168,6 +168,8 @@ class StockService {
   }) async {
     final expected = await onHandMilli(productId);
     final delta = countedMilli - expected;
+    // A shelf count answers any open "stock to check" for this item.
+    await _resolveChecksFor(productId, 'counted');
     if (delta == 0) return 0;
     final avg = await averageCostPaise(productId);
     await db.into(db.stockMoves).insert(StockMovesCompanion.insert(
@@ -252,6 +254,16 @@ class StockService {
             movedAt: date,
             productionRunId: Value(run.id),
           ));
+      // She chose to go ahead without enough material on the app: ask her to check later.
+      for (final n in short) {
+        await raiseCheck(
+          productId: n.material.id,
+          kind: StockCheckKind.madeShort,
+          shortMilli: n.shortMilli,
+          date: date,
+          productionRunId: run.id,
+        );
+      }
       return run;
     });
   }
@@ -283,4 +295,42 @@ class StockService {
     if (avg <= 0) return null;
     return avg + applyBp(avg, settings.overheadBp);
   }
+
+  // ------------------------------------------------------------ stock checks
+
+  Future<void> raiseCheck({
+    required String productId,
+    required StockCheckKind kind,
+    required int shortMilli,
+    required DateTime date,
+    String? orderId,
+    String? productionRunId,
+  }) =>
+      db.into(db.stockChecks).insert(StockChecksCompanion.insert(
+            productId: productId,
+            kind: kind,
+            shortMilli: shortMilli,
+            raisedOn: date,
+            orderId: Value(orderId),
+            productionRunId: Value(productionRunId),
+          ));
+
+  /// Open checks with their product, newest first.
+  Future<List<(StockCheck, Product)>> openChecks() async {
+    final q =
+        db.select(db.stockChecks).join([innerJoin(db.products, db.products.id.equalsExp(db.stockChecks.productId))])
+          ..where(db.stockChecks.resolvedAt.isNull() & db.stockChecks.deletedAt.isNull())
+          ..orderBy([OrderingTerm.desc(db.stockChecks.raisedOn)]);
+    return [for (final r in await q.get()) (r.readTable(db.stockChecks), r.readTable(db.products))];
+  }
+
+  /// "It's fine": she looked and nothing needs changing.
+  Future<void> resolveCheck(String checkId, String resolution) =>
+      (db.update(db.stockChecks)..where((c) => c.id.equals(checkId))).write(StockChecksCompanion(
+          resolvedAt: Value(DateTime.now()), resolution: Value(resolution), updatedAt: Value(DateTime.now())));
+
+  Future<void> _resolveChecksFor(String productId, String resolution) =>
+      (db.update(db.stockChecks)..where((c) => c.productId.equals(productId) & c.resolvedAt.isNull())).write(
+          StockChecksCompanion(
+              resolvedAt: Value(DateTime.now()), resolution: Value(resolution), updatedAt: Value(DateTime.now())));
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/format.dart';
+import '../../app/nav.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
@@ -19,24 +20,27 @@ class MoneyScreen extends ConsumerStatefulWidget {
 }
 
 class _MoneyScreenState extends ConsumerState<MoneyScreen> {
-  DateTime _month = monthKey(DateTime.now());
   bool _byProfit = false;
 
-  void _shift(int months) => setState(() => _month = DateTime(_month.year, _month.month + months));
+  void _shift(int months) {
+    final m = ref.read(moneyMonthProvider);
+    ref.read(moneyMonthProvider.notifier).state = DateTime(m.year, m.month + months);
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final isCurrent = _month == monthKey(DateTime.now());
+    final month = ref.watch(moneyMonthProvider);
+    final isCurrent = month == monthKey(DateTime.now());
     return Scaffold(
       appBar: AppBar(title: Text(t.navMoney)),
-      body: AsyncBody(ref.watch(moneyProvider(_month)), builder: (m) {
+      body: AsyncBody(ref.watch(moneyProvider(month)), builder: (m) {
         final s = m.summary;
         final best = _byProfit ? m.bestByProfit : m.bestByQty;
         return ListView(padding: const EdgeInsets.only(bottom: 120), children: [
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => _shift(-1)),
-            Text(monthLabel(context, _month), style: Theme.of(context).textTheme.titleMedium),
+            Text(monthLabel(context, month), style: Theme.of(context).textTheme.titleMedium),
             IconButton(icon: const Icon(Icons.chevron_right), onPressed: isCurrent ? null : () => _shift(1)),
           ]),
           if (isCurrent)
@@ -100,7 +104,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
             for (final (i, item) in best.take(5).indexed)
               ListTile(
                 leading: CircleAvatar(child: Text('${i + 1}')),
-                title: Text(item.product.name, style: const TextStyle(fontSize: 17)),
+                title: Text(item.product.name, style: const TextStyle(fontSize: 15)),
                 subtitle: Text(
                     '${qtyLabel(item.qtyMilli, item.product.unit)} · ${t.moneySales}: ${formatPaise(item.revenuePaise)}'),
                 trailing: Text(formatPaise(item.profitPaise),
@@ -129,7 +133,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
               ListTile(
                 leading: Icon(e.isWithdrawal ? Icons.home_outlined : Icons.shopping_bag_outlined),
                 title: Text(e.isWithdrawal ? t.withdrawalTitle : t.categoryName(e.label),
-                    style: const TextStyle(fontSize: 17)),
+                    style: const TextStyle(fontSize: 15)),
                 subtitle: Text([shortDate(context, e.date), if (e.note != null) e.note!].join(' · ')),
                 trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                   Text('− ${formatPaise(e.amountPaise)}',

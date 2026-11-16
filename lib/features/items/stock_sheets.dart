@@ -8,9 +8,11 @@ import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../app/widgets.dart';
 import '../../data/database.dart';
+import '../../domain/money.dart';
 import '../../domain/stock_service.dart';
 import '../orders/party_picker.dart';
 import 'product_picker.dart';
+import 'shortage_dialog.dart';
 
 Future<void> showBuySheet(BuildContext context, {Product? product}) => showFormSheet(context, _BuyForm(product));
 Future<void> showMakeSheet(BuildContext context, {Product? product}) => showFormSheet(context, _MakeForm(product));
@@ -32,7 +34,7 @@ class _ProductField extends StatelessWidget {
         },
         child: InputDecorator(
           decoration: InputDecoration(labelText: label, suffixIcon: const Icon(Icons.arrow_drop_down)),
-          child: Text(product?.name ?? context.t.pickProduct, style: const TextStyle(fontSize: 18)),
+          child: Text(product?.name ?? context.t.pickProduct, style: const TextStyle(fontSize: 16)),
         ),
       );
 }
@@ -72,18 +74,29 @@ class _BuyFormState extends ConsumerState<_BuyForm> {
           onPicked: (p) => setState(() => _product = p),
         ),
         const SizedBox(height: 16),
-        Row(children: [
-          Expanded(
-              child: QtyField(
-                  controller: _qty,
-                  label: t.quantity,
-                  unit: _product?.unit,
-                  validator: (v) => requiredQty(context, v))),
-          const SizedBox(width: 12),
-          Expanded(
-              child:
-                  MoneyField(controller: _cost, label: t.buyTotalCost, validator: (v) => requiredAmount(context, v))),
-        ]),
+        QtyField(
+            controller: _qty,
+            label: t.quantity,
+            unit: _product?.unit,
+            onChanged: (_) => setState(() {}),
+            validator: (v) => requiredQty(context, v)),
+        const SizedBox(height: 14),
+        MoneyField(
+            controller: _cost,
+            label: t.buyTotalCost,
+            onChanged: (_) => setState(() {}),
+            validator: (v) => requiredAmount(context, v)),
+        // Make it obvious the amount is for everything bought, by showing the per-unit price.
+        Builder(builder: (context) {
+          final qty = parseQty(_qty.text) ?? 0;
+          final total = parseRupees(_cost.text) ?? 0;
+          if (qty <= 0 || total <= 0 || _product == null) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(t.buyPerUnit(formatPaise(divRound(total * 1000, qty)), unitWord(context, _product!.unit)),
+                style: Theme.of(context).textTheme.bodySmall),
+          );
+        }),
         const SizedBox(height: 16),
         MethodChips(value: _method, onChanged: (m) => setState(() => _method = m)),
         const SizedBox(height: 16),
@@ -171,11 +184,16 @@ class _MakeFormState extends ConsumerState<_MakeForm> {
             allowShortage: allowShortage,
           );
       if (mounted) Navigator.pop(context);
-    } on ShortageException {
+    } on ShortageException catch (e) {
       setState(() => _saving = false);
       if (!mounted) return;
-      if (await confirmDialog(context, context.t.makeShortConfirm, ok: context.t.makeAnyway)) {
+      final goAhead = await handleShortage(context, [
+        for (final n in e.shortages) ShortItem(n.material, haveMilli: n.haveMilli, needMilli: n.needMilli),
+      ]);
+      if (goAhead) {
         await _save(allowShortage: true);
+      } else {
+        await _refresh(); // she may have counted or entered a purchase
       }
     }
   }
@@ -183,7 +201,6 @@ class _MakeFormState extends ConsumerState<_MakeForm> {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final short = _needs.any((n) => n.shortMilli > 0);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(t.makeTitle, style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 16),
@@ -223,10 +240,7 @@ class _MakeFormState extends ConsumerState<_MakeForm> {
           ),
       ],
       const SizedBox(height: 20),
-      if (short)
-        OutlinedButton(onPressed: _saving ? null : () => _save(allowShortage: true), child: Text(t.makeAnyway))
-      else
-        FilledButton(onPressed: _saving || _product == null ? null : _save, child: Text(t.save)),
+      FilledButton(onPressed: _saving || _product == null ? null : _save, child: Text(t.save)),
     ]);
   }
 }

@@ -168,6 +168,23 @@ class OrderService {
         if (o.status == OrderStatus.delivered) throw StateError('Already delivered');
         if (o.status == OrderStatus.cancelled) throw StateError('This order was cancelled');
 
+        // Delivering more than the app shows in stock: deliver, but ask her to check the shelf later.
+        final needByProduct = <String, int>{};
+        for (final l in await ledger.linesOf(orderId)) {
+          if (l.productId != null) needByProduct[l.productId!] = (needByProduct[l.productId!] ?? 0) + l.qtyMilli;
+        }
+        for (final MapEntry(key: productId, value: need) in needByProduct.entries) {
+          final have = await stock.onHandMilli(productId);
+          if (have < need) {
+            await stock.raiseCheck(
+              productId: productId,
+              kind: StockCheckKind.deliveredShort,
+              shortMilli: need - (have > 0 ? have : 0),
+              date: date,
+              orderId: orderId,
+            );
+          }
+        }
         for (final l in await ledger.linesOf(orderId)) {
           if (l.productId == null) continue; // custom item: no catalogue stock
           final avg = await stock.averageCostPaise(l.productId!);

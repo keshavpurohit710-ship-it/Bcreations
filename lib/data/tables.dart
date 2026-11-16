@@ -272,3 +272,25 @@ class OwnerWithdrawals extends Table with SyncColumns {
   DateTimeColumn get takenOn => dateTime()();
   TextColumn get note => text().nullable()();
 }
+
+// ---------------------------------------------------------------------------
+// Stock to check (schema v2)
+// ---------------------------------------------------------------------------
+
+enum StockCheckKind {
+  madeShort, // made pieces using more material than the app showed on the shelf
+  deliveredShort, // delivered more than the app showed in stock
+}
+
+/// Raised when she chose to continue although the app's stock was too low.
+/// Shown on Home until she counts the shelf (resolves automatically) or says it's fine.
+class StockChecks extends Table with SyncColumns {
+  TextColumn get productId => text().references(Products, #id)();
+  TextColumn get kind => textEnum<StockCheckKind>()();
+  IntColumn get shortMilli => integer()();
+  TextColumn get orderId => text().nullable().references(Orders, #id)();
+  TextColumn get productionRunId => text().nullable().references(ProductionRuns, #id)();
+  DateTimeColumn get raisedOn => dateTime()();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+  TextColumn get resolution => text().nullable()(); // 'counted' | 'fine'
+}

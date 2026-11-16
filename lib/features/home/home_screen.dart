@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/format.dart';
+import '../../app/nav.dart';
 import '../../app/providers.dart';
 import '../../app/shell.dart';
 import '../../app/theme.dart';
@@ -13,7 +14,9 @@ import '../../data/database.dart';
 import '../customers/customer_detail_screen.dart';
 import '../customers/customer_form_screen.dart';
 import '../customers/reminder.dart';
+import '../items/item_detail_screen.dart';
 import '../items/item_form_screen.dart';
+import '../items/stock_sheets.dart';
 import '../orders/order_detail_screen.dart';
 import '../orders/order_form_screen.dart';
 import '../settings/settings_screen.dart';
@@ -60,6 +63,8 @@ class HomeScreen extends ConsumerWidget {
     final t = context.t;
     final cards = <Widget>[];
 
+    if (h.stockChecks.isNotEmpty) cards.add(_StockChecksCard(h.stockChecks));
+
     if (h.dues.isNotEmpty) {
       cards.add(Card(
         child: Column(children: [
@@ -70,7 +75,7 @@ class HomeScreen extends ConsumerWidget {
             subtitle:
                 h.lateCount > 0 ? Text(t.homeOverdue(h.lateCount), style: const TextStyle(color: badColor)) : null,
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Shell.goTo(context, 2),
+            onTap: () => _openCustomers(context, ref, CustomerFilter.owe),
           ),
           for (final d in h.dues.take(3))
             ListTile(
@@ -101,7 +106,7 @@ class HomeScreen extends ConsumerWidget {
                 const CircleAvatar(backgroundColor: warnColor, child: Icon(Icons.local_shipping, color: Colors.white)),
             title: Text(t.homeToDeliver(h.toDeliver.length)),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Shell.goTo(context, 1),
+            onTap: () => _openOrders(context, ref, OpenOrderFilter.toDeliver),
           ),
           for (final o in h.toDeliver.take(3))
             ListTile(
@@ -130,10 +135,12 @@ class HomeScreen extends ConsumerWidget {
         ));
 
     if (h.quotes > 0) {
-      simple(Icons.request_quote, Colors.blueGrey, t.homeQuotes(h.quotes), () => Shell.goTo(context, 1));
+      simple(Icons.request_quote, Colors.blueGrey, t.homeQuotes(h.quotes),
+          () => _openOrders(context, ref, OpenOrderFilter.quotes));
     }
     if (h.advancesPaise > 0) {
-      simple(Icons.savings, goodColor, t.homeAdvances(formatPaise(h.advancesPaise)), () => Shell.goTo(context, 1));
+      simple(Icons.savings, goodColor, t.homeAdvances(formatPaise(h.advancesPaise)),
+          () => _openOrders(context, ref, OpenOrderFilter.withAdvance));
     }
     if (h.lowStock.isNotEmpty) {
       cards.add(Card(
@@ -142,12 +149,20 @@ class HomeScreen extends ConsumerWidget {
           title: Text(t.homeLowStock(h.lowStock.length)),
           subtitle: Text(h.lowStock.take(4).map((p) => p.product.name).join(', ')),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => Shell.goTo(context, 3),
+          onTap: () => _openItems(context, ref, ItemFilter.low),
         ),
       ));
     }
     if (h.priceReviewCount > 0) {
-      simple(Icons.trending_up, warnColor, t.homePriceReview(h.priceReviewCount), () => Shell.goTo(context, 3));
+      simple(Icons.trending_up, warnColor, t.homePriceReview(h.priceReviewCount), () {
+        // One item: go straight to it. Several: show just those.
+        if (h.priceReview.length == 1) {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => ItemDetailScreen(productId: h.priceReview.single.product.id)));
+        } else {
+          _openItems(context, ref, ItemFilter.review);
+        }
+      });
     }
     if (cards.isEmpty) {
       cards.add(
@@ -155,6 +170,29 @@ class HomeScreen extends ConsumerWidget {
     }
     return cards;
   }
+}
+
+// Home cards open the exact list they talk about.
+void _openCustomers(BuildContext context, WidgetRef ref, CustomerFilter f) {
+  ref.read(customerFilterProvider.notifier).state = f;
+  Shell.goTo(context, 2);
+}
+
+void _openOrders(BuildContext context, WidgetRef ref, OpenOrderFilter f) {
+  ref.read(ordersTabProvider.notifier).state = 0;
+  ref.read(openOrderFilterProvider.notifier).state = f;
+  Shell.goTo(context, 1);
+}
+
+void _openItems(BuildContext context, WidgetRef ref, ItemFilter f) {
+  ref.read(itemFilterProvider.notifier).state = f;
+  Shell.goTo(context, 3);
+}
+
+void _openMoney(BuildContext context, WidgetRef ref) {
+  final now = DateTime.now();
+  ref.read(moneyMonthProvider.notifier).state = DateTime(now.year, now.month);
+  Shell.goTo(context, 4);
 }
 
 /// "Owes ₹1,200 · 13 days late" in red/amber text.
@@ -200,37 +238,80 @@ class _SetupCard extends StatelessWidget {
   }
 }
 
-class _MonthCard extends StatelessWidget {
+class _MonthCard extends ConsumerWidget {
   const _MonthCard(this.h);
   final HomeData h;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.t;
     final m = h.month;
-    Widget figure(String label, int paise, {Color? color}) => Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 4),
+    Widget row(String label, int paise, {Color? color, bool bold = false}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(children: [
+            Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
             Text(formatPaise(paise),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: color),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
+                style: (bold ? Theme.of(context).textTheme.titleMedium : Theme.of(context).textTheme.bodyLarge)
+                    ?.copyWith(color: color)),
           ]),
         );
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => Shell.goTo(context, 4),
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _openMoney(context, ref),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(children: [
-            figure(t.moneySales, m.salesPaise),
-            figure(t.moneyProfit, m.netProfitPaise, color: m.netProfitPaise >= 0 ? goodColor : badColor),
-            figure(t.moneyBridgeCash, m.cashAddedPaise),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Column(children: [
+            row(t.moneySales, m.salesPaise),
+            row(t.moneyProfit, m.netProfitPaise, color: m.netProfitPaise >= 0 ? goodColor : badColor, bold: true),
+            row(t.moneyBridgeCash, m.cashAddedPaise),
           ]),
         ),
       ),
+    );
+  }
+}
+
+/// "Stock to check": she went ahead with less stock than the app showed.
+class _StockChecksCard extends ConsumerWidget {
+  const _StockChecksCard(this.checks);
+  final List<(StockCheck, Product)> checks;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.t;
+    return Card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        ListTile(
+          leading: const CircleAvatar(backgroundColor: warnColor, child: Icon(Icons.fact_check, color: Colors.white)),
+          title: Text(t.stockCheckTitle),
+          subtitle: Text(t.stockCheckHint),
+        ),
+        for (final (check, product) in checks.take(5))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(72, 0, 12, 8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                check.kind == StockCheckKind.madeShort
+                    ? t.stockCheckMade(qtyLabel(check.shortMilli, product.unit), product.name)
+                    : t.stockCheckDelivered(qtyLabel(check.shortMilli, product.unit), product.name),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              Text(shortDate(context, check.raisedOn), style: Theme.of(context).textTheme.bodySmall),
+              Wrap(spacing: 8, children: [
+                TextButton.icon(
+                  onPressed: () => showCountSheet(context, product),
+                  icon: const Icon(Icons.fact_check_outlined, size: 18),
+                  label: Text(t.checkCountNow),
+                ),
+                TextButton(
+                  onPressed: () => ref.read(stockProvider).resolveCheck(check.id, 'fine'),
+                  child: Text(t.checkFine),
+                ),
+              ]),
+            ]),
+          ),
+      ]),
     );
   }
 }

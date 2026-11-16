@@ -35,7 +35,7 @@
   "settingsTitle": "Settings",
   "homeGreeting": "Namaste 🙏",
   "homeToDo": "Needs your attention",
-  "homeCollect": "Collect {amount} from {count} customers",
+  "homeCollect": "{count, plural, =1{Collect {amount} from 1 customer} other{Collect {amount} from {count} customers}}",
   "@homeCollect": {
     "placeholders": {
       "amount": {
@@ -55,7 +55,7 @@
       }
     }
   },
-  "homeToDeliver": "{count} orders to deliver",
+  "homeToDeliver": "{count, plural, =1{1 order to deliver} other{{count} orders to deliver}}",
   "@homeToDeliver": {
     "placeholders": {
       "count": {
@@ -63,7 +63,7 @@
       }
     }
   },
-  "homeQuotes": "{count} quotes waiting",
+  "homeQuotes": "{count, plural, =1{1 quote waiting} other{{count} quotes waiting}}",
   "@homeQuotes": {
     "placeholders": {
       "count": {
@@ -79,7 +79,7 @@
       }
     }
   },
-  "homeLowStock": "{count} items running low",
+  "homeLowStock": "{count, plural, =1{1 item running low} other{{count} items running low}}",
   "@homeLowStock": {
     "placeholders": {
       "count": {
@@ -87,7 +87,7 @@
       }
     }
   },
-  "homePriceReview": "{count} prices to review",
+  "homePriceReview": "{count, plural, =1{1 price to review} other{{count} prices to review}}",
   "@homePriceReview": {
     "placeholders": {
       "count": {
@@ -365,24 +365,69 @@
   "kindRaw": "Raw material",
   "kindMade": "I make this",
   "kindBought": "I buy & resell",
-  "itemUnit": "Unit",
+  "itemUnit": "Unit (how you count it)",
   "itemCategory": "Category",
-  "itemRetail": "Retail price (₹)",
-  "itemWholesale": "Wholesale price (₹)",
-  "retailLabel": "Retail",
-  "wholesaleLabel": "Wholesale",
-  "itemMinStock": "Warn me below",
-  "itemOpeningQty": "How many do you have now?",
-  "itemOpeningCost": "Cost of one (₹)",
+  "itemRetail": "Retail price per {unit} (₹)",
+  "@itemRetail": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "itemWholesale": "Wholesale price per {unit} (₹)",
+  "@itemWholesale": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "retailLabel": "Retail per {unit}",
+  "@retailLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "wholesaleLabel": "Wholesale per {unit}",
+  "@wholesaleLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "itemMinStock": "Warn me when stock is below",
+  "itemOpeningQty": "Stock you have now",
+  "itemOpeningCost": "Cost per {unit} (₹)",
+  "@itemOpeningCost": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "itemRecipe": "What goes into one piece?",
   "itemAddMaterial": "Add material",
   "itemPhoto": "Photo",
   "onHand": "In stock",
-  "stockValue": "Stock value",
-  "costPerPiece": "Cost of one",
-  "suggestedPrices": "Suggested: retail {retail} · wholesale {wholesale}",
+  "stockValue": "Value of all this stock",
+  "costPerPiece": "Cost per {unit}",
+  "@costPerPiece": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestedPrices": "Suggested per {unit}: retail {retail} · wholesale {wholesale}",
   "@suggestedPrices": {
     "placeholders": {
+      "unit": {
+        "type": "String"
+      },
       "retail": {
         "type": "String"
       },
@@ -399,11 +444,11 @@
   "history": "History",
   "buyTitle": "Bought materials",
   "buyItem": "What did you buy?",
-  "buyTotalCost": "Total paid (₹)",
+  "buyTotalCost": "Total paid for all (₹)",
   "buySupplier": "Supplier",
   "makeTitle": "Made items",
   "makeItem": "What did you make?",
-  "makeHowMany": "How many did you make?",
+  "makeHowMany": "How many pieces did you make?",
   "makeHours": "About how many hours did this batch take?",
   "makeNeeds": "Materials needed",
   "makeShort": "short by {qty}",
@@ -516,5 +561,98 @@
   "welcomeBusiness": "Your business name",
   "welcomeStart": "Start fresh",
   "welcomeDemo": "Try with sample data",
-  "welcomeFreshHint": "You only need what is true today: stock on the shelf, who owes you, and orders in progress. Old records are optional."
+  "welcomeFreshHint": "You only need what is true today: stock on the shelf, who owes you, and orders in progress. Old records are optional.",
+  "linePrice": "Price per {unit} (₹)",
+  "@linePrice": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "lineTotal": "Total for this item: {amount}",
+  "@lineTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buyPerUnit": "That is {price} per {unit}",
+  "@buyPerUnit": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "recipePerPiece": "For one piece",
+  "itemsReview": "Prices to review",
+  "reviewPrice": "Review price",
+  "ordersToDeliver": "To deliver",
+  "ordersQuotes": "Quotes",
+  "ordersWithAdvance": "Advance taken",
+  "stockCheckTitle": "Stock to check",
+  "stockCheckMade": "Made with {qty} {name} missing on the app",
+  "@stockCheckMade": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "stockCheckDelivered": "Delivered {qty} more {name} than the app showed",
+  "@stockCheckDelivered": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "stockCheckHint": "Count the shelf, or look for a purchase or batch that was not entered.",
+  "checkCountNow": "Count now",
+  "checkFine": "It's fine",
+  "shortageTitle": "Not enough on the app",
+  "shortageLine": "{name}: need {need}, app shows {have}",
+  "@shortageLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "need": {
+        "type": "String"
+      },
+      "have": {
+        "type": "String"
+      }
+    }
+  },
+  "shortageQuestion": "What happened?",
+  "shortageCount": "Count the shelf — the app may be wrong",
+  "shortageBuy": "I bought more but did not enter it",
+  "shortageMade": "I made more but did not enter it",
+  "shortageProceed": "Continue — remind me to check",
+  "overpayBody": "{extra} more than {name} owes. It will be kept as credit for their next order.",
+  "@overpayBody": {
+    "placeholders": {
+      "extra": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "overpayKeep": "Keep as credit",
+  "giveBack": "Give money back",
+  "giveBackTitle": "Money given back"
 }

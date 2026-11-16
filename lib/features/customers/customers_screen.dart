@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/format.dart';
+import '../../app/nav.dart';
 import '../../app/providers.dart';
 import '../../app/widgets.dart';
 import '../../data/database.dart';
 import 'customer_detail_screen.dart';
 import 'customer_form_screen.dart';
-
-enum _Filter { all, owe, suppliers }
 
 class CustomersScreen extends ConsumerStatefulWidget {
   const CustomersScreen({super.key});
@@ -18,12 +17,12 @@ class CustomersScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomersScreenState extends ConsumerState<CustomersScreen> {
-  _Filter _filter = _Filter.all;
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    final filter = ref.watch(customerFilterProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(t.navCustomers),
@@ -52,14 +51,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
                     for (final (f, label) in [
-                      (_Filter.all, t.customersAll),
-                      (_Filter.owe, t.customersOwe),
-                      (_Filter.suppliers, t.customersSuppliers),
+                      (CustomerFilter.all, t.customersAll),
+                      (CustomerFilter.owe, t.customersOwe),
+                      (CustomerFilter.suppliers, t.customersSuppliers),
                     ])
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ChoiceChip(
-                            label: Text(label), selected: _filter == f, onSelected: (_) => setState(() => _filter = f)),
+                            label: Text(label),
+                            selected: filter == f,
+                            onSelected: (_) => ref.read(customerFilterProvider.notifier).state = f),
                       ),
                   ]),
             ),
@@ -72,16 +73,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           final shown = rows.where((r) {
             final p = r.party;
             final isSupplier = p.role == PartyRole.supplier;
-            final ok = switch (_filter) {
-              _Filter.all => !isSupplier,
-              _Filter.owe => r.balancePaise > 0,
-              _Filter.suppliers => p.role != PartyRole.customer,
+            final ok = switch (filter) {
+              CustomerFilter.all => !isSupplier,
+              CustomerFilter.owe => r.balancePaise > 0,
+              CustomerFilter.suppliers => p.role != PartyRole.customer,
             };
             if (!ok) return false;
             if (_query.isEmpty) return true;
             return '${p.name} ${p.businessName ?? ''} ${p.phone ?? ''}'.toLowerCase().contains(_query);
           }).toList();
-          if (_filter == _Filter.owe) {
+          if (filter == CustomerFilter.owe) {
             shown.sort((a, b) =>
                 b.daysLate != a.daysLate ? b.daysLate.compareTo(a.daysLate) : b.balancePaise.compareTo(a.balancePaise));
           }
@@ -93,7 +94,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               final r = shown[i];
               return ListTile(
                 leading: CircleAvatar(child: Text(r.party.name.isEmpty ? '?' : r.party.name[0].toUpperCase())),
-                title: Text(r.party.name, style: const TextStyle(fontSize: 18)),
+                title: Text(r.party.name, style: const TextStyle(fontSize: 16)),
                 subtitle: _Sub(r.party.businessName ?? r.party.phone ?? t.role(r.party.role),
                     r.party.role == PartyRole.supplier ? null : BalancePill(r.balancePaise, daysLate: r.daysLate)),
                 onTap: () => Navigator.push(

@@ -305,7 +305,7 @@ abstract class S {
   /// No description provided for @homeCollect.
   ///
   /// In en, this message translates to:
-  /// **'Collect {amount} from {count} customers'**
+  /// **'{count, plural, =1{Collect {amount} from 1 customer} other{Collect {amount} from {count} customers}}'**
   String homeCollect(String amount, int count);
 
   /// No description provided for @homeCollectNone.
@@ -323,13 +323,13 @@ abstract class S {
   /// No description provided for @homeToDeliver.
   ///
   /// In en, this message translates to:
-  /// **'{count} orders to deliver'**
+  /// **'{count, plural, =1{1 order to deliver} other{{count} orders to deliver}}'**
   String homeToDeliver(int count);
 
   /// No description provided for @homeQuotes.
   ///
   /// In en, this message translates to:
-  /// **'{count} quotes waiting'**
+  /// **'{count, plural, =1{1 quote waiting} other{{count} quotes waiting}}'**
   String homeQuotes(int count);
 
   /// No description provided for @homeAdvances.
@@ -341,13 +341,13 @@ abstract class S {
   /// No description provided for @homeLowStock.
   ///
   /// In en, this message translates to:
-  /// **'{count} items running low'**
+  /// **'{count, plural, =1{1 item running low} other{{count} items running low}}'**
   String homeLowStock(int count);
 
   /// No description provided for @homePriceReview.
   ///
   /// In en, this message translates to:
-  /// **'{count} prices to review'**
+  /// **'{count, plural, =1{1 price to review} other{{count} prices to review}}'**
   String homePriceReview(int count);
 
   /// No description provided for @homeAllGood.
@@ -1133,7 +1133,7 @@ abstract class S {
   /// No description provided for @itemUnit.
   ///
   /// In en, this message translates to:
-  /// **'Unit'**
+  /// **'Unit (how you count it)'**
   String get itemUnit;
 
   /// No description provided for @itemCategory.
@@ -1145,44 +1145,44 @@ abstract class S {
   /// No description provided for @itemRetail.
   ///
   /// In en, this message translates to:
-  /// **'Retail price (₹)'**
-  String get itemRetail;
+  /// **'Retail price per {unit} (₹)'**
+  String itemRetail(String unit);
 
   /// No description provided for @itemWholesale.
   ///
   /// In en, this message translates to:
-  /// **'Wholesale price (₹)'**
-  String get itemWholesale;
+  /// **'Wholesale price per {unit} (₹)'**
+  String itemWholesale(String unit);
 
   /// No description provided for @retailLabel.
   ///
   /// In en, this message translates to:
-  /// **'Retail'**
-  String get retailLabel;
+  /// **'Retail per {unit}'**
+  String retailLabel(String unit);
 
   /// No description provided for @wholesaleLabel.
   ///
   /// In en, this message translates to:
-  /// **'Wholesale'**
-  String get wholesaleLabel;
+  /// **'Wholesale per {unit}'**
+  String wholesaleLabel(String unit);
 
   /// No description provided for @itemMinStock.
   ///
   /// In en, this message translates to:
-  /// **'Warn me below'**
+  /// **'Warn me when stock is below'**
   String get itemMinStock;
 
   /// No description provided for @itemOpeningQty.
   ///
   /// In en, this message translates to:
-  /// **'How many do you have now?'**
+  /// **'Stock you have now'**
   String get itemOpeningQty;
 
   /// No description provided for @itemOpeningCost.
   ///
   /// In en, this message translates to:
-  /// **'Cost of one (₹)'**
-  String get itemOpeningCost;
+  /// **'Cost per {unit} (₹)'**
+  String itemOpeningCost(String unit);
 
   /// No description provided for @itemRecipe.
   ///
@@ -1211,20 +1211,20 @@ abstract class S {
   /// No description provided for @stockValue.
   ///
   /// In en, this message translates to:
-  /// **'Stock value'**
+  /// **'Value of all this stock'**
   String get stockValue;
 
   /// No description provided for @costPerPiece.
   ///
   /// In en, this message translates to:
-  /// **'Cost of one'**
-  String get costPerPiece;
+  /// **'Cost per {unit}'**
+  String costPerPiece(String unit);
 
   /// No description provided for @suggestedPrices.
   ///
   /// In en, this message translates to:
-  /// **'Suggested: retail {retail} · wholesale {wholesale}'**
-  String suggestedPrices(String retail, String wholesale);
+  /// **'Suggested per {unit}: retail {retail} · wholesale {wholesale}'**
+  String suggestedPrices(String unit, String retail, String wholesale);
 
   /// No description provided for @priceReview.
   ///
@@ -1277,7 +1277,7 @@ abstract class S {
   /// No description provided for @buyTotalCost.
   ///
   /// In en, this message translates to:
-  /// **'Total paid (₹)'**
+  /// **'Total paid for all (₹)'**
   String get buyTotalCost;
 
   /// No description provided for @buySupplier.
@@ -1301,7 +1301,7 @@ abstract class S {
   /// No description provided for @makeHowMany.
   ///
   /// In en, this message translates to:
-  /// **'How many did you make?'**
+  /// **'How many pieces did you make?'**
   String get makeHowMany;
 
   /// No description provided for @makeHours.
@@ -1855,6 +1855,162 @@ abstract class S {
   /// In en, this message translates to:
   /// **'You only need what is true today: stock on the shelf, who owes you, and orders in progress. Old records are optional.'**
   String get welcomeFreshHint;
+
+  /// No description provided for @linePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per {unit} (₹)'**
+  String linePrice(String unit);
+
+  /// No description provided for @lineTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total for this item: {amount}'**
+  String lineTotal(String amount);
+
+  /// No description provided for @buyPerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'That is {price} per {unit}'**
+  String buyPerUnit(String price, String unit);
+
+  /// No description provided for @recipePerPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'For one piece'**
+  String get recipePerPiece;
+
+  /// No description provided for @itemsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices to review'**
+  String get itemsReview;
+
+  /// No description provided for @reviewPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Review price'**
+  String get reviewPrice;
+
+  /// No description provided for @ordersToDeliver.
+  ///
+  /// In en, this message translates to:
+  /// **'To deliver'**
+  String get ordersToDeliver;
+
+  /// No description provided for @ordersQuotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Quotes'**
+  String get ordersQuotes;
+
+  /// No description provided for @ordersWithAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance taken'**
+  String get ordersWithAdvance;
+
+  /// No description provided for @stockCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock to check'**
+  String get stockCheckTitle;
+
+  /// No description provided for @stockCheckMade.
+  ///
+  /// In en, this message translates to:
+  /// **'Made with {qty} {name} missing on the app'**
+  String stockCheckMade(String qty, String name);
+
+  /// No description provided for @stockCheckDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered {qty} more {name} than the app showed'**
+  String stockCheckDelivered(String qty, String name);
+
+  /// No description provided for @stockCheckHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Count the shelf, or look for a purchase or batch that was not entered.'**
+  String get stockCheckHint;
+
+  /// No description provided for @checkCountNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Count now'**
+  String get checkCountNow;
+
+  /// No description provided for @checkFine.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s fine'**
+  String get checkFine;
+
+  /// No description provided for @shortageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough on the app'**
+  String get shortageTitle;
+
+  /// No description provided for @shortageLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: need {need}, app shows {have}'**
+  String shortageLine(String name, String need, String have);
+
+  /// No description provided for @shortageQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get shortageQuestion;
+
+  /// No description provided for @shortageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count the shelf — the app may be wrong'**
+  String get shortageCount;
+
+  /// No description provided for @shortageBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'I bought more but did not enter it'**
+  String get shortageBuy;
+
+  /// No description provided for @shortageMade.
+  ///
+  /// In en, this message translates to:
+  /// **'I made more but did not enter it'**
+  String get shortageMade;
+
+  /// No description provided for @shortageProceed.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue — remind me to check'**
+  String get shortageProceed;
+
+  /// No description provided for @overpayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{extra} more than {name} owes. It will be kept as credit for their next order.'**
+  String overpayBody(String extra, String name);
+
+  /// No description provided for @overpayKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep as credit'**
+  String get overpayKeep;
+
+  /// No description provided for @giveBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Give money back'**
+  String get giveBack;
+
+  /// No description provided for @giveBackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Money given back'**
+  String get giveBackTitle;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
