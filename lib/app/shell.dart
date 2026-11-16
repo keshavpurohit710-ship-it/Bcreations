@@ -2,6 +2,7 @@
 // ＋ button that opens quick entries from anywhere.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/customers/customers_screen.dart';
 import '../features/home/home_screen.dart';
@@ -14,25 +15,23 @@ import '../features/orders/orders_screen.dart';
 import '../features/orders/payment_sheet.dart';
 import 'format.dart';
 
-class Shell extends StatefulWidget {
+/// Selected bottom tab: 0 Home, 1 Orders, 2 Customers, 3 Items, 4 Money.
+final shellTabProvider = StateProvider<int>((ref) => 0);
+
+class Shell extends ConsumerWidget {
   const Shell({super.key});
 
-  static void goTo(BuildContext context, int tab) => context.findAncestorStateOfType<_ShellState>()?.setTab(tab);
+  /// Switch tab from anywhere (Home cards, the tutorial guide...).
+  static void goTo(BuildContext context, int tab) =>
+      ProviderScope.containerOf(context, listen: false).read(shellTabProvider.notifier).state = tab;
 
   @override
-  State<Shell> createState() => _ShellState();
-}
-
-class _ShellState extends State<Shell> {
-  int _tab = 0;
-
-  void setTab(int i) => setState(() => _tab = i);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = context.t;
+    final tab = ref.watch(shellTabProvider);
+    void setTab(int i) => ref.read(shellTabProvider.notifier).state = i;
     return Scaffold(
-      body: IndexedStack(index: _tab, children: const [
+      body: IndexedStack(index: tab, children: const [
         HomeScreen(),
         OrdersScreen(),
         CustomersScreen(),
@@ -46,7 +45,7 @@ class _ShellState extends State<Shell> {
         label: Text(t.quickAdd, style: const TextStyle(fontSize: 15)),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
+        selectedIndex: tab,
         onDestinationSelected: setTab,
         destinations: [
           NavigationDestination(

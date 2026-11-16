@@ -86,6 +86,17 @@ class Settings extends Table with SyncColumns {
 
   /// The day she started using the app; opening balances are as of this date.
   DateTimeColumn get startDate => dateTime().nullable()();
+
+  // --- v3: learning and reminders (used in the real shop's settings row)
+  /// When she finished (or skipped) the guided tutorial. null = not yet.
+  DateTimeColumn get tutorialDoneAt => dateTime().nullable()();
+
+  /// The app is showing the practice shop instead of her real one.
+  BoolColumn get practiceActive => boolean().withDefault(const Constant(false))();
+
+  /// Daily reminder on the phone, at [notifyMinutes] after midnight (540 = 9:00).
+  BoolColumn get notifyEnabled => boolean().withDefault(const Constant(true))();
+  IntColumn get notifyMinutes => integer().withDefault(const Constant(540))();
 }
 
 /// Quantity discounts. productId == null -> applies to every product.

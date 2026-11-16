@@ -336,6 +336,15 @@ Context: you don't live with your mother; you'll send her the APK. So the app mu
 | **Remote insights for you (Firebase)** | R1, before she starts | Crashlytics (crashes arrive automatically) + a tap/screen log in Firestore (visible per session within seconds) + a full data copy uploaded daily and on "Send report". A clear consent screen on first run and an on/off switch in Settings; photos stay on the phone. Needs a Firebase project in your Google account (≈15 min of your time). Also the base for multi-device sync later. |
 | **Money dashboard** | R2 (low priority) | One overview: cash in hand vs. with customers vs. in stock, month-by-month trend of sales/profit/cash, biggest expenses, best customers. |
 
+### ✅ Tutorial and phone reminders — built (2026-11-16)
+- **First run:** choose language → *"Learn in 5 minutes with a practice shop"* (recommended) or *"Skip — start with my real data"* → "Your shop" (business name, UPI) → Home with the setup checklist.
+- **Practice shop:** a separate database file (`bcreations_practice`), so practice never mixes with her real books. An orange banner says so on every screen, with "Go to my real shop". Language and theme are shared. Settings → Learning: open practice shop, practice shop with sample data, start the tutorial again, see all features.
+- **Guided tutorial (7 steps):** add an item, a customer who owes, an order with an advance, deliver it, receive the payment, note an expense, read "Where did my profit go?". Each step shows the exact values to type and stays visible above every screen; "Show me" opens the right screen; progress is detected from what she actually entered (not by tapping Next); steps can be skipped.
+- **Feature tour:** 9 swipeable pages (Home, collecting, orders & advances, stock, making, prices, profit, family money, undo), at the end of the tutorial and from Settings.
+- **Phone reminders:** a daily summary at her chosen time (default 9:00) listing only what needs her — money to collect, orders to deliver, stock to check, low stock — and a reminder on each promised delivery day. Re-planned with fresh numbers whenever her real data changes; never for the practice shop. Permission asked once after her real shop starts; Settings → Reminders to switch off or change the time. White "B" notification icon; reminders survive a phone restart.
+- **Database v3** (tutorial / practice / reminder settings), with tested upgrades from v1 and v2.
+- Remaining for R1: Firebase insights (needs your Firebase project), automatic Drive backup, Hindi copy review with her.
+
 ### ✅ Pricing model — decided (see §5.4)
 The pricing tables and settings are built in Phase 1; the order-line pricing UX is built in Phase 2.
 

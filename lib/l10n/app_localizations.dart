@@ -62,7 +62,8 @@ import 'app_localizations_hi.dart';
 /// be consistent with the languages listed in the S.supportedLocales
 /// property.
 abstract class S {
-  S(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  S(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -82,7 +83,8 @@ abstract class S {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -90,7 +92,10 @@ abstract class S {
   ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en'), Locale('hi')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('hi')
+  ];
 
   /// No description provided for @appName.
   ///
@@ -588,7 +593,8 @@ abstract class S {
   ///
   /// In en, this message translates to:
   /// **'Namaste {name}, a gentle reminder from {business}: {amount} is pending.{upiLine} Thank you!'**
-  String reminderText(String name, String business, String amount, String upiLine);
+  String reminderText(
+      String name, String business, String amount, String upiLine);
 
   /// No description provided for @reminderUpiLine.
   ///
@@ -2011,6 +2017,366 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Money given back'**
   String get giveBackTitle;
+
+  /// No description provided for @welcomeLearn.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn in 5 minutes with a practice shop'**
+  String get welcomeLearn;
+
+  /// No description provided for @welcomeLearnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise with made-up customers and items. Nothing touches your real records.'**
+  String get welcomeLearnHint;
+
+  /// No description provided for @welcomeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip — start with my real data'**
+  String get welcomeSkip;
+
+  /// No description provided for @setupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your shop'**
+  String get setupTitle;
+
+  /// No description provided for @setupUpi.
+  ///
+  /// In en, this message translates to:
+  /// **'UPI ID (optional) — added to payment reminders'**
+  String get setupUpi;
+
+  /// No description provided for @setupStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start my real shop'**
+  String get setupStart;
+
+  /// No description provided for @setupPractiseFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise first'**
+  String get setupPractiseFirst;
+
+  /// No description provided for @practiceBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice shop — nothing here is real'**
+  String get practiceBanner;
+
+  /// No description provided for @practiceExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to my real shop'**
+  String get practiceExit;
+
+  /// No description provided for @tutorialStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} of {total}'**
+  String tutorialStepOf(int n, int total);
+
+  /// No description provided for @tutorialShowMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me'**
+  String get tutorialShowMe;
+
+  /// No description provided for @tutorialSkipStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip step'**
+  String get tutorialSkipStep;
+
+  /// No description provided for @tutorialSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'I have seen it'**
+  String get tutorialSeen;
+
+  /// No description provided for @tutorialAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Well done! You know the basics.'**
+  String get tutorialAllDone;
+
+  /// No description provided for @tutorialTour.
+  ///
+  /// In en, this message translates to:
+  /// **'See all features'**
+  String get tutorialTour;
+
+  /// No description provided for @tutorialStartReal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start my real shop'**
+  String get tutorialStartReal;
+
+  /// No description provided for @t1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an item you sell'**
+  String get t1Title;
+
+  /// No description provided for @t1Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: Rakhi · I buy & resell · Stock 20 · Cost ₹40 per piece · Retail ₹150 per piece'**
+  String get t1Prompt;
+
+  /// No description provided for @t2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a customer who already owes you'**
+  String get t2Title;
+
+  /// No description provided for @t2Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: Asha · Already owes you ₹500'**
+  String get t2Prompt;
+
+  /// No description provided for @t3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Take an order with an advance'**
+  String get t3Title;
+
+  /// No description provided for @t3Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer: Asha · Add item: 5 Rakhi · Advance received now: ₹200'**
+  String get t3Prompt;
+
+  /// No description provided for @t4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliver the order'**
+  String get t4Title;
+
+  /// No description provided for @t4Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Asha\'s order and tap \"Mark delivered\"'**
+  String get t4Prompt;
+
+  /// No description provided for @t5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Asha pays you'**
+  String get t5Title;
+
+  /// No description provided for @t5Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Asha and tap \"Receive payment\". What she owes is already filled in.'**
+  String get t5Prompt;
+
+  /// No description provided for @t6Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Note a small expense'**
+  String get t6Title;
+
+  /// No description provided for @t6Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap ＋ Add → Expense → Courier → ₹80'**
+  String get t6Prompt;
+
+  /// No description provided for @t7Title.
+  ///
+  /// In en, this message translates to:
+  /// **'See where your money went'**
+  String get t7Title;
+
+  /// No description provided for @t7Prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Money and read \"Where did my profit go?\"'**
+  String get t7Prompt;
+
+  /// No description provided for @tourNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tourNext;
+
+  /// No description provided for @tourHomeT.
+  ///
+  /// In en, this message translates to:
+  /// **'Home: what needs you today'**
+  String get tourHomeT;
+
+  /// No description provided for @tourHomeB.
+  ///
+  /// In en, this message translates to:
+  /// **'Who to collect from, orders to deliver, low stock and stock to check. Tap any card to go straight there.'**
+  String get tourHomeB;
+
+  /// No description provided for @tourCollectT.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect money on time'**
+  String get tourCollectT;
+
+  /// No description provided for @tourCollectB.
+  ///
+  /// In en, this message translates to:
+  /// **'Each customer shows how much they owe and how many days late. The green chat button sends a polite WhatsApp reminder.'**
+  String get tourCollectB;
+
+  /// No description provided for @tourOrdersT.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders and advances'**
+  String get tourOrdersT;
+
+  /// No description provided for @tourOrdersB.
+  ///
+  /// In en, this message translates to:
+  /// **'Take an order with photos and details like colour, size or a name. Record the advance; it comes off the bill when you deliver.'**
+  String get tourOrdersB;
+
+  /// No description provided for @tourStockT.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock that matches the shelf'**
+  String get tourStockT;
+
+  /// No description provided for @tourStockB.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock goes down when you deliver or make things. Count the shelf any time and the app fixes the difference.'**
+  String get tourStockB;
+
+  /// No description provided for @tourMakeT.
+  ///
+  /// In en, this message translates to:
+  /// **'Making items'**
+  String get tourMakeT;
+
+  /// No description provided for @tourMakeB.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell the app what goes into one piece. When you make a batch it uses the materials and shows the real cost of one piece, including your time.'**
+  String get tourMakeB;
+
+  /// No description provided for @tourPricesT.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices that make money'**
+  String get tourPricesT;
+
+  /// No description provided for @tourPricesB.
+  ///
+  /// In en, this message translates to:
+  /// **'Each order line shows green, amber or red for your margin. If materials get dearer, the app reminds you to review your price.'**
+  String get tourPricesB;
+
+  /// No description provided for @tourMoneyT.
+  ///
+  /// In en, this message translates to:
+  /// **'Where did the profit go?'**
+  String get tourMoneyT;
+
+  /// No description provided for @tourMoneyB.
+  ///
+  /// In en, this message translates to:
+  /// **'Money shows your profit and explains why cash is different: money still with customers, extra stock, and money taken for home.'**
+  String get tourMoneyB;
+
+  /// No description provided for @tourFamilyT.
+  ///
+  /// In en, this message translates to:
+  /// **'Family money, kept separate'**
+  String get tourFamilyT;
+
+  /// No description provided for @tourFamilyB.
+  ///
+  /// In en, this message translates to:
+  /// **'Use ＋ Add → \"Took money for home\" whenever you take money out. It is not a business expense, but it explains your cash.'**
+  String get tourFamilyB;
+
+  /// No description provided for @tourUndoT.
+  ///
+  /// In en, this message translates to:
+  /// **'Mistakes are easy to fix'**
+  String get tourUndoT;
+
+  /// No description provided for @tourUndoB.
+  ///
+  /// In en, this message translates to:
+  /// **'Right after saving you can tap Undo. Payments and expenses can also be deleted later.'**
+  String get tourUndoB;
+
+  /// No description provided for @notifDigestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bcreations · today'**
+  String get notifDigestTitle;
+
+  /// No description provided for @notifDeliverToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliver today: {name} · {number}'**
+  String notifDeliverToday(String name, String number);
+
+  /// No description provided for @notifChannelDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder'**
+  String get notifChannelDaily;
+
+  /// No description provided for @notifChannelDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery dates'**
+  String get notifChannelDelivery;
+
+  /// No description provided for @settingsLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get settingsLearning;
+
+  /// No description provided for @settingsPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Open practice shop'**
+  String get settingsPractice;
+
+  /// No description provided for @settingsPracticeSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice shop with sample data'**
+  String get settingsPracticeSample;
+
+  /// No description provided for @settingsRestartTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the tutorial again'**
+  String get settingsRestartTutorial;
+
+  /// No description provided for @settingsReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsReminders;
+
+  /// No description provided for @settingsRemindersOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder on the phone'**
+  String get settingsRemindersOn;
+
+  /// No description provided for @settingsReminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get settingsReminderTime;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
@@ -2022,7 +2388,8 @@ class _SDelegate extends LocalizationsDelegate<S> {
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'hi'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'hi'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_SDelegate old) => false;
@@ -2037,7 +2404,8 @@ S lookupS(Locale locale) {
       return SHi();
   }
 
-  throw FlutterError('S.delegate failed to load unsupported locale "$locale". This is likely '
+  throw FlutterError(
+      'S.delegate failed to load unsupported locale "$locale". This is likely '
       'an issue with the localizations generation tool. Please file an issue '
       'on GitHub with a reproducible sample app and the gen-l10n configuration '
       'that was used.');

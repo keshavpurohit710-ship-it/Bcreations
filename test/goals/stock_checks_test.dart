@@ -51,7 +51,6 @@ void main() {
     expect(checks.single.$1.kind, StockCheckKind.deliveredShort);
     expect(checks.single.$1.shortMilli, 1000);
     expect(checks.single.$1.orderId, o.id);
-
   });
 
   test('a shelf count clears the check; "It\'s fine" clears it too', () async {
@@ -83,7 +82,7 @@ void main() {
     expect(await s.stock.openChecks(), isEmpty);
   });
 
-  test('upgrading an installed app (database v1) keeps all data and adds stock checks', () async {
+  test('upgrading an installed app (database v1) keeps all data and adds everything since', () async {
     final dir = await Directory.systemTemp.createTemp('bc_migration');
     addTearDown(() => dir.delete(recursive: true));
     final file = File('${dir.path}/app.sqlite');
@@ -92,6 +91,7 @@ void main() {
     var db = AppDatabase(NativeDatabase(file));
     await db.into(db.parties).insert(PartiesCompanion.insert(name: 'Asha', openingBalancePaise: const Value(120000)));
     await db.customStatement('DROP TABLE stock_checks');
+    await _dropV3Columns(db);
     await db.customStatement('PRAGMA user_version = 1');
     await db.close();
 
@@ -100,7 +100,39 @@ void main() {
     final parties = await db.select(db.parties).get();
     expect(parties.single.openingBalancePaise, 120000, reason: 'existing data kept');
     expect(await db.select(db.stockChecks).get(), isEmpty, reason: 'new table created');
-    expect((await db.customSelect('PRAGMA user_version').getSingle()).data.values.first, 2);
+    expect((await db.customSelect('PRAGMA user_version').getSingle()).data.values.first, 3);
+    expect((await db.getSettings()).notifyMinutes, 540, reason: 'v3 settings columns added with defaults');
     await db.close();
   });
+
+  test('upgrading from v2 (the build installed after round 1) keeps stock checks and adds reminders', () async {
+    final dir = await Directory.systemTemp.createTemp('bc_migration_v2');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    var db = AppDatabase(NativeDatabase(file));
+    final lace = await db
+        .into(db.products)
+        .insertReturning(ProductsCompanion.insert(name: 'Lace', kind: ProductKind.rawMaterial));
+    await db.into(db.stockChecks).insert(StockChecksCompanion.insert(
+        productId: lace.id, kind: StockCheckKind.madeShort, shortMilli: 500, raisedOn: DateTime(2026, 11, 16)));
+    await _dropV3Columns(db);
+    await db.customStatement('PRAGMA user_version = 2');
+    await db.close();
+
+    db = AppDatabase(NativeDatabase(file));
+    expect((await db.select(db.stockChecks).get()).single.shortMilli, 500);
+    final settings = await db.getSettings();
+    expect(settings.notifyEnabled, isTrue);
+    expect(settings.practiceActive, isFalse);
+    expect(settings.tutorialDoneAt, isNull);
+    await db.close();
+  });
+}
+
+/// Turns a current database back into its pre-v3 shape (SQLite 3.35+ can drop columns).
+Future<void> _dropV3Columns(AppDatabase db) async {
+  for (final c in ['tutorial_done_at', 'practice_active', 'notify_enabled', 'notify_minutes']) {
+    await db.customStatement('ALTER TABLE settings DROP COLUMN $c');
+  }
 }

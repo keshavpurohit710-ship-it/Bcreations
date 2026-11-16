@@ -30,10 +30,10 @@ class AppDatabase extends _$AppDatabase {
   /// Pass an executor in tests (e.g. NativeDatabase.memory()).
   AppDatabase([QueryExecutor? executor]) : super(executor ?? driftDatabase(name: 'bcreations'));
 
-  /// v1: release-1 tables. v2: stock checks.
+  /// v1: release-1 tables. v2: stock checks. v3: tutorial, practice shop, reminders.
   /// Every change needs a step in onUpgrade so installed apps keep their data.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +43,12 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (m, from, to) async {
           if (from < 2) await m.createTable(stockChecks);
+          if (from < 3) {
+            await m.addColumn(settings, settings.tutorialDoneAt);
+            await m.addColumn(settings, settings.practiceActive);
+            await m.addColumn(settings, settings.notifyEnabled);
+            await m.addColumn(settings, settings.notifyMinutes);
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');

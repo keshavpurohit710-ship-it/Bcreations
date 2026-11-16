@@ -3,6 +3,7 @@
 // the screens that show it. Screens never do money or stock arithmetic.
 
 import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/database.dart';
@@ -13,8 +14,34 @@ import '../domain/order_service.dart';
 import '../domain/pricing.dart';
 import '../domain/report_service.dart';
 import '../domain/stock_service.dart';
+import 'practice.dart';
 
-final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('Override in main()'));
+/// Her real shop. Overridden in main() (and in tests).
+final realDatabaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('Override in main()'));
+
+/// The practice shop: a separate file, so practice never mixes with real books.
+final practiceDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase(driftDatabase(name: 'bcreations_practice'));
+  ref.onDispose(db.close);
+  return db;
+});
+
+/// Settings of the REAL shop: language, theme, tutorial and reminder choices
+/// are global, whichever shop is showing.
+final realSettingsProvider = StreamProvider<Setting>((ref) {
+  final db = ref.watch(realDatabaseProvider);
+  return (db.select(db.settings)..where((s) => s.id.equals(settingsRowId))).watchSingle();
+});
+
+final practiceActiveProvider =
+    Provider<bool>((ref) => ref.watch(realSettingsProvider).valueOrNull?.practiceActive ?? false);
+
+/// The shop currently on screen (real or practice). Every screen and service uses this.
+final databaseProvider = Provider<AppDatabase>(
+    (ref) => ref.watch(practiceActiveProvider) ? ref.watch(practiceDatabaseProvider) : ref.watch(realDatabaseProvider));
+
+final practiceProvider =
+    Provider((ref) => PracticeService(ref.watch(realDatabaseProvider), () => ref.read(practiceDatabaseProvider)));
 
 final stockProvider = Provider((ref) => StockService(ref.watch(databaseProvider)));
 final ledgerProvider = Provider((ref) => LedgerService(ref.watch(databaseProvider)));

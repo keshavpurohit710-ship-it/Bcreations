@@ -4,25 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/format.dart';
 import '../../app/providers.dart';
+import '../../app/shell.dart';
 import '../../app/widgets.dart';
 import '../../data/database.dart';
-import '../../data/demo_seed.dart';
+import '../../data/maintenance.dart';
 import '../../domain/money.dart';
+import '../tutorial/tour_screen.dart';
 
-/// Wipes every table and puts back a fresh settings row.
-Future<void> resetDatabase(AppDatabase db) => db.transaction(() async {
-      for (final table in db.allTables.toList().reversed) {
-        await db.delete(table).go();
-      }
-      await db.into(db.settings).insert(SettingsCompanion.insert(id: const Value(settingsRowId)));
-    });
-
-Future<void> loadDemo(AppDatabase db, {required String languageCode}) async {
-  await resetDatabase(db);
-  await seedDemoData(db, today: DateTime.now());
-  await (db.update(db.settings)..where((s) => s.id.equals(settingsRowId)))
-      .write(SettingsCompanion(languageCode: Value(languageCode)));
-}
+export '../../data/maintenance.dart' show loadDemo, resetDatabase;
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -57,6 +46,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _terms.text = '${s.wholesaleTermsDays}';
   }
 
+  Future<void> _writeReal(SettingsCompanion c) {
+    final db = ref.read(realDatabaseProvider);
+    return (db.update(db.settings)..where((s) => s.id.equals(settingsRowId)))
+        .write(c.copyWith(updatedAt: Value(DateTime.now())));
+  }
+
+  /// Switch to the practice shop and land on its Home.
+  Future<void> _goPractice(Future<void> Function() enter) async {
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    ProviderScope.containerOf(context, listen: false).read(shellTabProvider.notifier).state = 0;
+    await enter();
+  }
+
   Future<void> _write(SettingsCompanion c) {
     final db = ref.read(databaseProvider);
     return (db.update(db.settings)..where((s) => s.id.equals(settingsRowId)))
@@ -88,6 +90,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final t = context.t;
     final settings = ref.watch(settingsProvider).valueOrNull;
+    final real = ref.watch(realSettingsProvider).valueOrNull;
     if (settings == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     _fill(settings);
     Widget field(TextEditingController c, String label, {bool number = false}) => Padding(
@@ -109,7 +112,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ButtonSegment(value: 'en', label: Text('English'))
           ],
           selected: {settings.languageCode},
-          onSelectionChanged: (v) => _write(SettingsCompanion(languageCode: Value(v.first))),
+          onSelectionChanged: (v) => ref.read(practiceProvider).setLanguage(v.first),
         ),
         const SizedBox(height: 20),
         Text(t.settingsTheme, style: Theme.of(context).textTheme.titleSmall),
@@ -121,7 +124,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ButtonSegment(value: 'system', label: Text(t.themeSystem)),
           ],
           selected: {settings.themeMode},
-          onSelectionChanged: (v) => _write(SettingsCompanion(themeMode: Value(v.first))),
+          onSelectionChanged: (v) => ref.read(practiceProvider).setTheme(v.first),
         ),
         const SizedBox(height: 24),
         field(_name, t.settingsBusiness),
@@ -135,26 +138,73 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         field(_margin, t.settingsTargetMargin, number: true),
         field(_terms, t.settingsTerms, number: true),
         FilledButton(onPressed: _saveAll, child: Text(t.save)),
-        SectionHeader(t.settingsData),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.science_outlined),
-          label: Text(t.settingsDemo),
-          onPressed: () async {
-            if (!await confirmDialog(context, t.settingsDemoConfirm, ok: t.settingsDemo, danger: true)) return;
-            await loadDemo(ref.read(databaseProvider), languageCode: settings.languageCode);
-            if (context.mounted) {
-              Navigator.pop(context);
-              showMessage(context, t.demoLoaded);
-            }
-          },
+        SectionHeader(t.settingsReminders),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(t.settingsRemindersOn),
+          value: real?.notifyEnabled ?? true,
+          onChanged: (v) => _writeReal(SettingsCompanion(notifyEnabled: Value(v))),
         ),
-        const SizedBox(height: 12),
+        if (real?.notifyEnabled ?? true)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.schedule),
+            title: Text(t.settingsReminderTime),
+            trailing: Text(
+              TimeOfDay(hour: (real?.notifyMinutes ?? 540) ~/ 60, minute: (real?.notifyMinutes ?? 540) % 60)
+                  .format(context),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            onTap: () async {
+              final m = real?.notifyMinutes ?? 540;
+              final picked =
+                  await showTimePicker(context: context, initialTime: TimeOfDay(hour: m ~/ 60, minute: m % 60));
+              if (picked != null) {
+                await _writeReal(SettingsCompanion(notifyMinutes: Value(picked.hour * 60 + picked.minute)));
+              }
+            },
+          ),
+        SectionHeader(t.settingsLearning),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.school_outlined),
+          title: Text(t.settingsPractice),
+          onTap: () => _goPractice(() => ref.read(practiceProvider).enter()),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.science_outlined),
+          title: Text(t.settingsPracticeSample),
+          onTap: () => _goPractice(() => ref.read(practiceProvider).enter(sample: true)),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.replay),
+          title: Text(t.settingsRestartTutorial),
+          onTap: () => _goPractice(() => ref.read(practiceProvider).restartTutorial()),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.auto_stories_outlined),
+          title: Text(t.tutorialTour),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeatureTourScreen())),
+        ),
+        SectionHeader(t.settingsData),
         OutlinedButton.icon(
           icon: const Icon(Icons.delete_forever_outlined),
           label: Text(t.settingsReset),
           onPressed: () async {
             if (!await confirmDialog(context, t.settingsResetConfirm, ok: t.settingsReset, danger: true)) return;
-            await resetDatabase(ref.read(databaseProvider));
+            // Wipes the shop on screen; language, theme and reminder choices stay.
+            await resetDatabase(ref.read(databaseProvider),
+                keep: SettingsCompanion(
+                  languageCode: Value(settings.languageCode),
+                  themeMode: Value(settings.themeMode),
+                  notifyEnabled: Value(settings.notifyEnabled),
+                  notifyMinutes: Value(settings.notifyMinutes),
+                  tutorialDoneAt: Value(settings.tutorialDoneAt),
+                  practiceActive: Value(settings.practiceActive),
+                ));
             if (context.mounted) Navigator.pop(context);
           },
         ),
