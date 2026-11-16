@@ -2,7 +2,6 @@
 // tab, in English and Hindi. Catches layout overflows and crashes in screens.
 
 import 'package:bcreations/app/app.dart';
-import 'package:bcreations/app/providers.dart';
 import 'package:bcreations/data/database.dart';
 import 'package:bcreations/features/customers/customer_detail_screen.dart';
 import 'package:bcreations/features/customers/customer_form_screen.dart';
@@ -16,6 +15,8 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'app_harness.dart';
 
 const _timeout = Timeout(Duration(minutes: 2));
 
@@ -59,7 +60,7 @@ void main() {
         await loadDemo(db, languageCode: lang);
         return db;
       }))!;
-      await tester.pumpWidget(ProviderScope(overrides: [databaseProvider.overrideWithValue(db)], child: const BcApp()));
+      await tester.pumpWidget(ProviderScope(overrides: TestShops(db).overrides, child: const BcApp()));
       await _settle(tester);
       _expectNoLayoutError(tester, 'Home');
       expect(find.byType(NavigationBar), findsOneWidget);
@@ -91,11 +92,11 @@ void main() {
     final db = AppDatabase(NativeDatabase.memory());
     await tester.runAsync(() => (db.update(db.settings)..where((s) => s.id.equals(settingsRowId)))
         .write(const SettingsCompanion(languageCode: Value('en'))));
-    await tester.pumpWidget(ProviderScope(overrides: [databaseProvider.overrideWithValue(db)], child: const BcApp()));
+    await tester.pumpWidget(ProviderScope(overrides: TestShops(db).overrides, child: const BcApp()));
     await _settle(tester);
     _expectNoLayoutError(tester, 'Welcome');
-    expect(find.text('Start fresh'), findsOneWidget);
-    expect(find.text('Try with sample data'), findsOneWidget);
+    expect(find.text('Learn in 5 minutes with a practice shop'), findsOneWidget);
+    expect(find.text('Skip — start with my real data'), findsOneWidget);
     await _tearDown(tester);
   });
 
@@ -115,7 +116,7 @@ void main() {
             party: (await db.select(db.parties).get()).firstWhere((p) => p.role == PartyRole.customer).id,
             made: (await db.select(db.products).get()).firstWhere((p) => p.kind == ProductKind.made).id,
           )))!;
-      await tester.pumpWidget(ProviderScope(overrides: [databaseProvider.overrideWithValue(db)], child: const BcApp()));
+      await tester.pumpWidget(ProviderScope(overrides: TestShops(db).overrides, child: const BcApp()));
       await _settle(tester);
 
       final screens = <String, Widget>{

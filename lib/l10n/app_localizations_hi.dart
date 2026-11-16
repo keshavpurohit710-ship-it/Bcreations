@@ -275,7 +275,8 @@ class SHi extends S {
   String get sendReminder => 'याद दिलाएँ';
 
   @override
-  String reminderText(String name, String business, String amount, String upiLine) {
+  String reminderText(
+      String name, String business, String amount, String upiLine) {
     return 'नमस्ते $name, $business की ओर से याद दिलाना था: $amount बाकी हैं।$upiLine धन्यवाद!';
   }
 
@@ -478,7 +479,8 @@ class SHi extends S {
   String get actionCancelOrder => 'ऑर्डर रद्द करें';
 
   @override
-  String get confirmCancelOrder => 'यह ऑर्डर रद्द करें? दिया गया एडवांस ग्राहक के खाते में जमा रहेगा।';
+  String get confirmCancelOrder =>
+      'यह ऑर्डर रद्द करें? दिया गया एडवांस ग्राहक के खाते में जमा रहेगा।';
 
   @override
   String get actionShare => 'शेयर करें';
@@ -694,7 +696,8 @@ class SHi extends S {
   String get makeShortConfirm => 'कुछ माल कम है। फिर भी बनाएँ?';
 
   @override
-  String get makeNoRecipe => 'पहले बताएँ कि एक पीस में क्या लगता है (सामान बदलें)।';
+  String get makeNoRecipe =>
+      'पहले बताएँ कि एक पीस में क्या लगता है (सामान बदलें)।';
 
   @override
   String get adjustTitle => 'स्टॉक घटाएँ / बढ़ाएँ';
@@ -842,7 +845,8 @@ class SHi extends S {
   String get withdrawalTitle => 'घर के लिए पैसे लिए';
 
   @override
-  String get withdrawalHint => 'परिवार या अपने काम के लिए निकाले पैसे। यह बिज़नेस का खर्च नहीं है।';
+  String get withdrawalHint =>
+      'परिवार या अपने काम के लिए निकाले पैसे। यह बिज़नेस का खर्च नहीं है।';
 
   @override
   String get toCollect => 'लेने हैं';
@@ -926,13 +930,15 @@ class SHi extends S {
   String get settingsDemo => 'डेमो डेटा लोड करें';
 
   @override
-  String get settingsDemoConfirm => 'इससे ऐप का सारा डेटा हट जाएगा और नमूना डेटा आ जाएगा। आगे बढ़ें?';
+  String get settingsDemoConfirm =>
+      'इससे ऐप का सारा डेटा हट जाएगा और नमूना डेटा आ जाएगा। आगे बढ़ें?';
 
   @override
   String get settingsReset => 'सारा डेटा हटाएँ';
 
   @override
-  String get settingsResetConfirm => 'इससे ऐप का सारा डेटा हट जाएगा। यह वापस नहीं होगा। आगे बढ़ें?';
+  String get settingsResetConfirm =>
+      'इससे ऐप का सारा डेटा हट जाएगा। यह वापस नहीं होगा। आगे बढ़ें?';
 
   @override
   String get demoLoaded => 'डेमो डेटा लोड हो गया';
@@ -1006,7 +1012,8 @@ class SHi extends S {
   }
 
   @override
-  String get stockCheckHint => 'शेल्फ़ गिनें, या देखें कोई खरीद या बनाया माल दर्ज होना रह गया हो।';
+  String get stockCheckHint =>
+      'शेल्फ़ गिनें, या देखें कोई खरीद या बनाया माल दर्ज होना रह गया हो।';
 
   @override
   String get checkCountNow => 'अभी गिनें';
@@ -1050,4 +1057,200 @@ class SHi extends S {
 
   @override
   String get giveBackTitle => 'लौटाए पैसे';
+
+  @override
+  String get welcomeLearn => '5 मिनट में सीखें — अभ्यास दुकान के साथ';
+
+  @override
+  String get welcomeLearnHint =>
+      'नकली ग्राहकों और सामान से अभ्यास करें। आपका असली हिसाब नहीं बदलेगा।';
+
+  @override
+  String get welcomeSkip => 'छोड़ें — सीधे असली हिसाब शुरू करें';
+
+  @override
+  String get setupTitle => 'आपकी दुकान';
+
+  @override
+  String get setupUpi => 'UPI ID (वैकल्पिक) — भुगतान याद दिलाने में जुड़ेगा';
+
+  @override
+  String get setupStart => 'असली दुकान शुरू करें';
+
+  @override
+  String get setupPractiseFirst => 'पहले अभ्यास करें';
+
+  @override
+  String get practiceBanner => 'अभ्यास दुकान — यहाँ कुछ भी असली नहीं';
+
+  @override
+  String get practiceExit => 'असली दुकान पर जाएँ';
+
+  @override
+  String tutorialStepOf(int n, int total) {
+    return 'चरण $n / $total';
+  }
+
+  @override
+  String get tutorialShowMe => 'दिखाइए';
+
+  @override
+  String get tutorialSkipStep => 'यह चरण छोड़ें';
+
+  @override
+  String get tutorialSeen => 'देख लिया';
+
+  @override
+  String get tutorialAllDone => 'शाबाश! आपने बुनियादी काम सीख लिए।';
+
+  @override
+  String get tutorialTour => 'सारी सुविधाएँ देखें';
+
+  @override
+  String get tutorialStartReal => 'असली दुकान शुरू करें';
+
+  @override
+  String get t1Title => 'जो सामान बेचती हैं, जोड़ें';
+
+  @override
+  String get t1Prompt =>
+      'नाम: राखी · खरीदकर बेचती हूँ · स्टॉक 20 · लागत ₹40 प्रति पीस · खुदरा ₹150 प्रति पीस';
+
+  @override
+  String get t2Title => 'ऐसा ग्राहक जोड़ें जिस पर पहले से बकाया है';
+
+  @override
+  String get t2Prompt => 'नाम: आशा · पहले से बकाया ₹500';
+
+  @override
+  String get t3Title => 'एडवांस के साथ ऑर्डर लें';
+
+  @override
+  String get t3Prompt => 'ग्राहक: आशा · सामान: 5 राखी · अभी मिला एडवांस: ₹200';
+
+  @override
+  String get t4Title => 'ऑर्डर दे दीजिए';
+
+  @override
+  String get t4Prompt => 'आशा का ऑर्डर खोलें और \"दे दिया\" दबाएँ';
+
+  @override
+  String get t5Title => 'आशा ने पैसे दिए';
+
+  @override
+  String get t5Prompt =>
+      'आशा को खोलें और \"पैसे लें\" दबाएँ। बकाया रकम पहले से भरी है।';
+
+  @override
+  String get t6Title => 'छोटा खर्च लिखें';
+
+  @override
+  String get t6Prompt => '＋ जोड़ें → खर्च → कूरियर → ₹80';
+
+  @override
+  String get t7Title => 'देखें पैसा कहाँ गया';
+
+  @override
+  String get t7Prompt => '\"हिसाब\" खोलें और \"मेरा मुनाफ़ा कहाँ गया?\" पढ़ें';
+
+  @override
+  String get tourNext => 'आगे';
+
+  @override
+  String get tourHomeT => 'होम: आज के काम';
+
+  @override
+  String get tourHomeB =>
+      'किससे पैसे लेने हैं, कौन से ऑर्डर देने हैं, कौन सा सामान कम है। किसी भी कार्ड को दबाएँ, सीधे वहीं पहुँचेंगी।';
+
+  @override
+  String get tourCollectT => 'पैसे समय पर लें';
+
+  @override
+  String get tourCollectB =>
+      'हर ग्राहक का बकाया और कितने दिन देर हुई, दिखता है। हरा बटन WhatsApp पर विनम्र याद भेजता है।';
+
+  @override
+  String get tourOrdersT => 'ऑर्डर और एडवांस';
+
+  @override
+  String get tourOrdersB =>
+      'फ़ोटो और रंग, साइज़, नाम जैसी बातों के साथ ऑर्डर लें। एडवांस लिखें; डिलीवरी पर बिल से कट जाएगा।';
+
+  @override
+  String get tourStockT => 'शेल्फ़ जैसा ही स्टॉक';
+
+  @override
+  String get tourStockB =>
+      'देने या बनाने पर स्टॉक अपने आप घटता है। कभी भी शेल्फ़ गिनें, ऐप अंतर ठीक कर देगा।';
+
+  @override
+  String get tourMakeT => 'सामान बनाना';
+
+  @override
+  String get tourMakeB =>
+      'बताइए एक पीस में क्या लगता है। बैच बनाने पर ऐप माल घटाता है और आपके समय सहित एक पीस की असली लागत बताता है।';
+
+  @override
+  String get tourPricesT => 'मुनाफ़े वाले दाम';
+
+  @override
+  String get tourPricesB =>
+      'हर ऑर्डर लाइन पर हरा, पीला या लाल रंग मुनाफ़ा बताता है। माल महँगा होने पर ऐप दाम दोबारा देखने को कहता है।';
+
+  @override
+  String get tourMoneyT => 'मुनाफ़ा कहाँ गया?';
+
+  @override
+  String get tourMoneyB =>
+      '\"हिसाब\" मुनाफ़ा दिखाता है और बताता है नकद अलग क्यों है: ग्राहकों के पास बाकी, ज़्यादा माल, और घर के लिए लिए पैसे।';
+
+  @override
+  String get tourFamilyT => 'घर और दुकान का पैसा अलग';
+
+  @override
+  String get tourFamilyB =>
+      'जब भी पैसे निकालें, ＋ जोड़ें → \"घर के लिए पैसे लिए\" चुनें। यह दुकान का खर्च नहीं, पर नकद का हिसाब समझाता है।';
+
+  @override
+  String get tourUndoT => 'गलती ठीक करना आसान';
+
+  @override
+  String get tourUndoB =>
+      'सेव करते ही \"वापस लें\" दबा सकती हैं। भुगतान और खर्च बाद में भी हटा सकती हैं।';
+
+  @override
+  String get notifDigestTitle => 'Bcreations · आज';
+
+  @override
+  String notifDeliverToday(String name, String number) {
+    return 'आज देना है: $name · $number';
+  }
+
+  @override
+  String get notifChannelDaily => 'रोज़ की याद';
+
+  @override
+  String get notifChannelDelivery => 'डिलीवरी की तारीख';
+
+  @override
+  String get settingsLearning => 'सीखना';
+
+  @override
+  String get settingsPractice => 'अभ्यास दुकान खोलें';
+
+  @override
+  String get settingsPracticeSample => 'नमूना डेटा वाली अभ्यास दुकान';
+
+  @override
+  String get settingsRestartTutorial => 'ट्यूटोरियल फिर से शुरू करें';
+
+  @override
+  String get settingsReminders => 'याद दिलाना';
+
+  @override
+  String get settingsRemindersOn => 'फ़ोन पर रोज़ याद दिलाएँ';
+
+  @override
+  String get settingsReminderTime => 'याद का समय';
 }

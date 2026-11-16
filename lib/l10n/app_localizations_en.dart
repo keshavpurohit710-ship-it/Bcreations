@@ -305,7 +305,8 @@ class SEn extends S {
   String get sendReminder => 'Send reminder';
 
   @override
-  String reminderText(String name, String business, String amount, String upiLine) {
+  String reminderText(
+      String name, String business, String amount, String upiLine) {
     return 'Namaste $name, a gentle reminder from $business: $amount is pending.$upiLine Thank you!';
   }
 
@@ -508,7 +509,8 @@ class SEn extends S {
   String get actionCancelOrder => 'Cancel order';
 
   @override
-  String get confirmCancelOrder => 'Cancel this order? Any advance paid becomes credit for the customer.';
+  String get confirmCancelOrder =>
+      'Cancel this order? Any advance paid becomes credit for the customer.';
 
   @override
   String get actionShare => 'Share';
@@ -724,7 +726,8 @@ class SEn extends S {
   String get makeShortConfirm => 'Some materials are short. Make anyway?';
 
   @override
-  String get makeNoRecipe => 'First add what goes into one piece (edit the item).';
+  String get makeNoRecipe =>
+      'First add what goes into one piece (edit the item).';
 
   @override
   String get adjustTitle => 'Adjust stock';
@@ -872,7 +875,8 @@ class SEn extends S {
   String get withdrawalTitle => 'Took money for home';
 
   @override
-  String get withdrawalHint => 'Money taken out for family or personal use. It is not a business expense.';
+  String get withdrawalHint =>
+      'Money taken out for family or personal use. It is not a business expense.';
 
   @override
   String get toCollect => 'To collect';
@@ -956,13 +960,15 @@ class SEn extends S {
   String get settingsDemo => 'Load demo data';
 
   @override
-  String get settingsDemoConfirm => 'This deletes everything in the app and loads sample data. Continue?';
+  String get settingsDemoConfirm =>
+      'This deletes everything in the app and loads sample data. Continue?';
 
   @override
   String get settingsReset => 'Delete all data';
 
   @override
-  String get settingsResetConfirm => 'This deletes everything in the app. It cannot be undone. Continue?';
+  String get settingsResetConfirm =>
+      'This deletes everything in the app. It cannot be undone. Continue?';
 
   @override
   String get demoLoaded => 'Demo data loaded';
@@ -1036,7 +1042,8 @@ class SEn extends S {
   }
 
   @override
-  String get stockCheckHint => 'Count the shelf, or look for a purchase or batch that was not entered.';
+  String get stockCheckHint =>
+      'Count the shelf, or look for a purchase or batch that was not entered.';
 
   @override
   String get checkCountNow => 'Count now';
@@ -1080,4 +1087,201 @@ class SEn extends S {
 
   @override
   String get giveBackTitle => 'Money given back';
+
+  @override
+  String get welcomeLearn => 'Learn in 5 minutes with a practice shop';
+
+  @override
+  String get welcomeLearnHint =>
+      'Practise with made-up customers and items. Nothing touches your real records.';
+
+  @override
+  String get welcomeSkip => 'Skip — start with my real data';
+
+  @override
+  String get setupTitle => 'Your shop';
+
+  @override
+  String get setupUpi => 'UPI ID (optional) — added to payment reminders';
+
+  @override
+  String get setupStart => 'Start my real shop';
+
+  @override
+  String get setupPractiseFirst => 'Practise first';
+
+  @override
+  String get practiceBanner => 'Practice shop — nothing here is real';
+
+  @override
+  String get practiceExit => 'Go to my real shop';
+
+  @override
+  String tutorialStepOf(int n, int total) {
+    return 'Step $n of $total';
+  }
+
+  @override
+  String get tutorialShowMe => 'Show me';
+
+  @override
+  String get tutorialSkipStep => 'Skip step';
+
+  @override
+  String get tutorialSeen => 'I have seen it';
+
+  @override
+  String get tutorialAllDone => 'Well done! You know the basics.';
+
+  @override
+  String get tutorialTour => 'See all features';
+
+  @override
+  String get tutorialStartReal => 'Start my real shop';
+
+  @override
+  String get t1Title => 'Add an item you sell';
+
+  @override
+  String get t1Prompt =>
+      'Name: Rakhi · I buy & resell · Stock 20 · Cost ₹40 per piece · Retail ₹150 per piece';
+
+  @override
+  String get t2Title => 'Add a customer who already owes you';
+
+  @override
+  String get t2Prompt => 'Name: Asha · Already owes you ₹500';
+
+  @override
+  String get t3Title => 'Take an order with an advance';
+
+  @override
+  String get t3Prompt =>
+      'Customer: Asha · Add item: 5 Rakhi · Advance received now: ₹200';
+
+  @override
+  String get t4Title => 'Deliver the order';
+
+  @override
+  String get t4Prompt => 'Open Asha\'s order and tap \"Mark delivered\"';
+
+  @override
+  String get t5Title => 'Asha pays you';
+
+  @override
+  String get t5Prompt =>
+      'Open Asha and tap \"Receive payment\". What she owes is already filled in.';
+
+  @override
+  String get t6Title => 'Note a small expense';
+
+  @override
+  String get t6Prompt => 'Tap ＋ Add → Expense → Courier → ₹80';
+
+  @override
+  String get t7Title => 'See where your money went';
+
+  @override
+  String get t7Prompt => 'Open Money and read \"Where did my profit go?\"';
+
+  @override
+  String get tourNext => 'Next';
+
+  @override
+  String get tourHomeT => 'Home: what needs you today';
+
+  @override
+  String get tourHomeB =>
+      'Who to collect from, orders to deliver, low stock and stock to check. Tap any card to go straight there.';
+
+  @override
+  String get tourCollectT => 'Collect money on time';
+
+  @override
+  String get tourCollectB =>
+      'Each customer shows how much they owe and how many days late. The green chat button sends a polite WhatsApp reminder.';
+
+  @override
+  String get tourOrdersT => 'Orders and advances';
+
+  @override
+  String get tourOrdersB =>
+      'Take an order with photos and details like colour, size or a name. Record the advance; it comes off the bill when you deliver.';
+
+  @override
+  String get tourStockT => 'Stock that matches the shelf';
+
+  @override
+  String get tourStockB =>
+      'Stock goes down when you deliver or make things. Count the shelf any time and the app fixes the difference.';
+
+  @override
+  String get tourMakeT => 'Making items';
+
+  @override
+  String get tourMakeB =>
+      'Tell the app what goes into one piece. When you make a batch it uses the materials and shows the real cost of one piece, including your time.';
+
+  @override
+  String get tourPricesT => 'Prices that make money';
+
+  @override
+  String get tourPricesB =>
+      'Each order line shows green, amber or red for your margin. If materials get dearer, the app reminds you to review your price.';
+
+  @override
+  String get tourMoneyT => 'Where did the profit go?';
+
+  @override
+  String get tourMoneyB =>
+      'Money shows your profit and explains why cash is different: money still with customers, extra stock, and money taken for home.';
+
+  @override
+  String get tourFamilyT => 'Family money, kept separate';
+
+  @override
+  String get tourFamilyB =>
+      'Use ＋ Add → \"Took money for home\" whenever you take money out. It is not a business expense, but it explains your cash.';
+
+  @override
+  String get tourUndoT => 'Mistakes are easy to fix';
+
+  @override
+  String get tourUndoB =>
+      'Right after saving you can tap Undo. Payments and expenses can also be deleted later.';
+
+  @override
+  String get notifDigestTitle => 'Bcreations · today';
+
+  @override
+  String notifDeliverToday(String name, String number) {
+    return 'Deliver today: $name · $number';
+  }
+
+  @override
+  String get notifChannelDaily => 'Daily reminder';
+
+  @override
+  String get notifChannelDelivery => 'Delivery dates';
+
+  @override
+  String get settingsLearning => 'Learning';
+
+  @override
+  String get settingsPractice => 'Open practice shop';
+
+  @override
+  String get settingsPracticeSample => 'Practice shop with sample data';
+
+  @override
+  String get settingsRestartTutorial => 'Start the tutorial again';
+
+  @override
+  String get settingsReminders => 'Reminders';
+
+  @override
+  String get settingsRemindersOn => 'Daily reminder on the phone';
+
+  @override
+  String get settingsReminderTime => 'Reminder time';
 }

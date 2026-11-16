@@ -48,16 +48,29 @@ Install the latest build, then work through each section. Tick ✅ or note what 
 flutter install --release
 ```
 
-### B0 · Setup (P6)
+### B0 · First run, tutorial and setup (P6)
 | # | Do this | Expect | ✅ / note |
 |---|---|---|---|
-| 0.1 | Uninstall, reinstall, open | Welcome screen in Hindi, logo, "नई शुरुआत करें" and "नमूना डेटा से देखें" | |
-| 0.2 | Switch to English, type a business name, tap **Start fresh** | Home with your business name and a 3-step "Finish setting up" card | |
-| 0.3 | Tap **Add what you have in stock**: name "Silk potli", how many "12", Save | Back on Home; step 1 ticked. Took under 30 seconds | |
-| 0.4 | Tap **Add customers who owe you**: name "Test shop", already owes ₹2,000, Save | Step 2 ticked; Home shows "Collect ₹2,000 from 1 customers" | |
-| 0.5 | Tap **Add orders in progress**: pick Test shop, Custom item "Name plate", qty 1, price 500, advance 200, Save | Step 3 ticked; card disappears; "Advances held: ₹200" on Home | |
+| 0.1 | Uninstall, reinstall, open | Welcome in Hindi: language choice first, "5 मिनट में सीखें — अभ्यास दुकान के साथ", and "छोड़ें" | |
+| 0.2 | Switch to English, tap **Learn in 5 minutes with a practice shop** | Orange "Practice shop" banner; guide "Step 1 of 7 · Add an item you sell" with the values to type | |
+| 0.3 | Tap **Show me**, enter the item exactly as the guide says, Save | New item screen opened with the guide still visible; after saving the guide moves to Step 2 | |
+| 0.4 | Do steps 2–6 using **Show me** each time | Each step advances by itself once done; "Skip step" also works | |
+| 0.5 | Step 7: open Money, read "Where did my profit go?", tap **I have seen it** | "Well done!" with **See all features** and **Start my real shop** | |
+| 0.6 | **See all features** → swipe through | 9 pages; last page offers **Start my real shop** | |
+| 0.7 | **Start my real shop** → enter business name and UPI → **Start my real shop** | Real Home is empty with the 3-step "Finish setting up" card; nothing from practice appears | |
+| 0.8 | Setup card: **Add what you have in stock** (name + stock only), **Add customers who owe you** (₹2,000), **Add orders in progress** (custom item, advance ₹200) | Each step ticks; "Collect ₹2,000 from 1 customer"; "Advances held: ₹200" | |
+| 0.9 | Settings → Learning → **Open practice shop**, then the banner's **Go to my real shop** | Practice data still there; back in the real shop nothing changed | |
 
-For the rest, go to **Settings → Load demo data** (it replaces everything with two months of sample activity).
+### B0b · Phone reminders
+| # | Do this | Expect | ✅ / note |
+|---|---|---|---|
+| R.1 | After 0.7 | Android asks once to allow notifications | |
+| R.2 | Settings → Reminders → set the time 2 minutes from now; lock the phone | A "Bcreations · today" notification lists money to collect and orders to deliver (within a few minutes) | |
+| R.3 | Give an order a **Deliver by** date of tomorrow | Tomorrow at the reminder time: "Deliver today: name · BC-xxxx" | |
+| R.4 | Restart the phone | Reminders still arrive | |
+| R.5 | Switch reminders off | No more reminders | |
+
+For the rest, use **Settings → Learning → Practice shop with sample data** (two months of sample activity; your real shop is untouched).
 
 ### B1 · Late payments (P1, P9)
 | # | Do this | Expect | ✅ / note |
@@ -173,7 +186,8 @@ After automatic backup is ready, she uses the app **and** her notebook for two w
 | P3 | Profit not banked | p3_profit, money_audit | B5 | 8 |
 | P4 | Best sellers unknown | p3_profit | B5.5 | 9 |
 | P5 | Family money mixed | p3_profit | B5.3 | 7 |
-| P6 | Onboarding is a burden | journeys | B0 | (first use) |
+| P6 | Onboarding is a burden | journeys, tutorial_and_reminders | B0 | (first use) |
+| — | Learns without help; reminded without opening the app | tutorial_and_reminders | B0, B0b | whole session |
 | P7 | Advances forgotten | p1_payments | B2 | 3 |
 | P8 | Undercharging | p2_stock_and_pricing | B4 | 5 |
 | P9 | Credit piles up | p1_payments | B1.6 | — |

@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bcreations/app/app.dart';
-import 'package:bcreations/app/providers.dart';
 import 'package:bcreations/data/database.dart';
 import 'package:bcreations/features/customers/customer_detail_screen.dart';
 import 'package:bcreations/features/orders/order_detail_screen.dart';
@@ -17,6 +16,8 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../app_harness.dart';
 
 const _timeout = Timeout(Duration(minutes: 2));
 
@@ -35,7 +36,7 @@ Future<void> _start(WidgetTester tester, AppDatabase db) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 2.75;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(ProviderScope(overrides: [databaseProvider.overrideWithValue(db)], child: const BcApp()));
+  await tester.pumpWidget(ProviderScope(overrides: TestShops(db).overrides, child: const BcApp()));
   await _settle(tester);
 }
 
@@ -75,13 +76,16 @@ void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
 
   group('P6 · Getting started is quick and needs nothing from the past', () {
-    testWidgets('"Start fresh" lands on Home with a 3-step checklist', timeout: _timeout, (tester) async {
+    testWidgets('skipping the tutorial: shop name, then Home with a 3-step checklist', timeout: _timeout,
+        (tester) async {
       final db = await _db(tester);
       await _start(tester, db);
       expect(find.text('Welcome to Bcreations'), findsOneWidget);
+      await _tap(tester, find.text('Skip — start with my real data'));
 
-      await tester.enterText(find.byType(TextField), 'Bcreations Crafts');
-      await _tap(tester, find.text('Start fresh'));
+      expect(find.text('Your shop'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'Bcreations Crafts');
+      await _tap(tester, find.text('Start my real shop'));
 
       expect(find.text('Bcreations Crafts'), findsOneWidget, reason: 'her business name is on Home');
       expect(find.text('Finish setting up'), findsOneWidget);
@@ -204,15 +208,17 @@ void main() {
       await _end(tester);
     });
 
-    testWidgets('delivering more than in stock asks what happened, then shows "Stock to check"',
-        timeout: _timeout, (tester) async {
+    testWidgets('delivering more than in stock asks what happened, then shows "Stock to check"', timeout: _timeout,
+        (tester) async {
       final db = await _db(tester, demo: true);
       await _start(tester, db);
       final asha =
           await _q(tester, () => (db.select(db.parties)..where((p) => p.name.equals('Asha Mehta'))).getSingle());
-      final quote = await _q(tester, () => (db.select(db.orders)
-            ..where((o) => o.partyId.equals(asha.id) & o.status.equalsValue(OrderStatus.quote)))
-          .getSingle());
+      final quote = await _q(
+          tester,
+          () => (db.select(db.orders)
+                ..where((o) => o.partyId.equals(asha.id) & o.status.equalsValue(OrderStatus.quote)))
+              .getSingle());
       // Only 1 hamper left on the app; the order needs 3
       await _q(tester, () async {
         final hamper = await (db.select(db.products)..where((p) => p.name.equals('Festive hamper'))).getSingle();

@@ -48,7 +48,10 @@ class HomeScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Text(t.homeGreeting, style: Theme.of(context).textTheme.headlineSmall),
             ),
-            if (h.productCount == 0 || h.customerCount == 0 || h.orderCount == 0) _SetupCard(h),
+            // In the practice shop the tutorial guide does this job
+            if (!ref.watch(practiceActiveProvider) &&
+                (h.productCount == 0 || h.customerCount == 0 || h.orderCount == 0))
+              _SetupCard(h),
             SectionHeader(t.homeToDo),
             ..._todo(context, ref, h, settings),
             SectionHeader(t.homeMonth),

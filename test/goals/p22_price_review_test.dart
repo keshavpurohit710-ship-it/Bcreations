@@ -50,7 +50,10 @@ void main() {
   test('editing only the name or photo does NOT hide the warning', () async {
     await s.catalog.saveProduct(
       const ProductsCompanion(
-          name: Value('Silk potli'), kind: Value(ProductKind.made), retailPricePaise: Value(45000), photoPath: Value('/p.jpg')),
+          name: Value('Silk potli'),
+          kind: Value(ProductKind.made),
+          retailPricePaise: Value(45000),
+          photoPath: Value('/p.jpg')),
       id: potli,
       today: d(4, 4),
     );
@@ -78,7 +81,11 @@ void main() {
     final silk = products.firstWhere((p) => p.name == 'Silk cloth').id;
     final bag = products.firstWhere((p) => p.name == 'Silk potli bag').id;
     await demo.stock.recordPurchase(
-        productId: silk, qtyMilli: 10000, totalCostPaise: rs(6000), date: DateTime(2026, 11, 16), paidWith: PaymentMethod.cash);
+        productId: silk,
+        qtyMilli: 10000,
+        totalCostPaise: rs(6000),
+        date: DateTime(2026, 11, 16),
+        paidWith: PaymentMethod.cash);
     await demo.stock.produce(productId: bag, qtyMilli: 10000, date: DateTime(2026, 11, 16), batchMinutes: 240);
     final p = await (demo.db.select(demo.db.products)..where((x) => x.id.equals(bag))).getSingle();
     final cost = (await demo.stock.costPerPiecePaise(bag))!;

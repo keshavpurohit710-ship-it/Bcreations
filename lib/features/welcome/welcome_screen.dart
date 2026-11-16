@@ -1,13 +1,10 @@
-// First launch: language, business name, then start fresh or try sample data.
+// First launch: choose a language, then learn with the practice shop or skip.
 
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/format.dart';
 import '../../app/providers.dart';
-import '../../data/database.dart';
-import '../settings/settings_screen.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -17,68 +14,52 @@ class WelcomeScreen extends ConsumerStatefulWidget {
 }
 
 class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
-  final _name = TextEditingController(text: 'Bcreations');
   bool _busy = false;
 
-  Future<void> _write(SettingsCompanion c) {
-    final db = ref.read(databaseProvider);
-    return (db.update(db.settings)..where((s) => s.id.equals(settingsRowId))).write(c);
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() => _busy = true);
+    await action();
+    if (mounted) setState(() => _busy = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final lang = ref.watch(settingsProvider).valueOrNull?.languageCode ?? 'hi';
+    final lang = ref.watch(realSettingsProvider).valueOrNull?.languageCode ?? 'hi';
+    final practice = ref.read(practiceProvider);
     return Scaffold(
       body: SafeArea(
         child: ListView(padding: const EdgeInsets.all(24), children: [
-          const SizedBox(height: 24),
-          Center(child: Image.asset('assets/branding/icon_foreground.png', width: 120, height: 120)),
-          const SizedBox(height: 12),
-          Text(t.welcomeTitle, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 16),
+          Center(child: Image.asset('assets/branding/icon_foreground.png', width: 110, height: 110)),
           const SizedBox(height: 8),
+          Text(t.welcomeTitle, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 6),
           Text(t.welcomeSubtitle, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+          // Language first, before anything else
           Text(t.welcomeLanguage, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
           SegmentedButton<String>(
             segments: const [
               ButtonSegment(value: 'hi', label: Text('हिन्दी')),
-              ButtonSegment(value: 'en', label: Text('English'))
+              ButtonSegment(value: 'en', label: Text('English')),
             ],
             selected: {lang},
-            onSelectionChanged: (v) => _write(SettingsCompanion(languageCode: Value(v.first))),
+            onSelectionChanged: (v) => practice.setLanguage(v.first),
           ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _name,
-            decoration: InputDecoration(labelText: t.welcomeBusiness),
-            style: const TextStyle(fontSize: 17),
+          const SizedBox(height: 32),
+          FilledButton.icon(
+            onPressed: _busy ? null : () => _run(() => practice.enter(fresh: true)),
+            icon: const Icon(Icons.school),
+            label: Text(t.welcomeLearn),
           ),
-          const SizedBox(height: 24),
-          Text(t.welcomeFreshHint, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _busy
-                ? null
-                : () async {
-                    setState(() => _busy = true);
-                    await _write(SettingsCompanion(
-                      businessName: Value(_name.text.trim().isEmpty ? 'Bcreations' : _name.text.trim()),
-                      startDate: Value(DateTime.now()),
-                    ));
-                  },
-            child: Text(t.welcomeStart),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: _busy
-                ? null
-                : () async {
-                    setState(() => _busy = true);
-                    await loadDemo(ref.read(databaseProvider), languageCode: lang);
-                  },
-            child: Text(t.welcomeDemo),
+          const SizedBox(height: 6),
+          Text(t.welcomeLearnHint, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 20),
+          TextButton(
+            onPressed: _busy ? null : () => _run(practice.skipTutorial),
+            child: Text(t.welcomeSkip),
           ),
         ]),
       ),

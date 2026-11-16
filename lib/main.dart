@@ -8,7 +8,7 @@ import 'data/database.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(ProviderScope(
-    overrides: [databaseProvider.overrideWithValue(AppDatabase())],
+    overrides: [realDatabaseProvider.overrideWithValue(AppDatabase())],
     child: const BcApp(),
   ));
 }

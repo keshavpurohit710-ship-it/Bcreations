@@ -102,6 +102,28 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
   @override
   late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>('start_date', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _tutorialDoneAtMeta = const VerificationMeta('tutorialDoneAt');
+  @override
+  late final GeneratedColumn<DateTime> tutorialDoneAt = GeneratedColumn<DateTime>('tutorial_done_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _practiceActiveMeta = const VerificationMeta('practiceActive');
+  @override
+  late final GeneratedColumn<bool> practiceActive = GeneratedColumn<bool>('practice_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("practice_active" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _notifyEnabledMeta = const VerificationMeta('notifyEnabled');
+  @override
+  late final GeneratedColumn<bool> notifyEnabled = GeneratedColumn<bool>('notify_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("notify_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _notifyMinutesMeta = const VerificationMeta('notifyMinutes');
+  @override
+  late final GeneratedColumn<int> notifyMinutes = GeneratedColumn<int>('notify_minutes', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: false, defaultValue: const Constant(540));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -126,7 +148,11 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
         retailTermsDays,
         orderPrefix,
         nextOrderNumber,
-        startDate
+        startDate,
+        tutorialDoneAt,
+        practiceActive,
+        notifyEnabled,
+        notifyMinutes
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -219,6 +245,22 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
     if (data.containsKey('start_date')) {
       context.handle(_startDateMeta, startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
     }
+    if (data.containsKey('tutorial_done_at')) {
+      context.handle(
+          _tutorialDoneAtMeta, tutorialDoneAt.isAcceptableOrUnknown(data['tutorial_done_at']!, _tutorialDoneAtMeta));
+    }
+    if (data.containsKey('practice_active')) {
+      context.handle(
+          _practiceActiveMeta, practiceActive.isAcceptableOrUnknown(data['practice_active']!, _practiceActiveMeta));
+    }
+    if (data.containsKey('notify_enabled')) {
+      context.handle(
+          _notifyEnabledMeta, notifyEnabled.isAcceptableOrUnknown(data['notify_enabled']!, _notifyEnabledMeta));
+    }
+    if (data.containsKey('notify_minutes')) {
+      context.handle(
+          _notifyMinutesMeta, notifyMinutes.isAcceptableOrUnknown(data['notify_minutes']!, _notifyMinutesMeta));
+    }
     return context;
   }
 
@@ -258,6 +300,11 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
       nextOrderNumber:
           attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}next_order_number'])!,
       startDate: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}start_date']),
+      tutorialDoneAt:
+          attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}tutorial_done_at']),
+      practiceActive: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}practice_active'])!,
+      notifyEnabled: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}notify_enabled'])!,
+      notifyMinutes: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}notify_minutes'])!,
     );
   }
 
@@ -293,6 +340,16 @@ class Setting extends DataClass implements Insertable<Setting> {
 
   /// The day she started using the app; opening balances are as of this date.
   final DateTime? startDate;
+
+  /// When she finished (or skipped) the guided tutorial. null = not yet.
+  final DateTime? tutorialDoneAt;
+
+  /// The app is showing the practice shop instead of her real one.
+  final bool practiceActive;
+
+  /// Daily reminder on the phone, at [notifyMinutes] after midnight (540 = 9:00).
+  final bool notifyEnabled;
+  final int notifyMinutes;
   const Setting(
       {required this.id,
       required this.createdAt,
@@ -316,7 +373,11 @@ class Setting extends DataClass implements Insertable<Setting> {
       required this.retailTermsDays,
       required this.orderPrefix,
       required this.nextOrderNumber,
-      this.startDate});
+      this.startDate,
+      this.tutorialDoneAt,
+      required this.practiceActive,
+      required this.notifyEnabled,
+      required this.notifyMinutes});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -355,6 +416,12 @@ class Setting extends DataClass implements Insertable<Setting> {
     if (!nullToAbsent || startDate != null) {
       map['start_date'] = Variable<DateTime>(startDate);
     }
+    if (!nullToAbsent || tutorialDoneAt != null) {
+      map['tutorial_done_at'] = Variable<DateTime>(tutorialDoneAt);
+    }
+    map['practice_active'] = Variable<bool>(practiceActive);
+    map['notify_enabled'] = Variable<bool>(notifyEnabled);
+    map['notify_minutes'] = Variable<int>(notifyMinutes);
     return map;
   }
 
@@ -383,6 +450,10 @@ class Setting extends DataClass implements Insertable<Setting> {
       orderPrefix: Value(orderPrefix),
       nextOrderNumber: Value(nextOrderNumber),
       startDate: startDate == null && nullToAbsent ? const Value.absent() : Value(startDate),
+      tutorialDoneAt: tutorialDoneAt == null && nullToAbsent ? const Value.absent() : Value(tutorialDoneAt),
+      practiceActive: Value(practiceActive),
+      notifyEnabled: Value(notifyEnabled),
+      notifyMinutes: Value(notifyMinutes),
     );
   }
 
@@ -412,6 +483,10 @@ class Setting extends DataClass implements Insertable<Setting> {
       orderPrefix: serializer.fromJson<String>(json['orderPrefix']),
       nextOrderNumber: serializer.fromJson<int>(json['nextOrderNumber']),
       startDate: serializer.fromJson<DateTime?>(json['startDate']),
+      tutorialDoneAt: serializer.fromJson<DateTime?>(json['tutorialDoneAt']),
+      practiceActive: serializer.fromJson<bool>(json['practiceActive']),
+      notifyEnabled: serializer.fromJson<bool>(json['notifyEnabled']),
+      notifyMinutes: serializer.fromJson<int>(json['notifyMinutes']),
     );
   }
   @override
@@ -441,6 +516,10 @@ class Setting extends DataClass implements Insertable<Setting> {
       'orderPrefix': serializer.toJson<String>(orderPrefix),
       'nextOrderNumber': serializer.toJson<int>(nextOrderNumber),
       'startDate': serializer.toJson<DateTime?>(startDate),
+      'tutorialDoneAt': serializer.toJson<DateTime?>(tutorialDoneAt),
+      'practiceActive': serializer.toJson<bool>(practiceActive),
+      'notifyEnabled': serializer.toJson<bool>(notifyEnabled),
+      'notifyMinutes': serializer.toJson<int>(notifyMinutes),
     };
   }
 
@@ -467,7 +546,11 @@ class Setting extends DataClass implements Insertable<Setting> {
           int? retailTermsDays,
           String? orderPrefix,
           int? nextOrderNumber,
-          Value<DateTime?> startDate = const Value.absent()}) =>
+          Value<DateTime?> startDate = const Value.absent(),
+          Value<DateTime?> tutorialDoneAt = const Value.absent(),
+          bool? practiceActive,
+          bool? notifyEnabled,
+          int? notifyMinutes}) =>
       Setting(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -492,6 +575,10 @@ class Setting extends DataClass implements Insertable<Setting> {
         orderPrefix: orderPrefix ?? this.orderPrefix,
         nextOrderNumber: nextOrderNumber ?? this.nextOrderNumber,
         startDate: startDate.present ? startDate.value : this.startDate,
+        tutorialDoneAt: tutorialDoneAt.present ? tutorialDoneAt.value : this.tutorialDoneAt,
+        practiceActive: practiceActive ?? this.practiceActive,
+        notifyEnabled: notifyEnabled ?? this.notifyEnabled,
+        notifyMinutes: notifyMinutes ?? this.notifyMinutes,
       );
   Setting copyWithCompanion(SettingsCompanion data) {
     return Setting(
@@ -521,6 +608,10 @@ class Setting extends DataClass implements Insertable<Setting> {
       orderPrefix: data.orderPrefix.present ? data.orderPrefix.value : this.orderPrefix,
       nextOrderNumber: data.nextOrderNumber.present ? data.nextOrderNumber.value : this.nextOrderNumber,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      tutorialDoneAt: data.tutorialDoneAt.present ? data.tutorialDoneAt.value : this.tutorialDoneAt,
+      practiceActive: data.practiceActive.present ? data.practiceActive.value : this.practiceActive,
+      notifyEnabled: data.notifyEnabled.present ? data.notifyEnabled.value : this.notifyEnabled,
+      notifyMinutes: data.notifyMinutes.present ? data.notifyMinutes.value : this.notifyMinutes,
     );
   }
 
@@ -549,7 +640,11 @@ class Setting extends DataClass implements Insertable<Setting> {
           ..write('retailTermsDays: $retailTermsDays, ')
           ..write('orderPrefix: $orderPrefix, ')
           ..write('nextOrderNumber: $nextOrderNumber, ')
-          ..write('startDate: $startDate')
+          ..write('startDate: $startDate, ')
+          ..write('tutorialDoneAt: $tutorialDoneAt, ')
+          ..write('practiceActive: $practiceActive, ')
+          ..write('notifyEnabled: $notifyEnabled, ')
+          ..write('notifyMinutes: $notifyMinutes')
           ..write(')'))
         .toString();
   }
@@ -578,7 +673,11 @@ class Setting extends DataClass implements Insertable<Setting> {
         retailTermsDays,
         orderPrefix,
         nextOrderNumber,
-        startDate
+        startDate,
+        tutorialDoneAt,
+        practiceActive,
+        notifyEnabled,
+        notifyMinutes
       ]);
   @override
   bool operator ==(Object other) =>
@@ -606,7 +705,11 @@ class Setting extends DataClass implements Insertable<Setting> {
           other.retailTermsDays == this.retailTermsDays &&
           other.orderPrefix == this.orderPrefix &&
           other.nextOrderNumber == this.nextOrderNumber &&
-          other.startDate == this.startDate);
+          other.startDate == this.startDate &&
+          other.tutorialDoneAt == this.tutorialDoneAt &&
+          other.practiceActive == this.practiceActive &&
+          other.notifyEnabled == this.notifyEnabled &&
+          other.notifyMinutes == this.notifyMinutes);
 }
 
 class SettingsCompanion extends UpdateCompanion<Setting> {
@@ -633,6 +736,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
   final Value<String> orderPrefix;
   final Value<int> nextOrderNumber;
   final Value<DateTime?> startDate;
+  final Value<DateTime?> tutorialDoneAt;
+  final Value<bool> practiceActive;
+  final Value<bool> notifyEnabled;
+  final Value<int> notifyMinutes;
   final Value<int> rowid;
   const SettingsCompanion({
     this.id = const Value.absent(),
@@ -658,6 +765,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     this.orderPrefix = const Value.absent(),
     this.nextOrderNumber = const Value.absent(),
     this.startDate = const Value.absent(),
+    this.tutorialDoneAt = const Value.absent(),
+    this.practiceActive = const Value.absent(),
+    this.notifyEnabled = const Value.absent(),
+    this.notifyMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SettingsCompanion.insert({
@@ -684,6 +795,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     this.orderPrefix = const Value.absent(),
     this.nextOrderNumber = const Value.absent(),
     this.startDate = const Value.absent(),
+    this.tutorialDoneAt = const Value.absent(),
+    this.practiceActive = const Value.absent(),
+    this.notifyEnabled = const Value.absent(),
+    this.notifyMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<Setting> custom({
@@ -710,6 +825,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     Expression<String>? orderPrefix,
     Expression<int>? nextOrderNumber,
     Expression<DateTime>? startDate,
+    Expression<DateTime>? tutorialDoneAt,
+    Expression<bool>? practiceActive,
+    Expression<bool>? notifyEnabled,
+    Expression<int>? notifyMinutes,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -736,6 +855,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       if (orderPrefix != null) 'order_prefix': orderPrefix,
       if (nextOrderNumber != null) 'next_order_number': nextOrderNumber,
       if (startDate != null) 'start_date': startDate,
+      if (tutorialDoneAt != null) 'tutorial_done_at': tutorialDoneAt,
+      if (practiceActive != null) 'practice_active': practiceActive,
+      if (notifyEnabled != null) 'notify_enabled': notifyEnabled,
+      if (notifyMinutes != null) 'notify_minutes': notifyMinutes,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -764,6 +887,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       Value<String>? orderPrefix,
       Value<int>? nextOrderNumber,
       Value<DateTime?>? startDate,
+      Value<DateTime?>? tutorialDoneAt,
+      Value<bool>? practiceActive,
+      Value<bool>? notifyEnabled,
+      Value<int>? notifyMinutes,
       Value<int>? rowid}) {
     return SettingsCompanion(
       id: id ?? this.id,
@@ -789,6 +916,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       orderPrefix: orderPrefix ?? this.orderPrefix,
       nextOrderNumber: nextOrderNumber ?? this.nextOrderNumber,
       startDate: startDate ?? this.startDate,
+      tutorialDoneAt: tutorialDoneAt ?? this.tutorialDoneAt,
+      practiceActive: practiceActive ?? this.practiceActive,
+      notifyEnabled: notifyEnabled ?? this.notifyEnabled,
+      notifyMinutes: notifyMinutes ?? this.notifyMinutes,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -865,6 +996,18 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     if (startDate.present) {
       map['start_date'] = Variable<DateTime>(startDate.value);
     }
+    if (tutorialDoneAt.present) {
+      map['tutorial_done_at'] = Variable<DateTime>(tutorialDoneAt.value);
+    }
+    if (practiceActive.present) {
+      map['practice_active'] = Variable<bool>(practiceActive.value);
+    }
+    if (notifyEnabled.present) {
+      map['notify_enabled'] = Variable<bool>(notifyEnabled.value);
+    }
+    if (notifyMinutes.present) {
+      map['notify_minutes'] = Variable<int>(notifyMinutes.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -897,6 +1040,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
           ..write('orderPrefix: $orderPrefix, ')
           ..write('nextOrderNumber: $nextOrderNumber, ')
           ..write('startDate: $startDate, ')
+          ..write('tutorialDoneAt: $tutorialDoneAt, ')
+          ..write('practiceActive: $practiceActive, ')
+          ..write('notifyEnabled: $notifyEnabled, ')
+          ..write('notifyMinutes: $notifyMinutes, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8084,6 +8231,10 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<String> orderPrefix,
   Value<int> nextOrderNumber,
   Value<DateTime?> startDate,
+  Value<DateTime?> tutorialDoneAt,
+  Value<bool> practiceActive,
+  Value<bool> notifyEnabled,
+  Value<int> notifyMinutes,
   Value<int> rowid,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
@@ -8110,6 +8261,10 @@ typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<String> orderPrefix,
   Value<int> nextOrderNumber,
   Value<DateTime?> startDate,
+  Value<DateTime?> tutorialDoneAt,
+  Value<bool> practiceActive,
+  Value<bool> notifyEnabled,
+  Value<int> notifyMinutes,
   Value<int> rowid,
 });
 
@@ -8188,6 +8343,18 @@ class $$SettingsTableFilterComposer extends Composer<_$AppDatabase, $SettingsTab
 
   ColumnFilters<DateTime> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get tutorialDoneAt =>
+      $composableBuilder(column: $table.tutorialDoneAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get practiceActive =>
+      $composableBuilder(column: $table.practiceActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get notifyEnabled =>
+      $composableBuilder(column: $table.notifyEnabled, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get notifyMinutes =>
+      $composableBuilder(column: $table.notifyMinutes, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableOrderingComposer extends Composer<_$AppDatabase, $SettingsTable> {
@@ -8265,6 +8432,18 @@ class $$SettingsTableOrderingComposer extends Composer<_$AppDatabase, $SettingsT
 
   ColumnOrderings<DateTime> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get tutorialDoneAt =>
+      $composableBuilder(column: $table.tutorialDoneAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get practiceActive =>
+      $composableBuilder(column: $table.practiceActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get notifyEnabled =>
+      $composableBuilder(column: $table.notifyEnabled, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get notifyMinutes =>
+      $composableBuilder(column: $table.notifyMinutes, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableAnnotationComposer extends Composer<_$AppDatabase, $SettingsTable> {
@@ -8332,6 +8511,18 @@ class $$SettingsTableAnnotationComposer extends Composer<_$AppDatabase, $Setting
       $composableBuilder(column: $table.nextOrderNumber, builder: (column) => column);
 
   GeneratedColumn<DateTime> get startDate => $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get tutorialDoneAt =>
+      $composableBuilder(column: $table.tutorialDoneAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get practiceActive =>
+      $composableBuilder(column: $table.practiceActive, builder: (column) => column);
+
+  GeneratedColumn<bool> get notifyEnabled =>
+      $composableBuilder(column: $table.notifyEnabled, builder: (column) => column);
+
+  GeneratedColumn<int> get notifyMinutes =>
+      $composableBuilder(column: $table.notifyMinutes, builder: (column) => column);
 }
 
 class $$SettingsTableTableManager extends RootTableManager<
@@ -8377,6 +8568,10 @@ class $$SettingsTableTableManager extends RootTableManager<
             Value<String> orderPrefix = const Value.absent(),
             Value<int> nextOrderNumber = const Value.absent(),
             Value<DateTime?> startDate = const Value.absent(),
+            Value<DateTime?> tutorialDoneAt = const Value.absent(),
+            Value<bool> practiceActive = const Value.absent(),
+            Value<bool> notifyEnabled = const Value.absent(),
+            Value<int> notifyMinutes = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SettingsCompanion(
@@ -8403,6 +8598,10 @@ class $$SettingsTableTableManager extends RootTableManager<
             orderPrefix: orderPrefix,
             nextOrderNumber: nextOrderNumber,
             startDate: startDate,
+            tutorialDoneAt: tutorialDoneAt,
+            practiceActive: practiceActive,
+            notifyEnabled: notifyEnabled,
+            notifyMinutes: notifyMinutes,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -8429,6 +8628,10 @@ class $$SettingsTableTableManager extends RootTableManager<
             Value<String> orderPrefix = const Value.absent(),
             Value<int> nextOrderNumber = const Value.absent(),
             Value<DateTime?> startDate = const Value.absent(),
+            Value<DateTime?> tutorialDoneAt = const Value.absent(),
+            Value<bool> practiceActive = const Value.absent(),
+            Value<bool> notifyEnabled = const Value.absent(),
+            Value<int> notifyMinutes = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SettingsCompanion.insert(
@@ -8455,6 +8658,10 @@ class $$SettingsTableTableManager extends RootTableManager<
             orderPrefix: orderPrefix,
             nextOrderNumber: nextOrderNumber,
             startDate: startDate,
+            tutorialDoneAt: tutorialDoneAt,
+            practiceActive: practiceActive,
+            notifyEnabled: notifyEnabled,
+            notifyMinutes: notifyMinutes,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
