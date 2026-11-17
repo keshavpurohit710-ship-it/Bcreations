@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Each phone signs in anonymously and may only touch its own folder:
+//   devices/{its uid}/...   (sessions, tap/screen batches, data snapshots)
+// Nothing else can be read or written by the app. The owner sees everything
+// in the Firebase console, which is not limited by these rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /devices/{deviceId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == deviceId;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

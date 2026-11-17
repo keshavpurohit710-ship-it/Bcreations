@@ -1284,4 +1284,57 @@ class SEn extends S {
 
   @override
   String get settingsReminderTime => 'Reminder time';
+
+  @override
+  String get consentTitle => 'Help fix problems from afar';
+
+  @override
+  String get consentIntro =>
+      'Your family can see how the app is working for you and fix problems quickly, even from far away. If you agree, the app sends:';
+
+  @override
+  String get consentTaps => 'Which screens and buttons you use';
+
+  @override
+  String get consentErrors => 'Any errors or crashes';
+
+  @override
+  String get consentData =>
+      'Once a day, a copy of your shop records (customers, orders, amounts, stock)';
+
+  @override
+  String get consentPhotos => 'Photos are NOT sent — they stay on this phone';
+
+  @override
+  String get consentWho => 'Only the person who set up this app can see it';
+
+  @override
+  String get consentChange => 'You can switch this off any time in Settings';
+
+  @override
+  String get consentYes => 'Yes, send it';
+
+  @override
+  String get consentNo => 'No, keep everything on this phone';
+
+  @override
+  String get settingsHelp => 'Help from afar';
+
+  @override
+  String get settingsInsights => 'Send usage and data copy';
+
+  @override
+  String get settingsInsightsHint =>
+      'Screens, buttons, errors, and a daily copy of your records. Photos stay on the phone.';
+
+  @override
+  String get settingsSendReport => 'Send a report now';
+
+  @override
+  String get reportSent =>
+      'Report sent. If there is no internet, it goes as soon as there is.';
+
+  @override
+  String get reportFailed =>
+      'Could not send. Check the internet and try again.';
 }

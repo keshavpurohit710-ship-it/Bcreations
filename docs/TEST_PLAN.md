@@ -32,6 +32,9 @@ There are three layers:
 | P4 Best sellers | same file | By quantity vs by profit; cancelled orders and quotes never count |
 | **Everything at once** | `test/goals/money_audit_test.dart` | 10 random "lives" of the business, about 2,400 mixed actions over 4 months. Every month: profit bridge = real cash, every balance and stock level rebuilt from scratch matches, no payment used twice, no order over-paid |
 | P6 Easy start, P26 search | `test/goals/journeys_test.dart` | Taps through the real app: Start fresh → checklist; add an item with just name + quantity; receive a payment in one tap; an expense in two taps; a new order with the price filled in; search; every word exists in Hindi |
+| Start-up decisions and pricing model | `test/goals/requirements_test.dart` | Hindi + light theme + agreed pricing defaults; decimal quantities sold and costed exactly; delivery charge billed to the customer but not counted as item sales; retail/wholesale lists and the 30 % fallback; bulk breaks for wholesale only; cost per piece from batch time; suggested prices; price charged vs list price vs cost kept per line; line and order discounts with reason; sales channel; custom lines; UPI reference; promised vs payment-due dates; every table sync-ready; the real insights recorder keeps nothing until she agrees and never stores what she typed. **Agreed but not built yet** appear as skipped tests (supplier credit, PDF bill, Drive backup, "last charged" hint, supplier step in setup, phone contacts, repeat order, expense receipt photo) |
+| Screens, safety and help from afar | `test/goals/screens_and_insights_test.dart` | Brand-new phone opens in Hindi on light; every tab fits at 130 % text (Hindi and English); cancelling an order and "Delete all data" ask first; reset keeps language and consent; Undo bar leaves after 5 s and Undo really removes; Home cards open the right list / Money; consent screen readable in both languages; Settings switch and "Send a report now"; at most one data copy a day; leaving the app uploads, coming back is logged; tabs named and every tap tied to its screen; saves logged per shop (practice apart from real) |
+| Help from afar basics | `test/goals/insights_test.dart` | Upload batches ≤ 300; failed uploads retried; offline keeps newest 5,000; data copy has every table, split into parts, no image bytes; consent asked first, "No" records nothing, "Yes" turns everything on |
 | Screens don't break | `test/app_smoke_test.dart` | Every tab, detail screen and form opens with sample data in English and Hindi without layout errors |
 
 Run them all:
@@ -69,6 +72,16 @@ flutter install --release
 | R.3 | Give an order a **Deliver by** date of tomorrow | Tomorrow at the reminder time: "Deliver today: name · BC-xxxx" | |
 | R.4 | Restart the phone | Reminders still arrive | |
 | R.5 | Switch reminders off | No more reminders | |
+
+### B0c · Help from afar (see docs/INSIGHTS.md)
+| # | Do this | Expect | ✅ / note |
+|---|---|---|---|
+| I.1 | Fresh install, open the app | First screen: language switch + "Help fix problems from afar" | |
+| I.2 | Tap **Yes, send it**, use the app for 2 minutes, press Home | Firebase console → Firestore → `devices` shows this phone; `sessions/…/events` has screens and taps | |
+| I.3 | Within a few minutes of I.2 | `snapshots` has one entry with row counts | |
+| I.4 | Settings → Help from afar → **Send a report now** | "Report sent"; a new snapshot appears | |
+| I.5 | Switch it off, use the app | No new events arrive | |
+| I.6 | Install over the previous build (not fresh) | Data intact; asked once about help from afar | |
 
 For the rest, use **Settings → Learning → Practice shop with sample data** (two months of sample activity; your real shop is untouched).
 
@@ -196,5 +209,10 @@ After automatic backup is ready, she uses the app **and** her notebook for two w
 | P19 | Runs out mid-order | p2_stock_and_pricing | B3.2–3.3 | — |
 | P22 | Material prices rise | p2_stock_and_pricing | B4.4 | — |
 | P26 | Records hard to find | journeys | B6.5 | 10 |
+| — | Decisions: Hindi, large text, light theme | requirements, screens_and_insights | B6 | whole session |
+| — | Decisions: decimals, delivery billed, pricing B + C + D + custom | requirements | B4 | 5 |
+| — | Help from afar (consent, taps, crashes, daily copy) | insights, screens_and_insights, requirements | B0c | — |
+
+**Known differences from the plan:** pricing uses the cost of the **latest batch**, not a running average across batches (the plan said average). It follows today's material prices, which is usually what she wants when pricing. Change it if you prefer the average. The Firestore security rules are deployed but have no automated test; use checklist I.2–I.5.
 
 Release 2 problems (returns, consignment, karigars, catalogue, PDF bills, production planner, slow stock) get tests here when they are built.

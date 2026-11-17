@@ -2377,6 +2377,102 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Reminder time'**
   String get settingsReminderTime;
+
+  /// No description provided for @consentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help fix problems from afar'**
+  String get consentTitle;
+
+  /// No description provided for @consentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family can see how the app is working for you and fix problems quickly, even from far away. If you agree, the app sends:'**
+  String get consentIntro;
+
+  /// No description provided for @consentTaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Which screens and buttons you use'**
+  String get consentTaps;
+
+  /// No description provided for @consentErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Any errors or crashes'**
+  String get consentErrors;
+
+  /// No description provided for @consentData.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day, a copy of your shop records (customers, orders, amounts, stock)'**
+  String get consentData;
+
+  /// No description provided for @consentPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos are NOT sent — they stay on this phone'**
+  String get consentPhotos;
+
+  /// No description provided for @consentWho.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the person who set up this app can see it'**
+  String get consentWho;
+
+  /// No description provided for @consentChange.
+  ///
+  /// In en, this message translates to:
+  /// **'You can switch this off any time in Settings'**
+  String get consentChange;
+
+  /// No description provided for @consentYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, send it'**
+  String get consentYes;
+
+  /// No description provided for @consentNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No, keep everything on this phone'**
+  String get consentNo;
+
+  /// No description provided for @settingsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help from afar'**
+  String get settingsHelp;
+
+  /// No description provided for @settingsInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Send usage and data copy'**
+  String get settingsInsights;
+
+  /// No description provided for @settingsInsightsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Screens, buttons, errors, and a daily copy of your records. Photos stay on the phone.'**
+  String get settingsInsightsHint;
+
+  /// No description provided for @settingsSendReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a report now'**
+  String get settingsSendReport;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. If there is no internet, it goes as soon as there is.'**
+  String get reportSent;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send. Check the internet and try again.'**
+  String get reportFailed;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

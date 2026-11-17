@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1045526313923",
+    "project_id": "bcreations-app-kp-b9aaf",
+    "storage_bucket": "bcreations-app-kp-b9aaf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1045526313923:android:f35cadf29606aeb3839b76",
+        "android_client_info": {
+          "package_name": "com.bcreations.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3Knh8YewEb-QSuDk0sEtVBEjqLOeK1J4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -734,5 +734,21 @@
   "settingsRestartTutorial": "Start the tutorial again",
   "settingsReminders": "Reminders",
   "settingsRemindersOn": "Daily reminder on the phone",
-  "settingsReminderTime": "Reminder time"
+  "settingsReminderTime": "Reminder time",
+  "consentTitle": "Help fix problems from afar",
+  "consentIntro": "Your family can see how the app is working for you and fix problems quickly, even from far away. If you agree, the app sends:",
+  "consentTaps": "Which screens and buttons you use",
+  "consentErrors": "Any errors or crashes",
+  "consentData": "Once a day, a copy of your shop records (customers, orders, amounts, stock)",
+  "consentPhotos": "Photos are NOT sent — they stay on this phone",
+  "consentWho": "Only the person who set up this app can see it",
+  "consentChange": "You can switch this off any time in Settings",
+  "consentYes": "Yes, send it",
+  "consentNo": "No, keep everything on this phone",
+  "settingsHelp": "Help from afar",
+  "settingsInsights": "Send usage and data copy",
+  "settingsInsightsHint": "Screens, buttons, errors, and a daily copy of your records. Photos stay on the phone.",
+  "settingsSendReport": "Send a report now",
+  "reportSent": "Report sent. If there is no internet, it goes as soon as there is.",
+  "reportFailed": "Could not send. Check the internet and try again."
 }
