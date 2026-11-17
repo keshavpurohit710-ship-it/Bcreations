@@ -22,8 +22,8 @@ class ScreenTracker extends NavigatorObserver {
   ScreenTracker(this._onScreen);
   final void Function(String name) _onScreen;
   final _stack = <Route<dynamic>>[];
-  String tabName = 'Home';
-  String current = 'Home';
+  String tabName = 'tab:Home';
+  String current = 'tab:Home';
 
   static const _tabs = ['Home', 'Orders', 'Customers', 'Items', 'Money'];
 

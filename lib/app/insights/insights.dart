@@ -69,6 +69,31 @@ abstract class Insights {
   Future<bool> sendSnapshot({required String reason});
 }
 
+/// Turns what happens in the app into events — only while [enabled].
+/// Shared by the Firebase version and the test fake, so the rules are tested once.
+mixin InsightRecorder implements Insights {
+  InsightBuffer get buffer;
+
+  void record(InsightEvent e) {
+    if (enabled) buffer.add(e);
+  }
+
+  @override
+  void screen(String name) => record(InsightEvent('screen', name));
+
+  /// Position is stored as whole percent of the screen (no exact pixels).
+  @override
+  void tap(String screen, double xFraction, double yFraction) => record(InsightEvent('tap', 'tap',
+      screen: screen,
+      data: {'x': (xFraction.clamp(0, 1) * 100).round(), 'y': (yFraction.clamp(0, 1) * 100).round()}));
+
+  @override
+  void save(String table, String kind) => record(InsightEvent('save', table, data: {'kind': kind}));
+
+  @override
+  void event(String name, [Map<String, Object?> data = const {}]) => record(InsightEvent('event', name, data: data));
+}
+
 class NoInsights implements Insights {
   @override
   bool get enabled => false;

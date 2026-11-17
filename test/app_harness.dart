@@ -23,32 +23,30 @@ class FakeScheduler implements ReminderScheduler {
 }
 
 /// Records what the app would send, instead of sending it.
-class FakeInsights implements Insights {
-  final events = <InsightEvent>[];
+class FakeInsights with InsightRecorder {
+  @override
+  final buffer = InsightBuffer(maxKept: 100000);
   final snapshots = <String>[];
+  int flushes = 0;
   @override
   bool enabled = false;
+
+  /// Everything recorded so far (the fake never uploads, so nothing is drained).
+  List<InsightEvent> get events => [for (final b in _peek()) ...b];
+  List<List<InsightEvent>> _peek() {
+    final batches = buffer.drain();
+    buffer.restore([for (final b in batches) ...b]);
+    return batches;
+  }
 
   Iterable<String> get screens => events.where((e) => e.kind == 'screen').map((e) => e.name);
   Iterable<InsightEvent> get taps => events.where((e) => e.kind == 'tap');
   Iterable<String> get saves => events.where((e) => e.kind == 'save').map((e) => e.name);
 
-  void _add(InsightEvent e) {
-    if (enabled) events.add(e);
-  }
-
   @override
   Future<void> setEnabled(bool on) async => enabled = on;
   @override
-  void screen(String name) => _add(InsightEvent('screen', name));
-  @override
-  void tap(String screen, double x, double y) => _add(InsightEvent('tap', 'tap', screen: screen, data: {'x': x, 'y': y}));
-  @override
-  void save(String table, String kind) => _add(InsightEvent('save', table, data: {'kind': kind}));
-  @override
-  void event(String name, [Map<String, Object?> data = const {}]) => _add(InsightEvent('event', name, data: data));
-  @override
-  Future<void> flush() async {}
+  Future<void> flush() async => flushes++;
   @override
   Future<bool> sendSnapshot({required String reason}) async {
     if (!enabled) return false;

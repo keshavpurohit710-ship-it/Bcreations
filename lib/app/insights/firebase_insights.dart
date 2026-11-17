@@ -23,12 +23,13 @@ import 'snapshot.dart';
 
 const appVersion = '1.0.0';
 
-class FirebaseInsights implements Insights {
+class FirebaseInsights with InsightRecorder {
   FirebaseInsights._(this._shops);
 
   /// The real and practice databases (read for snapshots).
   final Map<String, AppDatabase Function()> _shops;
-  final _buffer = InsightBuffer();
+  @override
+  final buffer = InsightBuffer();
   final _sessionId = DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
   bool _enabled = false;
   bool _sessionWritten = false;
@@ -83,29 +84,12 @@ class FirebaseInsights implements Insights {
   DocumentReference<Map<String, dynamic>> _device(String uid) =>
       FirebaseFirestore.instance.collection('devices').doc(uid);
 
-  void _add(InsightEvent e) {
-    if (_enabled) _buffer.add(e);
-  }
-
-  @override
-  void screen(String name) => _add(InsightEvent('screen', name));
-
-  @override
-  void tap(String screen, double xFraction, double yFraction) => _add(InsightEvent('tap', 'tap',
-      screen: screen, data: {'x': (xFraction * 100).round(), 'y': (yFraction * 100).round()}));
-
-  @override
-  void save(String table, String kind) => _add(InsightEvent('save', table, data: {'kind': kind}));
-
-  @override
-  void event(String name, [Map<String, Object?> data = const {}]) => _add(InsightEvent('event', name, data: data));
-
   @override
   Future<void> flush() async {
-    if (!_enabled || _buffer.length == 0) return;
+    if (!_enabled || buffer.length == 0) return;
     final uid = await _deviceId();
     if (uid == null) return; // offline before first sign-in; keep buffering
-    final batches = _buffer.drain();
+    final batches = buffer.drain();
     try {
       final device = _device(uid);
       final session = device.collection('sessions').doc(_sessionId);
@@ -130,7 +114,7 @@ class FirebaseInsights implements Insights {
       }
     } catch (e) {
       debugPrint('Insights upload failed (will retry): $e');
-      _buffer.restore([for (final b in batches) ...b]);
+      buffer.restore([for (final b in batches) ...b]);
     }
   }
 
